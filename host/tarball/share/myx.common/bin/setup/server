@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -e
+
+. "${0%/*}/../../include/subr.sh"
+
+UserRequireRoot
+
+InternReplaceLine /boot/loader.conf '^autoboot_delay=*' 'autoboot_delay="2"'
+
+InternReplaceLine /etc/sysctl.conf '^kern.ipc.soacceptqueue=*' 'kern.ipc.soacceptqueue=1024'
+InternReplaceLine /etc/sysctl.conf '^net.inet.tcp.msl=*' 'net.inet.tcp.msl=10000'
+InternReplaceLine /etc/sysctl.conf '^kern.maxfiles=*' 'kern.maxfiles=999999'
+
+# extra software
+pkg install -y 'sudo' 'nano' 'curl' 'wget' 'rsync' 'screen'
+
+
+# rc.conf
+sysrc \
+	sshd_enable=YES \
+	moused_enable=YES \
+	ntpd_enable=YES \
+	powerd_enable=YES \
+	ntpdate_enable=YES \
+	fsck_y_enable=YES
+
+# update NTP date NOW!
+ntpdate -u -b pool.ntp.org || true
+

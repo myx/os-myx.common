@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -e
+
+. ${0%/*}/../../include/subr.sh
+
+InstallUserGroupMembership(){
+	local NAME="$1" GROUP="$2"
+	
+	pwd_mkdb /etc/master.passwd
+
+	pw groupshow "$GROUP" || pw groupadd -n "$GROUP"
+	
+	pw groupmod "$GROUP" -m "$NAME"
+
+	pwd_mkdb /etc/master.passwd
+}
+
+
+NAME="$1"
+GROUP="$2"
+
+[ -z "$NAME" ] && echo "username is required!" && exit 1
+[ -z "$GROUP" ] && echo "groupname is taken from username ($NAME)!" && GROUP="$NAME"
+
+InstallUserGroupMembership "$NAME" "$GROUP"

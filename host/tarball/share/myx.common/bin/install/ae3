@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+. ${0%/*}/../../include/subr.sh
+
+UserRequireRoot
+
+pkg_add -f http://myx.ru/distro/ae3/ae3.tbz

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -e
+
+. ${0%/*}/../../include/subr.sh
+
+InstallAutorizedKey(){
+	local NAME="$1" KEY="$2"
+	local KEYS="/home/$NAME/.ssh/authorized_keys"
+	
+	touch "$KEYS"
+	
+	InternReplaceLine "$KEYS" "$KEY" "$KEY"
+	
+	chown $NAME:$NAME "$KEYS"
+	chmod 700 "$KEYS"
+}
+
+
+NAME="$1"
+KEY="$2"
+
+[ -z "$NAME" ] && echo "username is required!" && exit 1
+[ -z "$KEY" ] && echo "key is required!" && exit 2
+
+InstallAutorizedKey "$NAME" "$KEY"

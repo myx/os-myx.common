@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -e
+
+. ${0%/*}/../../include/subr.sh
+
+InstallWheelUser(){
+	local NAME="$1" TITLE="$2"
+
+	myx.common lib/installUser "$NAME" "$TITLE"
+	myx.common lib/installUserGroupMembership "$NAME" "wheel"
+}
+
+
+NAME="$1"
+TITLE="$2"
+
+[ -z "$NAME" ] && echo "username is required!" && exit 1
+[ -z "$TITLE" ] && echo "usertitle is taken from name ($NAME)!" && TITLE="$NAME"
+
+InstallWheelUser "$NAME" "$TITLE"

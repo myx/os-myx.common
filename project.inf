@@ -1,0 +1,11 @@
+Name: myx.os-common
+Requires: java os.freebsd:install
+Provides:	myx.os-common \
+			freebsd-installer.sh:build.freebsd-installer \
+			ubuntu-installer.sh:build.ubuntu-installer \
+			
+Installs:
+Compiles: 
+Augments: 
+Suggests: 
+Declares: 
