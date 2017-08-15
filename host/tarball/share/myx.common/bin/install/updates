@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 $(test `id -u` = 0) || { echo 'Must be run under "root" user!'; exit 1; }
 
 PAGER=cat freebsd-update fetch install
