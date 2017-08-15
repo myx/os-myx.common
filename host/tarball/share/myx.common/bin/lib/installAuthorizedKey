@@ -7,6 +7,7 @@ set -e
 InstallAutorizedKey(){
 	local NAME="$1" KEY="$2"
 	local KEYS="/home/$NAME/.ssh/authorized_keys"
+	# local KEYS="/usr/home/$NAME/.ssh/authorized_keys"
 	
 	touch "$KEYS"
 	
