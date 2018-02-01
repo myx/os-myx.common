@@ -4,9 +4,9 @@ set -e
 
 . ${0%/*}/../../include/subr.sh
 
-InstallAutorizedKey(){
-	local NAME="$1" KEY="$2"
-	local HOME="/home/$NAME"
+InstallRootAutorizedKey(){
+	local KEY="$1"
+	local HOME="/root"
 	local KEYS="$HOME/.ssh/authorized_keys"
 	
 	mkdir -p "$HOME/.ssh"
@@ -14,15 +14,13 @@ InstallAutorizedKey(){
 	
 	InternReplaceLine "$KEYS" "$KEY" "$KEY"
 	
-	chown $NAME:$NAME "$KEYS"
+	chown root:wheel "$KEYS"
 	chmod 600 "$KEYS"
 }
 
 
-NAME="$1"
-KEY="$2"
+KEY="$1"
 
-[ -z "$NAME" ] && echo "username is required!" && exit 1
 [ -z "$KEY" ] && echo "key is required!" && exit 2
 
-InstallAutorizedKey "$NAME" "$KEY"
+InstallRootAutorizedKey "$KEY"
