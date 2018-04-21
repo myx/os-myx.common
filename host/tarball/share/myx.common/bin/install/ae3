@@ -6,4 +6,4 @@ set -e
 
 UserRequireRoot
 
-pkg_add -f http://myx.ru/distro/ae3/ae3.tbz
+fetch http://myx.ru/distro/ae3/unix-shell/install-bsd.sh -o - | sh -e
