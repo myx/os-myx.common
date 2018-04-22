@@ -10,7 +10,7 @@
 #
 
 
-echo 'MYX BSD Installer started...'
+echo 'myx.common BSD Installer started...'
 
 #
 # Check user
