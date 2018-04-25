@@ -3,7 +3,6 @@
 set -e
 
 . ${0%/*}/../../include/subr.sh
-
 UserRequireRoot
 
 echo "Not yet!"

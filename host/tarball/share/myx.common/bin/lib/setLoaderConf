@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -e
+
+# copied from ../../include/subr.sh
+
+PARAM="$1"
+VALUE="$2"
+
+myx.common lib/replaceLine /boot/loader.conf "^$PARAM=*" "$PARAM=$VALUE"

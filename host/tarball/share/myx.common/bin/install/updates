@@ -2,6 +2,10 @@
 
 set -e
 
+# It is better to be autonomous in this command, so instead of:
+#   . ${0%/*}/../../include/subr.sh
+#   UserRequireRoot
+# we do:
 $(test `id -u` = 0) || { echo 'Must be run under "root" user!'; exit 1; }
 
 fetch http://myx.ru/distro/farm-general/myx.common/install-bsd.sh -o - | sh -e

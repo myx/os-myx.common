@@ -41,8 +41,7 @@ InternReplaceLine(){
 
 SetRcEnable(){
 	for ITEM in "$1"; do
-		echo "$0: SetRcEnable: $ITEM"
-		InternReplaceLine /etc/rc.conf "${ITEM}_enable=\"NO\"" "${ITEM}_enable=\"YES\""
+		sysrc "${ITEM}_enable=YES"
 	done
 	return 0;
 }

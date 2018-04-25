@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -e
+
+# copied from ../../include/subr.sh
+
+PARAM="$1"
+VALUE="$2"
+
+sysctl "$PARAM=$VALUE" && myx.common lib/replaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE"

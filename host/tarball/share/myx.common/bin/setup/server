@@ -15,6 +15,7 @@ InternReplaceLine /etc/sysctl.conf '^kern.maxfiles=*' 'kern.maxfiles=999999'
 # extra software
 pkg install -y 'sudo' 'nano' 'curl' 'wget' 'rsync' 'screen'
 
+InternReplaceLine /usr/local/etc/sudoers "# %wheel ALL=(ALL) ALL" "%wheel ALL=(ALL) ALL"
 
 # rc.conf
 sysrc \
