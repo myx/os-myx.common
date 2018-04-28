@@ -17,8 +17,10 @@ UserIsRoot(){
 # Require 'root' user
 #
 UserRequireRoot(){
-	UserIsRoot || { echo 'Must be run under "root" user!'; exit 1; }
+	UserIsRoot || { echo '$1: Must be run under "root" user!'; exit 1; }
 }
+
+
 
 #
 #	file from to
@@ -39,8 +41,87 @@ InternReplaceLine(){
 }
 
 
+
+InstallUserGroupMembership(){
+	UserRequireRoot "InstallUserGroupMembership"
+
+	local NAME="$1" GROUP="$2"
+
+	[ -z "$NAME" ] && echo "InstallUserGroupMembership: username is required!" && exit 1
+	[ -z "$GROUP" ] && echo "InstallUserGroupMembership: groupname is taken from username ($NAME)!" && GROUP="$NAME"
+	
+	pwd_mkdb /etc/master.passwd
+
+	pw groupshow "$GROUP" || pw groupadd -n "$GROUP"
+	
+	pw groupmod "$GROUP" -m "$NAME"
+
+	pwd_mkdb /etc/master.passwd
+}
+
+
+
+InstallUser(){
+	UserRequireRoot "InstallUser"
+
+	local NAME="$1" TITLE="$2" 
+	local UGID="$3" HOME="${4:-/home/$NAME/}"
+	
+	[ -z "$NAME" ] && echo "InstallUser: username is required!" && exit 1
+	[ -z "$TITLE" ] && echo "InstallUser: usertitle is taken from name ($NAME)!" && TITLE="$NAME"
+
+	pwd_mkdb /etc/master.passwd
+
+	if ! pw groupshow "$NAME" >/dev/null 2>&1; then \
+		echo "Creating group '$NAME'."
+		pw groupadd -n "$NAME" $(if ! [ -z "$UGID" ] ; then echo "-g $UGID" ; fi)
+		pwd_mkdb /etc/master.passwd
+	 else \
+	 	echo "Using existing group '$NAME'."
+	fi
+
+	mkdir -p "$HOME"
+	# install -d -g 177 -o 177 "$HOME"
+
+	if pw usershow "$NAME" > /dev/null 2>&1; then
+		echo "Using existing user '$NAME'."
+		pw usermod "$NAME" -g "$NAME" -c "$TITLE" -d "$HOME" -s /bin/sh
+	else 
+		echo "Creating user '$NAME'."
+		pw useradd "$NAME" -g "$NAME" $(if ! [ -z "$UGID" ] ; then echo "-u $UGID" ; fi) -c "$TITLE" -d "$HOME" -s /bin/sh
+	fi
+	
+	pw groupmod "$NAME" -m "$NAME"
+	pwd_mkdb /etc/master.passwd
+	
+	chown $NAME:$NAME "$HOME/"
+	chmod 700 "$HOME/"
+
+	mkdir -p "$HOME/.ssh"
+	chown $NAME:$NAME "$HOME/.ssh"
+	chmod 700 "$HOME/.ssh"
+}
+
+
+
+InstallWheelUser(){
+	UserRequireRoot "InstallWheelUser"
+
+	local NAME="$1" TITLE="$2"
+
+	[ -z "$NAME" ] && echo "InstallWheelUser: username is required!" && exit 1
+	[ -z "$TITLE" ] && echo "InstallWheelUser: usertitle is taken from name ($NAME)!" && TITLE="$NAME"
+	
+	InstallUser "$NAME" "$TITLE"
+	InstallUserGroupMembership "$NAME" "wheel"
+}
+
+
+
+
 SetRcEnable(){
 	for ITEM in "$1"; do
+		echo "$0: SetRcEnable: $ITEM"
 		sysrc "${ITEM}_enable=YES"
 	done
 	return 0;
