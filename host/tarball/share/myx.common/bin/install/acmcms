@@ -21,8 +21,8 @@ fetch http://myx.ru/distro/farm-general/myx.common/install-bsd.sh -o - | sh -e
 myx.common lib/replaceLine /usr/local/etc/sudoers "# %wheel ALL=(ALL) ALL" "%wheel ALL=(ALL) ALL"
 
 
-ACMBSDPATH=/usr/local/acmbsd
-SCRIPTNAME=acmbsd
+# ACMBSDPATH=/usr/local/acmbsd
+# SCRIPTNAME=acmbsd
 
 myx.common lib/installUser acmbsd "ACMBSD pseudo-user" 191 "/usr/local/acmbsd"
 
