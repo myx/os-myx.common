@@ -8,6 +8,9 @@ UserRequireRoot
 
 sysrc postfix_enable="YES"
 sysrc sendmail_enable="NONE"
+sysrc sendmail_submit_enable="NO"
+sysrc sendmail_outbound_enable="NO"
+sysrc sendmail_msp_queue_enable="NO"
 sysrc sshd_enable="YES"
 sysrc fsck_y_enable="YES"
 sysrc named_enable="YES"

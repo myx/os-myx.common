@@ -9,5 +9,6 @@ set -e
 $(test `id -u` = 0) || { echo 'Must be run under "root" user!'; exit 1; }
 
 fetch http://myx.ru/distro/farm-general/myx.common/install-bsd.sh -o - | sh -e
+ 
 PAGER=cat freebsd-update fetch install || PAGER=cat freebsd-update install || true
 pkg upgrade -y || true

@@ -5,39 +5,4 @@ set -e
 
 . ${0%/*}/../../include/subr.sh
 
-InstallUser(){
-	local NAME="$1" TITLE="$2"
-	
-	pwd_mkdb /etc/master.passwd
-
-	pw groupshow "$NAME" || pw groupadd -n "$NAME"
-	mkdir -p "/home/$NAME"
-	
-	if /usr/sbin/pw usershow "$NAME" > /dev/null 2>&1; then
-		echo "Using existing user '$NAME'."
-		/usr/sbin/pw usermod "$NAME" -g "$NAME" -c "$TITLE" -d /home/"$NAME" -s /bin/sh
-	else 
-		echo "Creating user '$NAME'."
-		/usr/sbin/pw useradd "$NAME" -g "$NAME" -c "$TITLE" -d /home/"$NAME" -s /bin/sh
-	fi
-	
-	pw groupmod "$NAME" -m "$NAME"
-
-	pwd_mkdb /etc/master.passwd
-	
-	chown $NAME:$NAME "/home/$NAME/"
-	chmod 700 "/home/$NAME/"
-
-	mkdir -p "/home/$NAME/.ssh"
-	chown $NAME:$NAME "/home/$NAME/.ssh"
-	chmod 700 "/home/$NAME/.ssh"
-}
-
-
-NAME="$1"
-TITLE="$2"
-
-[ -z "$NAME" ] && echo "username is required!" && exit 1
-[ -z "$TITLE" ] && echo "usertitle is taken from name ($NAME)!" && TITLE="$NAME"
-
-InstallUser "$NAME" "$TITLE"
+InstallUser "$1" "$2" "$3" "$4"
