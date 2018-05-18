@@ -2,8 +2,15 @@
 
 #
 # Run this script by typing in shell under the root account:
-#	curl https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh -o - | sh -e
+#	1) curl https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh -o - | sh -e
 #
+# OR
+#
+#	2) To execute this as a script, run:
+#		sh -c 'eval "`cat`"'
+#	on the target machine under the 'root' user, paste whole text from this file, then press CTRL+D.
+#
+
 
 UNAME_S="`uname -s`"
 
@@ -13,8 +20,7 @@ case "$UNAME_S" in
             ;;
          
         FreeBSD)
-            fetch http://myx.ru/distro/farm-general/myx.common/install-bsd.sh -o - | sh -e
-			# fetch https://raw.githubusercontent.com/myx/os-myx.common-freebsd/master/sh-scripts/install-myx.common-freebsd.sh -o - | sh -e
+			fetch https://raw.githubusercontent.com/myx/os-myx.common-freebsd/master/sh-scripts/install-myx.common-freebsd.sh -o - | sh -e
             ;;
          
         Linux)
