@@ -2,7 +2,7 @@
 
 #
 # Run this script by typing in shell under the root account:
-#	1) curl https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh -o - | sh -e
+#	1) curl https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e
 #
 # OR
 #
