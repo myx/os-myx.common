@@ -2,7 +2,7 @@
 
 #
 # Run this script by typing in shell under the root account:
-#	1) curl https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e
+#	1) curl -L https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e
 #
 # OR
 #
@@ -16,7 +16,7 @@ UNAME_S="`uname -s`"
 
 case "$UNAME_S" in
         Darwin)
-			curl https://raw.githubusercontent.com/myx/os-myx.common-macosx/master/sh-scripts/install-myx.common-macosx.sh --silent | sh -e
+			curl -L https://raw.githubusercontent.com/myx/os-myx.common-macosx/master/sh-scripts/install-myx.common-macosx.sh --silent | sh -e
             ;;
          
         FreeBSD)
@@ -24,7 +24,7 @@ case "$UNAME_S" in
             ;;
          
         Linux)
-			curl https://raw.githubusercontent.com/myx/os-myx.common-ubuntu/master/sh-scripts/install-myx.common-ubuntu.sh --silent | sh -e
+			curl -L https://raw.githubusercontent.com/myx/os-myx.common-ubuntu/master/sh-scripts/install-myx.common-ubuntu.sh --silent | sh -e
             ;;
          
         *)

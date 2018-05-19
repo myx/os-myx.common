@@ -2,7 +2,7 @@
 
 Install:
 
-`curl https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e`
+`curl -L https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e`
 
 or
 
