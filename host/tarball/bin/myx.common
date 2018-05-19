@@ -1,0 +1,34 @@
+#!/bin/sh -e
+#
+# Base command. Accessible from normal shell's PATH. Lists and runs all available commands
+#
+# This script is universal for FreeBSD, Darwin, Ubuntu.
+#
+
+COMMAND="$1"
+
+PrintDefault(){
+	echo 'myx.common script'
+	echo '  Try running "myx.common help".'
+}
+
+if [ ! $COMMAND ]; then
+	PrintDefault
+	exit 1
+fi
+
+if [ ! -x "/usr/local/share/myx.common/bin/$COMMAND" ]; then
+	# Get into bash
+	test -n "$BASH_VERSION" || exec bash -e "$0" "$@"
+	. "/usr/local/share/myx.common/include/subr.sh"
+	
+	# UserRequireOperator
+	
+	PrintDefault
+	echo "  ERROR: Unknown command: $COMMAND"
+	exit 1
+fi
+
+shift
+
+"/usr/local/share/myx.common/bin/$COMMAND" "$@"

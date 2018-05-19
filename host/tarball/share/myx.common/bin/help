@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# This script is universal for FreeBSD, Darwin, Ubuntu.
+
+set -e
+
+echo "'myx.common' script commands:"
+
+for ITEM in $(find "/usr/local/share/myx.common/bin" -type f | sed "s,/usr/local/share/myx.common/bin/,,g" | sort); do
+	echo "  $ITEM"
+done
+

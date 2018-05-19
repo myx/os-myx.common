@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# This script is universal for FreeBSD, Darwin, Ubuntu.
+
+set -e
+#set -x
+
+. ${0%/*}/../../include/out.sh
+
+CMD="$1"
+
+if [ -z "$CMD" ] ; then \
+	echo "lib/out [status] [green] msg...
+	exit 1
+fi
+
+shift
+
+out "$CMD" "$@"
