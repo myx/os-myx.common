@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-set -e
-
-. ${0%/*}/../../include/subr.sh
-
-InstallWheelUser "$1" "$2"

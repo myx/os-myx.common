@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-ipfw delete 1
-ipfw add 1 set 31 allow tcp from any to me dst-port 22,53,80,443
-ipfw add 1 set 31 allow udp from any to me dst-port 53

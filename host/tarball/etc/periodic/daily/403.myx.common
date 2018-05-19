@@ -1,9 +1,0 @@
-#!/bin/sh
-#
-# Written by Palle Girgensohn <girgen@pingpong.net>
-#
-# In public domain, do what you like with it,
-# and use it at your own risk... :)
-#
-
-echo "myx.common daily"
