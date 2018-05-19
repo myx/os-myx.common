@@ -28,7 +28,7 @@ case "$UNAME_S" in
             ;;
          
         *)
-            echo $"Unknown OS: $0 $UNAME_S {Darwin/FreeBSD/Linux expected}" >&2
+            echo "Unknown OS: $0 $UNAME_S {Darwin/FreeBSD/Linux expected}" >&2
             exit 1
  
 esac
