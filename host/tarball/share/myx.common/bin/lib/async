@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# This script is universal for FreeBSD, Darwin, Ubuntu.
+
+########### 
+# Original location: myx.common/bin/lib/async
+#
+async(){
+	case "$1" in
+			"")
+				echo "async: prefix text argument is required!" >&2 ; exit 1
+				;;
+	        -1)
+				local PREFTEXT="`basename $2`"
+	            ;;
+	        -2)
+				local PREFTEXT="`basename $3`"
+	            ;;
+	        -3)
+				local PREFTEXT="`basename $4`"
+	            ;;
+	        *)
+				local PREFTEXT="$1"
+	esac
+	shift
+	
+    echo "$PREFTEXT: starting async..."
+    echo "" | $@ 2>&1 | sed -e "s/^/$PREFTEXT: /" & # parallel
+}
+
+
+if [ "async" = "`basename $0`" ] ; then
+	if [ -z "$1" ] ; then
+		echo "Syntax: myx.common lib/async [-1|-2|-3|<prefix-text>] command [... arguments]" >&2
+		echo "    when -1, -2 or -3 is used in place of 'prefix text' argument" >$2
+		echo "    the corresponding following argument of the command is used." >$2
+		exit 1
+	fi
+	set -e
+	async $@
+fi
