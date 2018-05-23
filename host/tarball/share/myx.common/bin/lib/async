@@ -2,7 +2,7 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
-async(){
+Async(){
 	case "$1" in
 			"")
 				echo "async: prefix text argument is required!" >&2 ; exit 1
@@ -22,17 +22,20 @@ async(){
 	shift
 	
     echo "$PREFTEXT: starting async..."
-    echo "" | $@ 2>&1 | sed -e "s/^/$PREFTEXT: /" & # parallel
+    echo "" | $@ 2>&1 | sed -e "s/^/$PREFTEXT: /" & # parallel \
+    	&& echo "$PREFTEXT: successfully finished."\
+    	|| echo "$PREFTEXT: ERROR: exited with error status."
 }
 
-
-if [ "async" = "`basename $0`" ] ; then
-	if [ -z "$1" ] ; then
-		echo "Syntax: myx.common lib/async [-1|-2|-3|<prefix-text>] command [... arguments]" >&2
-		echo "    when -1, -2 or -3 is used in place of 'prefix text' argument" >$2
-		echo "    the corresponding following argument of the command is used." >$2
-		exit 1
-	fi
-	set -e
-	async $@
-fi
+case "$0" in
+	*/myx.common/bin/lib/async) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/async [-1|-2|-3|<prefix-text>] command [... arguments]" >&2
+			echo "    when -1, -2 or -3 is used in place of 'prefix text' argument" >$2
+			echo "    the corresponding following argument of the command is used." >$2
+			exit 1
+		fi
+		set -e
+		Async $@
+	;;
+esac

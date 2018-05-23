@@ -2,13 +2,6 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
-set -e
-
-#	AFILE="$1"
-#	AFROM="$2"
-#	AWITH="$3"
-
-
 # >>>                              <<<
 # >>>>>       COPIED  FROM       <<<<<
 # >>>                              <<<
@@ -31,9 +24,13 @@ ReplaceLine(){
 	return 0;
 }
 
-
 case "$0" in
 	*/myx.common/bin/lib/replaceLine) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/replaceLine file from-regexp to-value" >&2
+			exit 1
+		fi
+		set -e
 		ReplaceLine $@
 	;;
 esac

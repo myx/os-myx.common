@@ -3,9 +3,6 @@
 ##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
 ##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-set -e
-#set -x
-
 FetchStdout(){
 
 	local URL="$1"
@@ -21,6 +18,11 @@ FetchStdout(){
 
 case "$0" in
 	*/myx.common/bin/lib/fetchStdout) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/fetchStdout URL" >&2
+			exit 1
+		fi
+		set -e
 		FetchStdout $@
 	;;
 esac

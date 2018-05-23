@@ -1,23 +1,23 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # This script is universal for FreeBSD, Darwin, Ubuntu.
 
-Help(){
-	echo "'myx.common' script commands:"
-	
-	for ITEM in $(find "/usr/local/share/myx.common/bin" -type f | sed "s,/usr/local/share/myx.common/bin/,,g" | sort); do
-		echo "  $ITEM"
-	done
+Which(){
+	local COMMAND="$1"
+	[ -z "$COMMAND" ] && echo "Which: COMMAND argument is required!" && exit 1
+	local CHECK="/usr/local/share/myx.common/bin/$COMMAND"
+	[ -f "$CHECK" ] && echo "$CHECK" && return 0
+	return 1
 }
 
 case "$0" in
-	*/myx.common/bin/help) 
+	*/myx.common/bin/which) 
 		if [ -z "$1" ] ; then
 			echo "Syntax: myx.common which MYX-COMMON-COMMAND" >&2
 			echo "    outputs a full path to stdout or dies with error exit code." >&2
 			exit 1
 		fi
 		set -e
-		Help $@
+		Which $@
 	;;
 esac

@@ -2,9 +2,6 @@
 
 ##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-set -e
-#set -x
-
 . /usr/local/share/myx.common/include/subr-universal.sh
 
 InstallEnsurePackage(){
@@ -27,6 +24,11 @@ InstallEnsurePackage(){
 
 case "$0" in
 	*/myx.common/bin/lib/installEnsurePackage) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/installEnsurePackage utility_name [package_name]" >&2
+			exit 1
+		fi
+		set -e
 		InstallEnsurePackage $@
 	;;
 esac
