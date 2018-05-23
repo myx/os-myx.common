@@ -11,9 +11,11 @@ set -e
 
 URL="https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh"
 
-[ ! -z `which curl` ] && echo "using curl, version: " && (curl --silent -L $URL | sh -e && exit 0 || exit 1) 
-[ ! -z `which fetch` ] && echo "using fetch, version: " && (fetch -o - $URL | sh -e && exit 0 || exit 1)
-[ ! -z `which wget` ] && echo "using wget, version: " && (wget --quiet -O - $URL | sh -e && exit 0 || exit 1) 
+[ ! -z `which curl` ] && echo "using curl, version: " && (curl --silent -L $URL | sh -e && exit 0 || exit 1) || true
+ 
+[ ! -z `which fetch` ] && echo "using fetch, version: " && (fetch -o - $URL | sh -e && exit 0 || exit 1) || true
+
+[ ! -z `which wget` ] && echo "using wget, version: " && (wget --quiet -O - $URL | sh -e && exit 0 || exit 1) || true
 
 echo "ERROR: curl, fetch or wget were not found, do not know how to download!"
 exit 1
