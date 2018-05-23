@@ -63,7 +63,7 @@ chown root:wheel "/usr/local/bin/myx.common"
 chmod 755 "/usr/local/bin/myx.common"
 
 chown -R root:wheel "/usr/local/share/myx.common/bin"
-chmod -R 750 "/usr/local/share/myx.common/bin"
+chmod -R 755 "/usr/local/share/myx.common/bin"
 
 # exec "/usr/local/share/myx.common/bin/reinstall"
 
