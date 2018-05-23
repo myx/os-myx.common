@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This script is universal for FreeBSD, Darwin, Ubuntu.
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 set -e
 #set -x

@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
+##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
 set -e
+
+. ${0%/*}/../../include/subr.sh
+UserRequireRoot
 
 [ ! -z `which java` ] && echo "java is already installed, version: " && echo "`java -Xinternalversion || java -version`" && exit 0 
 
-##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 echo "myx.common install/java: abstract method"
 exit 1 

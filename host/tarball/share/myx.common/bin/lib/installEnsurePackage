@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+set -e
+#set -x
+
+. /usr/local/share/myx.common/include/subr-universal.sh
+
+InstallEnsurePackage(){
+	UserRequireRoot "InstallEnsurePackage"
+
+	local UTILITY_NAME="$1"
+	[ -z "$UTILITY_NAME" ] && echo "The utility name is required!" && exit 1
+
+	local PACKAGE_NAME="$2:-$UTILITY_NAME"
+	
+	if ! -z "`which $UTILITY_NAME`" ; then \
+		echo "Utility is present: $UTILITY_NAME, skip"
+	 else \
+
+		echo "myx.common lib/installEnsurePackage: abstract method"
+		exit 1 
+
+	fi
+}
+
+case "$0" in
+	*/myx.common/bin/lib/installEnsurePackage) 
+		InstallEnsurePackage $@
+	;;
+esac

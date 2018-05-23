@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+set -e
+#set -x
+
+FetchStdout(){
+
+	local URL="$1"
+	[ -z "$URL" ] && echo "FetchStdout: The URL is required!" && exit 1
+	
+	[ ! -z `which curl` ] && (curl --silent -L $URL && return 0 || exit 1) 
+	[ ! -z `which fetch` ] && (fetch -o - $URL && return 0 || exit 1)
+	[ ! -z `which wget` ] && (wget --quiet -O - $URL && return 0 || exit 1) 
+	
+	echo "ERROR: curl, fetch or wget were not found, do not know how to download!"
+	exit 1
+}
+
+case "$0" in
+	*/myx.common/bin/lib/fetchStdout) 
+		FetchStdout $@
+	;;
+esac

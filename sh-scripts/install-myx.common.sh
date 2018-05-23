@@ -12,37 +12,28 @@
 #
 #
 
-
-#
-# Check user
-#
 test `id -u` != 0 && echo 'ERROR: Must be root!' && exit 1
-
-
-UNAME_S="`uname -s`"
-
-case "$UNAME_S" in
+case "`uname -s`" in
         Darwin)
         	FETCH="curl --silent -L"
+        	break
 			;;
-         
         FreeBSD)
         	FETCH="fetch -o -"
+        	break
 			;;
-         
         Linux)
         	FETCH="curl --silent -L"
-            ;;
-         
+        	break
+			;;
         *)
-            echo "Unknown OS: $0 $UNAME_S {Darwin/FreeBSD/Linux expected}" >&2
+            echo "Unknown OS: $0 '`uname -s`' {Darwin/FreeBSD/Linux expected}" >&2
             echo "  Can't choose OS for you. If you wish to forcefully " >&2
             echo "  install particular version, try:" >&2
-			echo "  - macosx: curl --silent -L https://raw.githubusercontent.com/myx/os-myx.common-macosx/master/sh-scripts/install-myx.common-macosx.sh | sh -e" >&2
-			echo "  - ubuntu: curl --silent -L https://raw.githubusercontent.com/myx/os-myx.common-ubuntu/master/sh-scripts/install-myx.common-ubuntu.sh | sh -e" >&2
+			echo "  - macosx:  curl --silent -L https://raw.githubusercontent.com/myx/os-myx.common-macosx/master/sh-scripts/install-myx.common-macosx.sh | sh -e" >&2
+			echo "  - ubuntu:  curl --silent -L https://raw.githubusercontent.com/myx/os-myx.common-ubuntu/master/sh-scripts/install-myx.common-ubuntu.sh | sh -e" >&2
 			echo "  - freebsd: fetch -o - https://raw.githubusercontent.com/myx/os-myx.common-freebsd/master/sh-scripts/install-myx.common-freebsd.sh | sh -e" >&2
             exit 1
- 
 esac
 
 

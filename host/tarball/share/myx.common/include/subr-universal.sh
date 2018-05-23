@@ -28,6 +28,7 @@ UserRequireRoot(){
 #
 InternReplaceLine(){
 	local FL="$1" FR="$2" TO="$3"
+	[ -z "$FL" ] && echo "ReplaceLine: FL is required!" >&2 && exit 1
 	
 	grep -q "$FR" $FL && \
 		cp -pf "$FL" "$FL.bak" && \

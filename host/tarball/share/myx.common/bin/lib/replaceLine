@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 
-# This script is universal for FreeBSD, Darwin, Ubuntu. ???
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 set -e
+
+#	AFILE="$1"
+#	AFROM="$2"
+#	AWITH="$3"
+
 
 # >>>                              <<<
 # >>>>>       COPIED  FROM       <<<<<
@@ -10,8 +15,9 @@ set -e
 # > ../../include/subr-universal.sh  <
 # >>>                              <<<
 
-InternReplaceLine(){
+ReplaceLine(){
 	local FL="$1" FR="$2" TO="$3"
+	[ -z "$FL" ] && echo "ReplaceLine: FL is required!" >&2 && exit 1
 	
 	grep -q "$FR" $FL && \
 		cp -pf "$FL" "$FL.bak" && \
@@ -26,8 +32,8 @@ InternReplaceLine(){
 }
 
 
-AFILE="$1"
-AFROM="$2"
-AWITH="$3"
-
-InternReplaceLine "$AFILE" "$AFROM" "$AWITH"
+case "$0" in
+	*/myx.common/bin/lib/replaceLine) 
+		ReplaceLine $@
+	;;
+esac
