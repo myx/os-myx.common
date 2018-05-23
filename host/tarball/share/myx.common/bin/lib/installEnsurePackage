@@ -13,10 +13,10 @@ InstallEnsurePackage(){
 	local PACKAGE_NAME="$2:-$UTILITY_NAME"
 	
 	if [ ! -z "`which $UTILITY_NAME`" ] ; then \
-		echo "Utility is present: $UTILITY_NAME, skip"
+		echo "Utility is present: $UTILITY_NAME, skip" >&2
 	 else \
 
-		echo "myx.common lib/installEnsurePackage: abstract method"
+		echo "myx.common lib/installEnsurePackage: abstract method" >&2
 		exit 1 
 
 	fi
