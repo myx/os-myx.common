@@ -23,8 +23,8 @@ Async(){
 	
     echo "$PREFTEXT: starting async..."
     echo "" | "$@" 2>&1 | sed -e "s/^/$PREFTEXT: /" & # parallel \
-    	&& echo "$PREFTEXT: successfully finished."\
-    	|| echo "$PREFTEXT: ERROR: exited with error status."
+    	# && echo "$PREFTEXT: successfully finished." \
+    	# || echo "$PREFTEXT: ERROR: exited with error status."
 }
 
 case "$0" in
