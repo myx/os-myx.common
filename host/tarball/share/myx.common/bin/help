@@ -12,11 +12,6 @@ Help(){
 
 case "$0" in
 	*/myx.common/bin/help) 
-		if [ -z "$1" ] ; then
-			echo "Syntax: myx.common which MYX-COMMON-COMMAND" >&2
-			echo "    outputs a full path to stdout or dies with error exit code." >&2
-			exit 1
-		fi
 		set -e
 		Help $@
 	;;
