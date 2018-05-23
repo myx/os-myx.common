@@ -5,10 +5,6 @@
 
 set -e
 
-# It is better to be autonomous in this command, so instead of:
-#   . /usr/local/share/myx.common/include/subr-freebsd.sh
-#   UserRequireRoot
-# we do:
 test `id -u` != 0 && echo 'ERROR: Must be root!' && exit 1
 
 for PKG in bash rsync screen sudo $@ ; do
