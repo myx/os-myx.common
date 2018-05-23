@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 ##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
 ##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
