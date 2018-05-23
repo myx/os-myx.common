@@ -13,17 +13,32 @@
 #
 
 test `id -u` != 0 && echo 'ERROR: Must be root!' && exit 1
+
+FetchStdout(){
+	local URL="$1"
+	[ -z "$URL" ] && echo "FetchStdout: The URL is required!" && exit 1
+	set -e
+
+	if [ ! -z "`which curl || true`" ]  ; then curl --silent -L $URL  ; return 0 ; fi
+	if [ ! -z "`which fetch || true`" ] ; then fetch -o - $URL        ; return 0 ; fi
+	if [ ! -z "`which wget || true`" ]  ; then wget --quiet -O - $URL ; return 0 ; fi
+
+	echo "ERROR: curl, fetch or wget were not found, do not know how to download!"
+	exit 1
+}
+
+
 case "`uname -s`" in
         Darwin)
-        	FETCH="curl --silent -L"
+        	FETCH="https://github.com/myx/os-myx.common-macosx/archive/master.zip"
         	break
 			;;
         FreeBSD)
-        	FETCH="fetch -o -"
+        	FETCH="https://github.com/myx/os-myx.common-freebsd/archive/master.zip"
         	break
 			;;
         Linux)
-        	FETCH="curl --silent -L"
+        	FETCH="https://github.com/myx/os-myx.common-ubuntu/archive/master.zip"
         	break
 			;;
         *)
@@ -37,10 +52,10 @@ case "`uname -s`" in
 esac
 
 
-$FETCH https://github.com/myx/os-myx.common/archive/master.zip | \
+FetchStdout https://github.com/myx/os-myx.common/archive/master.zip | \
 		tar -xzvf - --cd "/usr/local/" --include "*/host/tarball/*" --strip-components 3
 
-$FETCH https://github.com/myx/os-myx.common-macosx/archive/master.zip | \
+FetchStdout "$FETCH" | \
 		tar -xzvf - --cd "/usr/local/" --include "*/host/tarball/*" --strip-components 3
 
 

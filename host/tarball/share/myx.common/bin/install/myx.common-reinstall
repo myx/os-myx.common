@@ -6,16 +6,22 @@
 # Update-reinstall script
 #
 
+MyxCommonReinstall(){
+	local URL="https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh"
+	set -e
 
-set -e
+	if [ ! -z "`which curl || true`" ]  ; then echo "using curl: "  && curl --silent -L $URL | sh -e  ; return 0 ; fi
+	if [ ! -z "`which fetch || true`" ] ; then echo "using fetch: " && fetch -o - $URL | sh -e        ; return 0 ; fi
+	if [ ! -z "`which wget || true`" ]  ; then echo "using wget: "  && wget --quiet -O - $URL | sh -e ; return 0 ; fi
 
-URL="https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh"
+	echo "ERROR: curl, fetch or wget were not found, do not know how to download!"
+	exit 1
+}
 
-[ ! -z `which curl` ] && echo "using curl, version: " && (curl --silent -L $URL | sh -e && exit 0 || exit 1) || true
- 
-[ ! -z `which fetch` ] && echo "using fetch, version: " && (fetch -o - $URL | sh -e && exit 0 || exit 1) || true
 
-[ ! -z `which wget` ] && echo "using wget, version: " && (wget --quiet -O - $URL | sh -e && exit 0 || exit 1) || true
-
-echo "ERROR: curl, fetch or wget were not found, do not know how to download!"
-exit 1
+case "$0" in
+	*/myx.common/bin/install/myx.common-reinstall) 
+		set -e
+		MyxCommonReinstall $@
+	;;
+esac
