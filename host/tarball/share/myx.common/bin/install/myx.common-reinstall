@@ -24,6 +24,6 @@ MyxCommonReinstall(){
 case "$0" in
 	*/myx.common/bin/install/myx.common-reinstall) 
 		set -e
-		MyxCommonReinstall $@
+		MyxCommonReinstall "$@"
 	;;
 esac

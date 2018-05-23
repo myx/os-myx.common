@@ -13,6 +13,6 @@ Help(){
 case "$0" in
 	*/myx.common/bin/help) 
 		set -e
-		Help $@
+		Help "$@"
 	;;
 esac
