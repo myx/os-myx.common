@@ -53,10 +53,10 @@ esac
 
 
 FetchStdout https://github.com/myx/os-myx.common/archive/master.zip | \
-		tar -xzvf - --cd "/usr/local/" --include "*/host/tarball/*" --strip-components 3
+		tar -xzvf - -C "/usr/local/" --include "*/host/tarball/*" --strip-components 3
 
 FetchStdout "$FETCH" | \
-		tar -xzvf - --cd "/usr/local/" --include "*/host/tarball/*" --strip-components 3
+		tar -xzvf - -C "/usr/local/" --include "*/host/tarball/*" --strip-components 3
 
 
 chown root:wheel "/usr/local/bin/myx.common"
