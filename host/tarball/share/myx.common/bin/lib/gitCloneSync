@@ -15,7 +15,7 @@ GitCloneSync(){
 	
 	[ -d "$TGT_DIR" ] && ({
 		cd "$TGT_DIR"
-		git rev-parse --abbrev-ref HEAD > /dev/nul \
+		git rev-parse --abbrev-ref HEAD > /dev/null \
 				&& [ "`git rev-parse --abbrev-ref HEAD`" != "${BRANCH:-master}" ] \
 				&& cd "$TGT_DIR/.." \
 				&& rm -rf "$TGT_DIR" \
