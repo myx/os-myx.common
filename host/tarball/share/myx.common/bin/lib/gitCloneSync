@@ -39,6 +39,7 @@ GitCloneSync(){
 	    git remote set-url origin "$SRC_URL"
 	    [ -n $BRANCH ] && git checkout $BRANCH
 	    git pull
+	    git push
 	    echo "$TGT_DIR: finished."
 	}) || true;
 	
