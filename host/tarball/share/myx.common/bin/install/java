@@ -1,13 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
 set -e
 
-. ${0%/*}/../../include/subr.sh
-UserRequireRoot
+test `id -u` != 0 && echo 'ERROR: Must be root!' && exit 1
 
 [ ! -z `which java` ] && echo "java is already installed, version: " && echo "`java -Xinternalversion || java -version`" && exit 0 
 
-echo "myx.common install/java: abstract method"
-exit 1 
+myx.common lib/installEnsurePackage java
