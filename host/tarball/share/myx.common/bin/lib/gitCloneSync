@@ -3,6 +3,16 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 GitCloneSync(){
+	if [ "$1" == "--no-write" ] ; then
+		local NOWRITE=true
+		shift
+	fi
+	if [ "$1" == "--no-push" ] ; then
+		local NOWRITE=true
+		local NOPUSH=true
+		shift
+	fi
+
 	local TGT_DIR="$1"
 	[ -z "$TGT_DIR" ] && echo "lib/gitCloneSync: TGT_DIR is required!" >&2 && exit 1
 
@@ -26,7 +36,7 @@ GitCloneSync(){
 	    mkdir -p "$TGT_DIR"
 	    git clone "$SRC_URL" "$TGT_DIR"
 	});
-    [ -f "$TGT_DIR/README.md" ] || ({
+    [ "$NOWRITE" == "true" -o -f "$TGT_DIR/README.md" ] || ({
         cd "$TGT_DIR"
         touch README.md
         git add README.md
@@ -39,7 +49,7 @@ GitCloneSync(){
 	    git remote set-url origin "$SRC_URL"
 	    [ -n $BRANCH ] && git checkout $BRANCH
 	    git pull
-	    git push
+	    [ "$NOPUSH" == "true" ] || git push
 	    echo "$TGT_DIR: finished."
 	}) || true;
 	
@@ -49,8 +59,9 @@ GitCloneSync(){
 case "$0" in
 	*/myx.common/bin/lib/gitCloneSync) 
 		if [ -z "$1" ] ; then
-			echo "Syntax: myx.common lib/gitCloneSync dst_path repo_url [branch]" >&2
+			echo "Syntax: myx.common lib/gitCloneSync [--no-write/--no-push] dst_path repo_url [branch]" >&2
 			echo "    If 'branch' argument is not set, 'master' will be used." >&2
+			echo "    '--no-push' makes it equivalent to: 'myx.common lib/gitClonePull'." >&2
 			exit 1
 		fi
 		set -e
