@@ -9,8 +9,13 @@
 # OR
 #
 #	2) curl -L https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e
+#	   wget -O - https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e
+#	   fetch -o - https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e   
 #
+# OR
 #
+#	3) `(which curl > /dev/null && echo 'curl -L') || (which fetch > /dev/null && echo 'fetch -o -') || (which wget > /dev/null && echo 'wget -O -') || (echo echo "ERROR: Can't Fetch" >&2 && false)` https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e
+# 
 
 test `id -u` != 0 && echo 'ERROR: Must be root!' && exit 1
 
@@ -30,39 +35,54 @@ FetchStdout(){
 
 case "`uname -s`" in
         Darwin)
-        	FETCH="https://github.com/myx/os-myx.common-macosx/archive/master.zip"
-        	break
+       		echo "Using: macosx"
+        	FETCH="https://github.com/myx/os-myx.common-macosx/archive/master.tar.gz"
+        	UPACK(){
+        		tar -xzvf - --strip-components 3 -C /usr/local '**/host/tarball/*'
+        	}
+        	CHOWN="root:wheel"
 			;;
         FreeBSD)
-        	FETCH="https://github.com/myx/os-myx.common-freebsd/archive/master.zip"
-        	break
+       		echo "Using: freebsd"
+        	FETCH="https://github.com/myx/os-myx.common-freebsd/archive/master.tar.gz"
+        	UPACK(){
+        		tar -xzvf - --strip-components 3 -C /usr/local '**/host/tarball/*'
+        	}
+        	CHOWN="root:wheel"
 			;;
         Linux)
-        	FETCH="https://github.com/myx/os-myx.common-ubuntu/archive/master.zip"
-        	break
+        	if [ -z "$FETCH" -a ! -z "`which apt || true`" ] ; then
+        		echo "Using: linux + apt"
+	        	FETCH="https://github.com/myx/os-myx.common-ubuntu/archive/master.tar.gz"
+	        	UPACK(){
+	        		tar -xzvf - --strip-components=3 -C /usr/local --wildcards '**/host/tarball/*'
+	        	}
+	        	CHOWN="root:adm"
+	        fi
+            if [ -z "$FETCH" ] ; then
+            	echo "Unknown Linux: $0 '`uname -a`' {'apt' is expected}" >&2
+            	exit 1
+            fi
 			;;
         *)
             echo "Unknown OS: $0 '`uname -s`' {Darwin/FreeBSD/Linux expected}" >&2
             echo "  Can't choose OS for you. If you wish to forcefully " >&2
             echo "  install particular version, try:" >&2
 			echo "  - macosx:  curl --silent -L https://raw.githubusercontent.com/myx/os-myx.common-macosx/master/sh-scripts/install-myx.common-macosx.sh | sh -e" >&2
-			echo "  - ubuntu:  curl --silent -L https://raw.githubusercontent.com/myx/os-myx.common-ubuntu/master/sh-scripts/install-myx.common-ubuntu.sh | sh -e" >&2
+			echo "  - ubuntu:  wget -O - https://raw.githubusercontent.com/myx/os-myx.common-ubuntu/master/sh-scripts/install-myx.common-ubuntu.sh | sh -e" >&2
 			echo "  - freebsd: fetch -o - https://raw.githubusercontent.com/myx/os-myx.common-freebsd/master/sh-scripts/install-myx.common-freebsd.sh | sh -e" >&2
             exit 1
 esac
 
 
-FetchStdout https://github.com/myx/os-myx.common/archive/master.zip | \
-		tar -xzvf - -C "/usr/local/" --include "*/host/tarball/*" --strip-components 3
-
-FetchStdout "$FETCH" | \
-		tar -xzvf - -C "/usr/local/" --include "*/host/tarball/*" --strip-components 3
+FetchStdout https://github.com/myx/os-myx.common/archive/master.tar.gz | UPACK
+FetchStdout "$FETCH" | UPACK
 
 
-chown root:wheel "/usr/local/bin/myx.common"
+chown $CHOWN "/usr/local/bin/myx.common"
 chmod 755 "/usr/local/bin/myx.common"
 
-chown -R root:wheel "/usr/local/share/myx.common/bin"
+chown -R $CHOWN "/usr/local/share/myx.common/bin"
 chmod -R 755 "/usr/local/share/myx.common/bin"
 
 # exec "/usr/local/share/myx.common/bin/reinstall"
