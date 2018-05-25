@@ -1,0 +1,12 @@
+#!/bin/sh
+
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+set -e
+
+test `id -u` != 0 && echo 'ERROR: Must be root!' && exit 1
+
+[ ! -z `which git` ] && echo "git is already installed, version: " && echo "`git --version`" && exit 0 
+
+myx.common lib/installEnsurePackage git
