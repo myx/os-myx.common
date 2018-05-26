@@ -4,22 +4,39 @@
 ##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
 FetchStdout(){
+	if [ "$1" == "--local-cache" ] ; then
+		shift
+		local LOCAL_CACHE="$1"
+		[ -z "$LOCAL_CACHE" ] && echo "FetchStdout: The CACHE_ROOT is required!" >&2 && exit 1
+		shift
+	fi
+	
 	local URL="$1"
-	[ -z "$URL" ] && echo "FetchStdout: The URL is required!" && exit 1
+	[ -z "$URL" ] && echo "FetchStdout: The URL is required!" >&2 && exit 1
+	
 	set -e
 
+	if [ ! -z "$LOCAL_CACHE" ] ; then
+		local CHECK_URL="`echo $URL | sed 's~^http[s]*://~~g'`"
+		if [ -f "$LOCAL_CACHE/$CHECK_URL" ] ; then
+			echo "FetchStdout: using local cache: $CHECK_URL" >&2 
+			cat "$LOCAL_CACHE/$CHECK_URL"
+			return 0
+		fi
+	fi
+	
 	if [ ! -z "`which curl || true`" ]  ; then curl --silent -L $URL  ; return 0 ; fi
 	if [ ! -z "`which fetch || true`" ] ; then fetch -o - $URL        ; return 0 ; fi
 	if [ ! -z "`which wget || true`" ]  ; then wget --quiet -O - $URL ; return 0 ; fi
 
-	echo "ERROR: curl, fetch or wget were not found, do not know how to download!"
+	echo "ERROR: curl, fetch or wget were not found, do not know how to download!" >&2 
 	exit 1
 }
 
 case "$0" in
 	*/myx.common/bin/lib/fetchStdout) 
 		if [ -z "$1" ] ; then
-			echo "Syntax: myx.common lib/fetchStdout URL" >&2
+			echo "Syntax: myx.common lib/fetchStdout [--local-cache <cache-root>] URL" >&2
 			exit 1
 		fi
 		set -e
