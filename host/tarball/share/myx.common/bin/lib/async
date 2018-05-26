@@ -21,7 +21,7 @@ Async(){
 	esac
 	shift
 	
-    echo "$PREFTEXT: starting async..."
+    echo "$PREFTEXT: starting..."
     echo "" | "$@" 2>&1 | sed -e "s/^/$PREFTEXT: /" & # parallel \
     	# && echo "$PREFTEXT: successfully finished." \
     	# || echo "$PREFTEXT: ERROR: exited with error status."
