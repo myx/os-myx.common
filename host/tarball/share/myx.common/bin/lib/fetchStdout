@@ -39,6 +39,8 @@ case "$0" in
 	*/myx.common/bin/lib/fetchStdout) 
 		if [ -z "$1" ] ; then
 			echo "Syntax: myx.common lib/fetchStdout [--local-cache <cache-root>] URL" >&2
+			echo >&2
+			echo " ENV_FETCH_LOCAL_CACHE environment variable may is used by default." >&2 
 			exit 1
 		fi
 		set -e
