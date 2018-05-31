@@ -1,8 +1,12 @@
 Name: os-myx.common
-Requires: java os.freebsd:install
-Provides:	os-myx.common \
-			freebsd-installer.sh:build.freebsd-installer \
-			ubuntu-installer.sh:build.ubuntu-installer \
+Requires: java
+Provides: \
+	os-myx.common myx.common/os-myx.common myx/myx.common/os-myx.common \
+	freebsd-installer.sh:build.freebsd-installer \
+	ubuntu-installer.sh:build.ubuntu-installer \
+	build-prepare:project-source.tgz \
+	deploy-export:project-source.tgz:github.com/myx/os-myx.common/archive/master.tar.gz \
+	deploy-export:sh-scripts/install-myx.common.sh:raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh \
 			
 Installs:
 Compiles: 
