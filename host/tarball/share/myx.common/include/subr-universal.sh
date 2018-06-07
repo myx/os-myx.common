@@ -18,7 +18,7 @@ UserIsRoot(){
 # Require 'root' user
 #
 UserRequireRoot(){
-	UserIsRoot || { echo '$1: Must be run under "root" user!'; exit 1; }
+	test `id -u` = 0 || { echo '$1: Must be run under "root" user!'; exit 1; }
 }
 
 
