@@ -14,7 +14,7 @@ InstallEnsurePackage(){
 	local UTILITY_NAME="$1"
 	[ -z "$UTILITY_NAME" ] && echo "The utility name is required!" && exit 1
 
-	local PACKAGE_NAME="$2:-$UTILITY_NAME"
+	local PACKAGE_NAME="${2:-$UTILITY_NAME}"
 	
 	if [ ! -z "`which $UTILITY_NAME`" ] ; then \
 		echo "Utility is present: $UTILITY_NAME, skip" >&2
