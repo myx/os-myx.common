@@ -3,11 +3,11 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 GitCloneSync(){
-	if [ "$1" == "--no-write" ] ; then
+	if [ "$1" = "--no-write" ] ; then
 		local NOWRITE=true
 		shift
 	fi
-	if [ "$1" == "--no-push" ] ; then
+	if [ "$1" = "--no-push" ] ; then
 		local NOWRITE=true
 		local NOPUSH=true
 		shift
@@ -36,7 +36,7 @@ GitCloneSync(){
 	    mkdir -p "$TGT_DIR"
 	    git clone "$SRC_URL" "$TGT_DIR"
 	});
-    [ "$NOWRITE" == "true" -o -f "$TGT_DIR/README.md" ] || ({
+    [ "$NOWRITE" = "true" -o -f "$TGT_DIR/README.md" ] || ({
         cd "$TGT_DIR"
         touch README.md
         git add README.md
@@ -49,7 +49,7 @@ GitCloneSync(){
 	    git remote set-url origin "$SRC_URL"
 	    [ -n $BRANCH ] && git checkout $BRANCH
 	    git pull
-	    [ "$NOPUSH" == "true" ] || git push
+	    [ "$NOPUSH" = "true" ] || git push
 	    echo "$TGT_DIR: finished."
 	}) || true;
 	

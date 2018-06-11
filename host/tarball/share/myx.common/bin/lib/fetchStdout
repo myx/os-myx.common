@@ -4,7 +4,7 @@
 ##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
 FetchStdout(){
-	if [ "$1" == "--local-cache" ] ; then
+	if [ "$1" = "--local-cache" ] ; then
 		shift
 		local LOCAL_CACHE="$1"
 		[ -z "$LOCAL_CACHE" ] && echo "FetchStdout: The CACHE_ROOT is required!" >&2 && exit 1

@@ -32,7 +32,7 @@ FetchStdout(){
 	exit 1
 }
 
-if test `id -u` == 0 ; then 
+if test `id -u` = 0 ; then 
 	echo "installer is in 'root' mode, will install/change os packages/settings..."
 	
 	case "`uname -s`" in
