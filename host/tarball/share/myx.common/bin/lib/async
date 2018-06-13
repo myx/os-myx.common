@@ -16,15 +16,22 @@ Async(){
 	        -3)
 				local PREFTEXT="`basename $4`"
 	            ;;
+	        --)
+				local PREFTEXT="${!#}"
+	            ;;
 	        *)
 				local PREFTEXT="$1"
 	esac
 	shift
+
+	local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 	
     echo "$PREFTEXT: starting..."
-    echo "" | "$@" 2>&1 | sed -e "s/^/$PREFTEXT: /" & # parallel \
-    	# && echo "$PREFTEXT: successfully finished." \
-    	# || echo "$PREFTEXT: ERROR: exited with error status."
+    (	(	( echo "" | "$@" 2>&1 ) \
+	    	&& echo "finished." \
+    		|| echo "ERROR: exited with error status." \
+    	) | sed -e "s^\^^$PREFTEXT: ^" \
+    ) & # parallel
 }
 
 case "$0" in
