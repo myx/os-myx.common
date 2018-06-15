@@ -2,6 +2,8 @@
 # Not executable as a separate unit.
 #
 # This script is universal for FreeBSD, Darwin, Ubuntu.
+# It should not be overridden by OS-specific implementations.
+#
 
 
 
