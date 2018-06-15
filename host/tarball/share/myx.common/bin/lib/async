@@ -25,7 +25,7 @@ Async(){
 	shift
 
 	local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
-	
+
     echo "$PREFTEXT: starting..."
     (	(	( echo "" | "$@" 2>&1 ) \
 	    	&& echo "finished." \
