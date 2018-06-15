@@ -1,0 +1,26 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+#####                          (it depends on OS-dependent include) #####
+
+set -e
+
+. /usr/local/share/myx.common/include/subr.sh
+
+InstallWheelUser(){
+	UserRequireRoot "InstallWheelUser"
+
+	local NAME="$1" TITLE="$2"
+
+	[ -z "$NAME" ] && echo "InstallWheelUser: username is required!" && exit 1
+	[ -z "$TITLE" ] && echo "InstallWheelUser: usertitle is taken from name ($NAME)!" && TITLE="$NAME"
+	
+	/usr/local/share/myx.common/bin/lib/installUser "$NAME" "$TITLE"
+	/usr/local/share/myx.common/bin/lib/installUserGroupMembership "$NAME" "`UmanWheelGroupName`"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/installWheelUser) 
+		InstallWheelUser "$@"
+	;;
+esac

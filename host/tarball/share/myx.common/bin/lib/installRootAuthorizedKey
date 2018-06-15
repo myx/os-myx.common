@@ -1,0 +1,33 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+#####                          (it depends on OS-dependent include) #####
+
+set -e
+
+. /usr/local/share/myx.common/include/subr.sh
+
+InstallRootAuthorizedKey(){
+	UserRequireRoot "InstallRootAuthorizedKey"
+
+	local KEY="$1"
+
+	test ! -z "$KEY" || ( echo "InstallRootAuthorizedKey: key is required!" ; exit 2 )
+
+	local HOME="`UmanRootHomeDirectory`"
+	local KEYS="$HOME/.ssh/authorized_keys"
+	
+	mkdir -p "$HOME/.ssh"
+	touch "$KEYS"
+	
+	InternReplaceLine "$KEYS" "$KEY" "$KEY"
+	
+	chown root:root "$KEYS"
+	chmod 600 "$KEYS"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/installRootAuthorizedKey) 
+		InstallRootAuthorizedKey "$@"
+	;;
+esac
