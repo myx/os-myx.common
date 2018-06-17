@@ -4,6 +4,9 @@
 
 echo "Removing completion for: $HOME"
 
+InternReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
+	"# removed by myx.common remove/completion  ### myx.common completion ###"
+	
 InternReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
 	"# removed by myx.common remove/completion  ### myx.common completion ###"
 	

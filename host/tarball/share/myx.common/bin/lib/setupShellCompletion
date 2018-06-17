@@ -32,6 +32,9 @@ SetupShellCompletion(){
 	
 	local commentText=" ### $utilityName completion ###"
 	
+	InternReplaceLine "$HOME/.bash_profile" " $commentText\$" \
+		"complete -W '\`$listCommand\`' $utilityName $commentText"
+	
 	InternReplaceLine "$HOME/.bashrc" " $commentText\$" \
 		"complete -W '\`$listCommand\`' $utilityName $commentText"
 		
