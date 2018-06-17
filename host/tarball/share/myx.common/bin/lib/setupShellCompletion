@@ -32,13 +32,13 @@ SetupShellCompletion(){
 	
 	local commentText=" ### $utilityName completion ###"
 	
-	InternReplaceLine "$HOME/.bash_profile" " $commentText\$" \
+	[ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " $commentText\$" \
 		"complete -W '\`$listCommand\`' $utilityName $commentText"
 	
-	InternReplaceLine "$HOME/.bashrc" " $commentText\$" \
+	[ ! -f "$HOME/.bashrc" ] || InternReplaceLine "$HOME/.bashrc" " $commentText\$" \
 		"complete -W '\`$listCommand\`' $utilityName $commentText"
 		
-	InternReplaceLine "$HOME/.cshrc" " $commentText\$" \
+	[ ! -f "$HOME/.cshrc" ] || InternReplaceLine "$HOME/.cshrc" " $commentText\$" \
 		"complete $utilityName 'p/*/\`$listCommand\`/' $commentText"
 }
 

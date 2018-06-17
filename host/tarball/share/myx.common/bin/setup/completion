@@ -9,13 +9,11 @@
 
 echo "Setting up completion for: $HOME"
 
-set -x
-
-InternReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
+[ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
 	"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
 
-InternReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
+[ ! -f "$HOME/.bashrc" ] || InternReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
 	"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
 	
-InternReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
+[ ! -f "$HOME/.cshrc" ] || InternReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
 	"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
