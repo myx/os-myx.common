@@ -13,24 +13,41 @@ SetupShellCompletion(){
 		exit 1
 	fi
 	
-	if [ "$2" = "--command" ] ; then
-		if [ -z "$3" ] ; then
-			echo "SetupShellCompletion: listCommand is required!" >&2
-			exit 1
-		fi
-		local listCommand="$3"
-	fi
-	
-	if [ "$2" = "--directory" ] ; then
-		if [ -z "$3" ] ; then
-			echo "SetupShellCompletion: listDirectory is required!" >&2
-			exit 1
-		fi
-		local listCommand="find \"$3\" -type f | sed \"s,$3/,,g" | sort"
-	fi
-	
-	
 	local commentText=" ### $utilityName completion ###"
+	
+	case "$2" in
+		--command)
+			if [ -z "$3" ] ; then
+				echo "SetupShellCompletion: listCommand is required!" >&2
+				exit 1
+			fi
+			local listCommand="$3"
+			;;
+			
+		--directory)
+			if [ -z "$3" ] ; then
+				echo "SetupShellCompletion: listDirectory is required!" >&2
+				exit 1
+			fi
+			local listCommand="find \"$3\" -type f | sed \"s,$3/,,g" | sort"
+			;;
+			
+		--remove)
+			[ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " $commentText\$" \
+				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
+			
+			[ ! -f "$HOME/.bashrc" ] || InternReplaceLine "$HOME/.bashrc" " $commentText\$" \
+				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
+				
+			[ ! -f "$HOME/.cshrc" ] || InternReplaceLine "$HOME/.cshrc" " $commentText\$" \
+				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
+				
+			return 0
+	
+		*)
+			echo "SetupShellCompletion: invalid mode: $2" >&2
+			exit 1
+	esac 
 	
 	[ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " $commentText\$" \
 		"complete -W '\`$listCommand\`' $utilityName $commentText"
@@ -47,6 +64,7 @@ case "$0" in
 		if [ -z "$1" ] ; then
 			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --command <list_command>" >&2
 			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --directory <list_directory>" >&2
+			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --remove" >&2
 			exit 1
 		fi
 		set -e
