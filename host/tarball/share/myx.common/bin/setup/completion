@@ -1,8 +1,16 @@
 #!/bin/sh
 
+###
+###   myx.common lib/setupShellCompletion "myx.common" --command "myx.common help --bare"
+###   myx.common lib/setupShellCompletion "myx.common" --directory "/usr/local/share/myx.common/bin"
+###
+
 . /usr/local/share/myx.common/include/subr-universal.sh
 
 echo "Setting up completion for: $HOME"
 
-InternReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" "complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
-InternReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" "complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
+InternReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
+	"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+	
+InternReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
+	"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"

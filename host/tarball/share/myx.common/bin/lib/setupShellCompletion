@@ -1,0 +1,52 @@
+#!/bin/sh
+
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+
+. /usr/local/share/myx.common/include/subr-universal.sh
+
+SetupShellCompletion(){
+	echo "Setting up completion for: $HOME"
+	
+	local utilityName="$1"
+	if [ -z "$utilityName" ] ; then
+		echo "SetupShellCompletion: utilityName is required!" >&2
+		exit 1
+	fi
+	
+	if [ "$2" = "--command" ] ; then
+		if [ -z "$3" ] ; then
+			echo "SetupShellCompletion: listCommand is required!" >&2
+			exit 1
+		fi
+		local listCommand="$3"
+	fi
+	
+	if [ "$2" = "--directory" ] ; then
+		if [ -z "$3" ] ; then
+			echo "SetupShellCompletion: listDirectory is required!" >&2
+			exit 1
+		fi
+		local listCommand="find \"$3\" -type f | sed \"s,$3/,,g" | sort"
+	fi
+	
+	
+	local commentText=" ### $utilityName completion ###"
+	
+	InternReplaceLine "$HOME/.bashrc" " $commentText\$" \
+		"complete -W '\`$listCommand\`' $utilityName $commentText"
+		
+	InternReplaceLine "$HOME/.cshrc" " $commentText\$" \
+		"complete $utilityName 'p/*/\`$listCommand\`/' $commentText"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/setupShellCompletion) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --command <list_command>" >&2
+			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --directory <list_directory>" >&2
+			exit 1
+		fi
+		set -e
+		SetupShellCompletion "$@"
+	;;
+esac
