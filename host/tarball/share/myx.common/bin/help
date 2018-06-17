@@ -3,6 +3,11 @@
 # This script is universal for FreeBSD, Darwin, Ubuntu.
 
 Help(){
+	if [ "$1" = "--bare" ] ; then
+		find "/usr/local/share/myx.common/bin" -type f | sed "s,/usr/local/share/myx.common/bin/,,g" | sort
+		return 0 
+	fi
+
 	echo "'myx.common' script commands:"
 	
 	for ITEM in $(find "/usr/local/share/myx.common/bin" -type f | sed "s,/usr/local/share/myx.common/bin/,,g" | sort); do
