@@ -9,6 +9,8 @@
 
 echo "Setting up completion for: $HOME"
 
+set -x
+
 InternReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
 	"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
 	
