@@ -44,6 +44,7 @@ SetupShellCompletion(){
 				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
 				
 			return 0
+			;;
 	
 		*)
 			echo "SetupShellCompletion: invalid mode: $2" >&2
