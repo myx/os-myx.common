@@ -1,8 +1,12 @@
 #!/bin/sh
 
+###
+###   myx.common lib/setupShellCompletion "myx.common" --remove
+###
+
 . /usr/local/share/myx.common/include/subr-universal.sh
 
-echo "Removing completion for: $HOME"
+echo "Removing completion for: $HOME" >&2
 
 [ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
 	"# removed by myx.common remove/completion  ### myx.common completion ###"

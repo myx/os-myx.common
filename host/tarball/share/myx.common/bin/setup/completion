@@ -7,7 +7,7 @@
 
 . /usr/local/share/myx.common/include/subr-universal.sh
 
-echo "Setting up completion for: $HOME"
+echo "Setting up completion for: $HOME" >&2
 
 [ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
 	"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"

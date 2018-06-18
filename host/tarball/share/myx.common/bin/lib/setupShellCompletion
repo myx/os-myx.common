@@ -5,13 +5,14 @@
 . /usr/local/share/myx.common/include/subr-universal.sh
 
 SetupShellCompletion(){
-	echo "Setting up completion for: $HOME"
 	
 	local utilityName="$1"
 	if [ -z "$utilityName" ] ; then
 		echo "SetupShellCompletion: utilityName is required!" >&2
 		exit 1
 	fi
+
+	echo "Setting up completion for: $HOME, utility: $utilityName" >&2
 	
 	local commentText=" ### $utilityName completion ###"
 	
