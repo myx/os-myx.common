@@ -1,0 +1,6 @@
+#!/bin/sh
+
+myx.common setup/machine
+
+. /usr/local/share/myx.common/include/subr-universal.sh
+

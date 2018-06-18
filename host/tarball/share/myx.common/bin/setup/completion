@@ -7,13 +7,35 @@
 
 . /usr/local/share/myx.common/include/subr-universal.sh
 
-echo "Setting up completion for: $HOME" >&2
+SetupHostCompletion(){
+	UserRequireRoot "SetupHostCompletion"
 
-[ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
-	"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
-
-[ ! -f "$HOME/.bashrc" ] || InternReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
-	"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+	echo "Setting up completion for host" >&2
 	
-[ ! -f "$HOME/.cshrc" ] || InternReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
-	"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
+	
+	[ ! -f "/etc/.bash_profile" ] || InternReplaceLine "/etc/.bash_profile" " ### myx.common completion ###$" \
+		"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+	
+	[ ! -f "/etc/csh.login" ] || InternReplaceLine "/etc/csh.login" " ### myx.common completion ###$" \
+		"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
+}
+
+SetupUserCompletion(){
+	echo "Setting up completion for: $HOME" >&2
+	
+	[ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
+		"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+	
+	[ ! -f "$HOME/.bashrc" ] || InternReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
+		"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+		
+	[ ! -f "$HOME/.cshrc" ] || InternReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
+		"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
+}
+
+
+if [ "$1" = "--host" ] ; then
+	SetupHostCompletion
+else
+	SetupUserCompletion
+fi
