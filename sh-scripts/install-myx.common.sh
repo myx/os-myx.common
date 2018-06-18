@@ -39,26 +39,20 @@ if test `id -u` = 0 ; then
 	        Darwin)
 	       		echo "Using: macosx"
 	        	FETCH="https://github.com/myx/os-myx.common-macosx/archive/master.tar.gz"
-	        	UPACK(){
-	        		tar -xzvf - --strip-components 3 -C /usr/local '**/host/tarball/*'
-	        	}
+	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
 	        	CHOWN="root:wheel"
 				;;
 	        FreeBSD)
 	       		echo "Using: freebsd"
 	        	FETCH="https://github.com/myx/os-myx.common-freebsd/archive/master.tar.gz"
-	        	UPACK(){
-	        		tar -xzvf - --strip-components 3 -C /usr/local '**/host/tarball/*'
-	        	}
+	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
 	        	CHOWN="root:wheel"
 				;;
 	        Linux)
 	        	if [ -z "$FETCH" -a ! -z "`which apt || true`" ] ; then
 	        		echo "Using: linux + apt"
 		        	FETCH="https://github.com/myx/os-myx.common-ubuntu/archive/master.tar.gz"
-		        	UPACK(){
-		        		tar -xzvf - --strip-components=3 -C /usr/local --wildcards '**/host/tarball/*'
-		        	}
+		        	UPACK(){ tar -xzf - --strip-components=3 -C "$1" --wildcards '**/host/tarball/*' ; }
 		        	CHOWN="root:adm"
 		        fi
 	            if [ -z "$FETCH" ] ; then
@@ -75,10 +69,15 @@ if test `id -u` = 0 ; then
 				echo "  - freebsd: fetch -o - https://raw.githubusercontent.com/myx/os-myx.common-freebsd/master/sh-scripts/install-myx.common-freebsd.sh | sh -e" >&2
 	            exit 1
 	esac
+
 	
-	
-	FetchStdout https://github.com/myx/os-myx.common/archive/master.tar.gz | UPACK
-	FetchStdout "$FETCH" | UPACK
+   	RSYNC(){ tar -cpf - -C "$1" `ls "$1"` | tar -xvpf - -C "/usr/local/" ; }
+   	
+   	T_DIR="`mktemp -d`"
+	FetchStdout https://github.com/myx/os-myx.common/archive/master.tar.gz | UPACK "$T_DIR"
+	FetchStdout "$FETCH" | UPACK "$T_DIR"
+	RSYNC "$T_DIR"
+	rm -rf "$T_DIR"
 	
 	
 	chown $CHOWN "/usr/local/bin/myx.common"
