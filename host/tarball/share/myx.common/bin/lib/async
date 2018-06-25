@@ -2,6 +2,11 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
+if [ "`type -t SedInteractive`" != "function" ] ; then
+. "`myx.common which lib/sedInteractive`"
+fi
+
+
 Async(){
 	case "$1" in
 			"")
@@ -33,7 +38,7 @@ Async(){
     (	(	( echo "" | "$@" 2>&1 ) \
 	    	&& echo "finished." \
     		|| echo "ERROR: exited with error status." \
-    	) | sed -e "s^\^^$PREFTEXT: ^" \
+    	) | SedInteractive -e "s^\^^$PREFTEXT: ^" \
     ) & # parallel
 }
 
