@@ -1,6 +1,10 @@
 #!/bin/sh
 
-myx.common setup/completion --host
-
 . /usr/local/share/myx.common/include/subr-universal.sh
 
+SetupMachine(){
+	UserRequireRoot "SetupHostCompletion"
+	myx.common setup/completion --host
+}
+
+SetupMachine
