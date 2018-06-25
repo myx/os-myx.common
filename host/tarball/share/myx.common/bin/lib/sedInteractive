@@ -1,0 +1,21 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+#####  for OS that doesn't provide '-u' sed argument for unbuffered output.  #####
+
+## NOTE: because of macosx not supporting the '-u' option
+
+SedInteractive(){
+	sed -u "$@"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/sedInteractive) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/sedInteractive ['sed' arguments, see 'man sed'...]" >&2
+			exit 1
+		fi
+		set -e
+		SedInteractive "$@"
+	;;
+esac
