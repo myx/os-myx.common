@@ -24,7 +24,10 @@ Async(){
 	esac
 	shift
 
-	local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
+	local PREFTEXT="`printf %s "$PREFTEXT" | tr '^' '-' | tr -d '\n' `"
+	
+	#!/usr/bin/env bash
+	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 
     echo "$PREFTEXT: starting..."
     (	(	( echo "" | "$@" 2>&1 ) \
