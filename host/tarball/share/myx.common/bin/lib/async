@@ -5,6 +5,9 @@
 if [ "`type -t SedInteractive`" != "function" ] ; then
 . "`myx.common which lib/sedInteractive`"
 fi
+if [ "`type -t Unbuffer`" != "function" ] ; then
+. "`myx.common which lib/unbuffer`"
+fi
 
 
 Async(){
@@ -35,7 +38,7 @@ Async(){
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 
     echo "$PREFTEXT: starting..."
-    (	(	( echo "" | "$@" 2>&1 ) \
+    (	(	( echo "" | Unbuffer "$@" 2>&1 ) \
 	    	&& echo "finished." \
     		|| echo "ERROR: exited with error status." \
     	) | SedInteractive -e "s^\^^$PREFTEXT: ^" \
