@@ -1,9 +1,3 @@
 echo "myx.common: sh-interactive" >&2
-
-. /usr/local/share/myx.common/include/console/bash/both-interactive
-
-##
-## specific: sh interactive
-##
-
+. /usr/local/share/myx.common/include/console/bash/common
 export PS1="`whoami`@\\H:\\w % "
