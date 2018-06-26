@@ -1,2 +1,2 @@
-echo "myx.common: *csh-interactive"
+echo "myx.common: *csh-interactive" >&2
 source /usr/local/share/myx.common/include/console/tcsh/common

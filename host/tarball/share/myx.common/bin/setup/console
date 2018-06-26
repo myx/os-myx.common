@@ -78,7 +78,7 @@ if which -s csh || which -s tcsh ; then
 	ReplaceLine "$HOME/.cshrc" "^source ${HOME}/.myx/etc/cshrc*" ""
 	
 	ReplaceLine "$HOME/.cshrc" " ### myx.common setup/console ###$" \
-		"source /usr/local/share/myx.common/include/console/tcsh/common  ### myx.common setup/console ###"
+		"source /usr/local/share/myx.common/include/console/tcsh/interactive  ### myx.common setup/console ###"
 		
 	# login
 	
