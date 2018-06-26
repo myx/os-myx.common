@@ -3,5 +3,3 @@
 myx.common setup/completion
 # myx.common setup/console
 
-. /usr/local/share/myx.common/include/subr-universal.sh
-

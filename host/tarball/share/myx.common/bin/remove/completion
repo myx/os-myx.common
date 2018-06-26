@@ -4,15 +4,17 @@
 ###   myx.common lib/setupShellCompletion "myx.common" --remove
 ###
 
-. /usr/local/share/myx.common/include/subr-universal.sh
+if [ "`type -t ReplaceLine`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/lib/replaceLine"
+fi
 
 echo "Removing completion for: $HOME" >&2
 
-[ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
+[ ! -f "$HOME/.bash_profile" ] || ReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
 	"# removed by myx.common remove/completion  ### myx.common completion ###"
 	
-[ ! -f "$HOME/.bashrc" ] || InternReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
+[ ! -f "$HOME/.bashrc" ] || ReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
 	"# removed by myx.common remove/completion  ### myx.common completion ###"
 	
-[ ! -f "$HOME/.cshrc" ] || InternReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
+[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
 	"# removed by myx.common remove/completion  ### myx.common completion ###"

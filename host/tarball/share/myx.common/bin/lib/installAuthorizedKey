@@ -5,7 +5,15 @@
 
 set -e
 
-. /usr/local/share/myx.common/include/subr.sh
+if [ "`type -t UserRequireRoot`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/user/requireRoot"
+fi
+if [ "`type -t ReplaceLine`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/lib/replaceLine"
+fi
+if [ "`type -t GetBaseHomeDirectory`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/lib/getBaseHomeDirectory"
+fi
 
 InstallAuthorizedKey(){
 	local NAME="$1"
@@ -16,13 +24,13 @@ InstallAuthorizedKey(){
 
 	test "$NAME" = "`whoami`" || UserRequireRoot "InstallAuthorizedKey(AsRoot)"
 
-	local HOME="`UmanBaseHomeDirectory`/$NAME"
+	local HOME="`GetBaseHomeDirectory`/$NAME"
 	local KEYS="$HOME/.ssh/authorized_keys"
 	
 	mkdir -p "$HOME/.ssh"
 	touch "$KEYS"
 	
-	InternReplaceLine "$KEYS" "$KEY" "$KEY"
+	ReplaceLine "$KEYS" "$KEY" "$KEY"
 	
 	chown $NAME:$NAME "$KEYS"
 	chmod 600 "$KEYS"

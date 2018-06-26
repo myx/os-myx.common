@@ -5,7 +5,12 @@
 
 set -e
 
-. /usr/local/share/myx.common/include/subr.sh
+if [ "`type -t UserRequireRoot`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/user/requireRoot"
+fi
+if [ "`type -t GetWheelGroupName`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/lib/getWheelGroupName"
+fi
 
 InstallWheelUser(){
 	UserRequireRoot "InstallWheelUser"
@@ -16,7 +21,7 @@ InstallWheelUser(){
 	[ -z "$TITLE" ] && echo "InstallWheelUser: usertitle is taken from name ($NAME)!" && TITLE="$NAME"
 	
 	/usr/local/share/myx.common/bin/lib/installUser "$NAME" "$TITLE"
-	/usr/local/share/myx.common/bin/lib/installUserGroupMembership "$NAME" "`UmanWheelGroupName`"
+	/usr/local/share/myx.common/bin/lib/installUserGroupMembership "$NAME" "`GetWheelGroupName`"
 }
 
 case "$0" in

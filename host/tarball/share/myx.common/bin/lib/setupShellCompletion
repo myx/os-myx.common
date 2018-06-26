@@ -2,7 +2,9 @@
 
 ##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
 
-. /usr/local/share/myx.common/include/subr-universal.sh
+if [ "`type -t ReplaceLine`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/lib/replaceLine"
+fi
 
 SetupShellCompletion(){
 	
@@ -34,13 +36,13 @@ SetupShellCompletion(){
 			;;
 			
 		--remove)
-			[ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " $commentText\$" \
+			[ ! -f "$HOME/.bash_profile" ] || ReplaceLine "$HOME/.bash_profile" " $commentText\$" \
 				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
 			
-			[ ! -f "$HOME/.bashrc" ] || InternReplaceLine "$HOME/.bashrc" " $commentText\$" \
+			[ ! -f "$HOME/.bashrc" ] || ReplaceLine "$HOME/.bashrc" " $commentText\$" \
 				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
 				
-			[ ! -f "$HOME/.cshrc" ] || InternReplaceLine "$HOME/.cshrc" " $commentText\$" \
+			[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " $commentText\$" \
 				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
 				
 			return 0
@@ -51,13 +53,13 @@ SetupShellCompletion(){
 			exit 1
 	esac 
 	
-	[ ! -f "$HOME/.bash_profile" ] || InternReplaceLine "$HOME/.bash_profile" " $commentText\$" \
+	[ ! -f "$HOME/.bash_profile" ] || ReplaceLine "$HOME/.bash_profile" " $commentText\$" \
 		"complete -W '\`$listCommand\`' $utilityName $commentText"
 	
-	[ ! -f "$HOME/.bashrc" ] || InternReplaceLine "$HOME/.bashrc" " $commentText\$" \
+	[ ! -f "$HOME/.bashrc" ] || ReplaceLine "$HOME/.bashrc" " $commentText\$" \
 		"complete -W '\`$listCommand\`' $utilityName $commentText"
 		
-	[ ! -f "$HOME/.cshrc" ] || InternReplaceLine "$HOME/.cshrc" " $commentText\$" \
+	[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " $commentText\$" \
 		"complete $utilityName 'p/*/\`$listCommand\`/' $commentText"
 }
 

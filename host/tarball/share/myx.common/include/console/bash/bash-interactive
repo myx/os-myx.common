@@ -1,0 +1,7 @@
+source /usr/local/share/myx.common/include/console/bash/both-interactive
+
+##
+## specific: bash interactive
+##
+
+export PS1='\[\e[0;32m\]\u@\H\[\e[m\]:\[\e[0;34m\]\w\[\e[m\]\[\e[0;32m\]\$\[\e[m\] \[\e[0m\]'

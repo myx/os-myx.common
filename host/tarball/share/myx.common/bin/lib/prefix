@@ -1,0 +1,59 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+if [ "`type -t SedInteractive`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/lib/sedInteractive"
+fi
+if [ "`type -t Unbuffer`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/lib/unbuffer"
+fi
+
+
+Prefix(){
+	case "$1" in
+			"")
+				echo "prefix: prefix text argument is required!" >&2 ; exit 1
+				;;
+	        -1)
+				local PREFTEXT="`basename $2`"
+	            ;;
+	        -2)
+				local PREFTEXT="`basename $3`"
+	            ;;
+	        -3)
+				local PREFTEXT="`basename $4`"
+	            ;;
+	        --)
+				local PREFTEXT="${!#}"
+	            ;;
+	        *)
+				local PREFTEXT="$1"
+	esac
+	shift
+
+	local PREFTEXT="`printf %s "$PREFTEXT" | tr '^' '-' | tr -d '\n' `"
+	
+	#!/usr/bin/env bash
+	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
+
+    echo "$PREFTEXT: starting..."
+    (	(	( echo "" | Unbuffer "$@" 2>&1 ) \
+	    	&& echo "finished." \
+    		|| echo "ERROR: exited with error status." \
+    	) | SedInteractive -e "s^\^^$PREFTEXT: ^" \
+    ) # not: `& # parallel`
+}
+
+case "$0" in
+	*/myx.common/bin/lib/prefix) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/prefix [-1|-2|-3|<prefix-text>] command [... arguments]" >&2
+			echo "    when -1, -2 or -3 is used in place of 'prefix text' argument" >$2
+			echo "    the corresponding following argument of the command is used." >$2
+			exit 1
+		fi
+		set -e
+		Prefix "$@"
+	;;
+esac

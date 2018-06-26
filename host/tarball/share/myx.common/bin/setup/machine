@@ -1,6 +1,8 @@
 #!/bin/sh
 
-. /usr/local/share/myx.common/include/subr-universal.sh
+if [ "`type -t UserRequireRoot`" != "function" ] ; then
+. "/usr/local/share/myx.common/bin/user/requireRoot"
+fi
 
 SetupMachine(){
 	UserRequireRoot "SetupHostCompletion"
