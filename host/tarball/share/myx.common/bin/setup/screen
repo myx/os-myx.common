@@ -19,7 +19,7 @@ SetupHostScreen(){
 
 	[ -f "$commonScreenRc" ] || touch "$commonScreenRc"
 	[ ! -f "$commonScreenRc" ] || ReplaceLine "$commonScreenRc" " ### myx.common setup/screen ###$" \
-		". /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/screen ###"
+		"source /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/screen ###"
 
 	# cp /usr/local/share/myx.common/include/console/screen/screenrc "$commonScreenRc"
 }
@@ -30,7 +30,7 @@ SetupUserScreen(){
 	
 	[ -f "$userScreenRc" ] || touch "$userScreenRc"
 	[ ! -f "$userScreenRc" ] || ReplaceLine "$userScreenRc" " ### myx.common setup/screen ###$" \
-		". /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/screen ###"
+		"source /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/screen ###"
 
 	# cp /usr/local/share/myx.common/include/console/screen/screenrc "$userScreenRc"
 }
