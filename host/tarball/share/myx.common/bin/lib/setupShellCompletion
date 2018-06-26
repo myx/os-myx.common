@@ -31,7 +31,7 @@ SetupShellCompletion(){
 				echo "SetupShellCompletion: listDirectory is required!" >&2
 				exit 1
 			fi
-			local listCommand="find \"$3\" -type f | sed \"s,$3/,,g" | sort"
+			local listCommand="find \"$3\" -type f | sed \"s,$3/,,g\" | sort"
 			;;
 			
 		--remove)
