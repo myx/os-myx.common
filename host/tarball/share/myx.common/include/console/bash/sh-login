@@ -1,4 +1,4 @@
 echo "myx.common: sh-login" >&2
-ENV=$HOME/.shrc; export ENV
+ENV=~/.shrc; export ENV
 . /usr/local/share/myx.common/include/console/bash/sh-interactive
 [ "$TERM" != screen ] && [ -x "$(which screen)" ] && [ -x "$(which bash)" ] && $(which screen) -s $(which bash) -q -O -U -D -R
