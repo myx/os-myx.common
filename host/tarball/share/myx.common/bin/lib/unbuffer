@@ -6,7 +6,20 @@
 ## NOTE: because of linux gnu 'script' is not like others
 
 Unbuffer(){
-	script -q /dev/null "$@"
+	if which -s script && which -s "$1" ; then
+		set -e
+		script -q /dev/null "$@"
+		return 0
+	fi
+	if which -s stdbuf && which -s "$1" ; then
+		set -e
+		stdbuf -i0 -o0 -e0 "$@"
+		return 0
+	fi
+
+	# macosx?
+	export NSUnbufferedIO=YES	
+	"$@"
 }
 
 case "$0" in
