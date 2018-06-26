@@ -9,8 +9,13 @@ mkdir -p "$HOME/.myx/etc"
 type ReplaceLine >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/replaceLine"
 
+if [ "`uname -s`" = "Linux" ] ; then
+	checkExecutable() { [ -x "`which $1 2> /dev/null`" ]; }
+else
+	checkExecutable() { which -s "$1"; }
+fi
 
-if which -s sh ; then
+if checkExecutable sh ; then
 	echo "Setting sh"
 	
 	# interactive
@@ -37,7 +42,7 @@ else
 	echo "Skip: sh"
 fi
 
-if which -s bash ; then
+if checkExecutable bash ; then
 	echo "Setting bash"
 	
 	# interactive
@@ -67,7 +72,7 @@ else
 	echo "Skip: bash"
 fi
 
-if which -s csh || which -s tcsh ; then
+if checkExecutable csh || checkExecutable tcsh ; then
 	echo "Setting *csh"
 	
 	# interactive
