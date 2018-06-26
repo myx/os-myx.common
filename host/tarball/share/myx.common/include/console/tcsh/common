@@ -8,4 +8,6 @@ setenv LSCOLORS 'ExGxFxdxCxDxDxhbadExEx'
 setenv PROMPT '%{\033[0;32m%}%n@%M%{\033[1;31m%}:%c%{\033[0;32m%}%#%{\033[0m%} '
 setenv INPUTRC /usr/local/share/myx.common/include/console/etc/inputrc
 
+alias ll ls -al
+
 set prompt = '%{\033[0;32m%}%n@%M%{\033[1;31m%}:%c%{\033[0;32m%}%#%{\033[0m%} '

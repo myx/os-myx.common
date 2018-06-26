@@ -1,4 +1,4 @@
-echo "myx.common: sh-interactive"
+echo "myx.common: sh-interactive" >&2
 
 . /usr/local/share/myx.common/include/console/bash/both-interactive
 
