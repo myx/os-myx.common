@@ -1,6 +1,6 @@
 echo "myx.common: sh-interactive"
 
-source /usr/local/share/myx.common/include/console/bash/both-interactive
+. /usr/local/share/myx.common/include/console/bash/both-interactive
 
 ##
 ## specific: sh interactive
