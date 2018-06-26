@@ -8,7 +8,6 @@ export PROMPT_COMMAND='history -w; history -r'
 export HISTCONTROL=erasedups
 export CLICOLOR='YES'
 export LSCOLORS='ExGxFxdxCxDxDxhbadExEx'
-export GREP_OPTIONS='--color=auto'
 export GREP_COLOR='00;38;5;157'
 export INPUTRC=/usr/local/share/myx.common/include/console/etc/inputrc
 export LOCALE=en_US.UTF-8
