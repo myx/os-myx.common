@@ -1,3 +1,5 @@
+echo "myx.common: bash-interactive"
+
 source /usr/local/share/myx.common/include/console/bash/both-interactive
 
 ##

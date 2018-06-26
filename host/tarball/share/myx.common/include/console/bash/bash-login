@@ -1,2 +1,3 @@
+echo "myx.common: bash-login"
 source /usr/local/share/myx.common/include/console/bash/bash-interactive
 [ "$TERM" != screen ] && [ -x "$(which screen)" ] && [ -x "$(which bash)" ] && $(which screen) -s $(which bash) -q -O -U -D -R
