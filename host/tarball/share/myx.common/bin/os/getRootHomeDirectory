@@ -10,9 +10,9 @@ GetRootHomeDirectory(){
 
 
 case "$0" in
-	*/myx.common/bin/lib/getRootHomeDirectory) 
+	*/myx.common/bin/os/getRootHomeDirectory) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/getRootHomeDirectory" >&2
+			echo "Syntax: myx.common os/getRootHomeDirectory" >&2
 			exit 1
 		fi
 		set -e

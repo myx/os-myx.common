@@ -12,7 +12,7 @@ type ReplaceLine >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/replaceLine"
 
 type GetBaseHomeDirectory >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/getBaseHomeDirectory"
+	. "/usr/local/share/myx.common/bin/os/getBaseHomeDirectory"
 
 InstallAuthorizedKey(){
 	local NAME="$1"

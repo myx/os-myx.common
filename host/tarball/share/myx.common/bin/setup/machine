@@ -6,6 +6,7 @@ type UserRequireRoot >/dev/null 2>&1 || \
 SetupMachine(){
 	UserRequireRoot "SetupHostCompletion"
 	myx.common setup/completion --host
+	cat /usr/local/etc/screenrc
 }
 
 SetupMachine

@@ -100,5 +100,9 @@ else
 fi
 
 
+ReplaceLine "`myx.common os/getCommonScreenRc`" " ### myx.common setup/console ###$" \
+	". /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/console ###"
+
+# cp /usr/local/share/myx.common/include/console/screen/screenrc "`myx.common os/getCommonScreenRc`"
 
 

@@ -10,9 +10,9 @@ GetWheelGroupName(){
 
 
 case "$0" in
-	*/myx.common/bin/lib/getWheelGroupName) 
+	*/myx.common/bin/os/getWheelGroupName) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/getWheelGroupName" >&2
+			echo "Syntax: myx.common os/getWheelGroupName" >&2
 			exit 1
 		fi
 		set -e

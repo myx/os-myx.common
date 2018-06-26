@@ -9,7 +9,7 @@ type UserRequireRoot >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/user/requireRoot"
 
 type GetWheelGroupName >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/getWheelGroupName"
+	. "/usr/local/share/myx.common/bin/os/getWheelGroupName"
 
 InstallWheelUser(){
 	UserRequireRoot "InstallWheelUser"

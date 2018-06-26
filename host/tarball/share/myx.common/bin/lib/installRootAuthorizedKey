@@ -12,7 +12,7 @@ type ReplaceLine >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/replaceLine"
 
 type GetRootHomeDirectory >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/getRootHomeDirectory"
+	. "/usr/local/share/myx.common/bin/os/getRootHomeDirectory"
 
 InstallRootAuthorizedKey(){
 	UserRequireRoot "InstallRootAuthorizedKey"
