@@ -90,7 +90,7 @@ if test `id -u` = 0 ; then
 	
 	#
 	# completion for root in bash:
-	# 		myx.common setup/console
+	# 		myx.common setup/completion
 	#
 else
 	echo "installer is in 'user' mode..."
