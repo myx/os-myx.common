@@ -14,24 +14,25 @@ type ReplaceLine >/dev/null 2>&1 || \
 SetupHostScreen(){
 	UserRequireRoot "SetupHostScreen"
 
-	echo "Setting up screenrc for host" >&2
-	
 	local commonScreenRc="$(myx.common os/getCommonScreenRc)"
+	echo "Setting up screenrc for host at $commonScreenRc" >&2
+
 	[ -f "$commonScreenRc" ] || touch "$commonScreenRc"
 	[ ! -f "$commonScreenRc" ] || ReplaceLine "$commonScreenRc" " ### myx.common setup/screen ###$" \
 		". /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/screen ###"
 
-	# cp /usr/local/share/myx.common/include/console/screen/screenrc "`myx.common os/getCommonScreenRc`"
+	# cp /usr/local/share/myx.common/include/console/screen/screenrc "$commonScreenRc"
 }
 
 SetupUserScreen(){
-	echo "Setting up screen for: $HOME" >&2
+	local userScreenRc="$( cd "$HOME" ; pwd )/.screenrc"
+	echo "Setting up screen for: $HOME at $userScreenRc" >&2
 	
-	[ -f "~/.screenrc" ] || touch "~/.screenrc"
-	[ ! -f "~/.screenrc" ] || ReplaceLine "~/.screenrc" " ### myx.common setup/screen ###$" \
+	[ -f "$userScreenRc" ] || touch "$userScreenRc"
+	[ ! -f "$userScreenRc" ] || ReplaceLine "$userScreenRc" " ### myx.common setup/screen ###$" \
 		". /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/screen ###"
 
-	# cp /usr/local/share/myx.common/include/console/screen/screenrc "~/.screenrc"
+	# cp /usr/local/share/myx.common/include/console/screen/screenrc "$userScreenRc"
 }
 
 
