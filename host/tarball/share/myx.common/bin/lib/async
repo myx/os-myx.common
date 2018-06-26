@@ -2,9 +2,8 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
-if [ "`type -t Prefix`" != "function" ] ; then
-. "/usr/local/share/myx.common/bin/lib/prefix"
-fi
+type Prefix >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/prefix"
 
 
 Async(){

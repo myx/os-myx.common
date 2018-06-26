@@ -2,9 +2,8 @@
 
 ##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
 
-if [ "`type -t ReplaceLine`" != "function" ] ; then
-. "/usr/local/share/myx.common/bin/lib/replaceLine"
-fi
+type ReplaceLine >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/replaceLine"
 
 SetupShellCompletion(){
 	

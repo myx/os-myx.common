@@ -2,12 +2,11 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
-if [ "`type -t SedInteractive`" != "function" ] ; then
-. "/usr/local/share/myx.common/bin/lib/sedInteractive"
-fi
-if [ "`type -t Unbuffer`" != "function" ] ; then
-. "/usr/local/share/myx.common/bin/lib/unbuffer"
-fi
+type SedInteractive >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/sedInteractive"
+
+type Unbuffer >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/unbuffer"
 
 
 Prefix(){

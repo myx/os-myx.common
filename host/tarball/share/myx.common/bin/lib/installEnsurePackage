@@ -6,9 +6,7 @@
 ##### Note: must support following keywords: bash screen git rsync java 
 #####
 
-if [ "`type -t UserRequireRoot`" != "function" ] ; then
 . "/usr/local/share/myx.common/bin/user/requireRoot"
-fi
 
 InstallEnsurePackage(){
 	UserRequireRoot "InstallEnsurePackage"

@@ -5,12 +5,11 @@
 
 set -e
 
-if [ "`type -t UserRequireRoot`" != "function" ] ; then
-. "/usr/local/share/myx.common/bin/user/requireRoot"
-fi
-if [ "`type -t GetWheelGroupName`" != "function" ] ; then
-. "/usr/local/share/myx.common/bin/lib/getWheelGroupName"
-fi
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/user/requireRoot"
+
+type GetWheelGroupName >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/getWheelGroupName"
 
 InstallWheelUser(){
 	UserRequireRoot "InstallWheelUser"

@@ -5,15 +5,14 @@
 
 set -e
 
-if [ "`type -t UserRequireRoot`" != "function" ] ; then
-. "/usr/local/share/myx.common/bin/user/requireRoot"
-fi
-if [ "`type -t ReplaceLine`" != "function" ] ; then
-. "/usr/local/share/myx.common/bin/lib/replaceLine"
-fi
-if [ "`type -t GetRootHomeDirectory`" != "function" ] ; then
-. "/usr/local/share/myx.common/bin/lib/getRootHomeDirectory"
-fi
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/user/requireRoot"
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/replaceLine"
+
+type GetRootHomeDirectory >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/getRootHomeDirectory"
 
 InstallRootAuthorizedKey(){
 	UserRequireRoot "InstallRootAuthorizedKey"
