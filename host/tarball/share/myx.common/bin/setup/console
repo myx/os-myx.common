@@ -18,6 +18,7 @@ if which -s sh ; then
 	touch "$HOME/.shrc"
 	
 	ReplaceLine "$HOME/.shrc" "^. ${HOME}.myx/etc/shrc*" ""
+	ReplaceLine "$HOME/.shrc" "^. ${HOME}/.myx/etc/shrc*" ""
 	
 	ReplaceLine "$HOME/.shrc" " ### myx.common setup/console ###$" \
 		". /usr/local/share/myx.common/include/console/bash/sh-interactive  ### myx.common setup/console ###"
@@ -27,6 +28,7 @@ if which -s sh ; then
 	touch "$HOME/.profile"
 	
 	ReplaceLine "$HOME/.profile" "^. ${HOME}.myx/etc/profile*" ""
+	ReplaceLine "$HOME/.profile" "^. ${HOME}/.myx/etc/profile*" ""
 	
 	ReplaceLine "$HOME/.profile" " ### myx.common setup/console ###$" \
 		". /usr/local/share/myx.common/include/console/bash/sh-login  ### myx.common setup/console ###"
@@ -43,6 +45,7 @@ if which -s bash ; then
 	touch "$HOME/.bashrc"
 	
 	ReplaceLine "$HOME/.bashrc" "^. ${HOME}.myx/etc/bashrc*" ""
+	ReplaceLine "$HOME/.bashrc" "^. ${HOME}/.myx/etc/bashrc*" ""
 	
 	ReplaceLine "$HOME/.bashrc" " ### myx.common setup/console ###$" \
 		"source /usr/local/share/myx.common/include/console/bash/bash-interactive  ### myx.common setup/console ###"
@@ -52,6 +55,7 @@ if which -s bash ; then
 	touch "$HOME/.bash_profile"
 	
 	ReplaceLine "$HOME/.bash_profile" "^. ${HOME}.myx/etc/bash_profile*" ""
+	ReplaceLine "$HOME/.bash_profile" "^. ${HOME}/.myx/etc/bash_profile*" ""
 	
 	ReplaceLine "$HOME/.bash_profile" " ### myx.common setup/console ###$" \
 		"source /usr/local/share/myx.common/include/console/bash/bash-login  ### myx.common setup/console ###"
@@ -71,6 +75,7 @@ if which -s csh || which -s tcsh ; then
 	touch "$HOME/.cshrc"
 	
 	ReplaceLine "$HOME/.cshrc" "^source ${HOME}.myx/etc/cshrc*" ""
+	ReplaceLine "$HOME/.cshrc" "^source ${HOME}/.myx/etc/cshrc*" ""
 	
 	ReplaceLine "$HOME/.cshrc" " ### myx.common setup/console ###$" \
 		"source /usr/local/share/myx.common/include/console/tcsh/common  ### myx.common setup/console ###"
@@ -80,6 +85,7 @@ if which -s csh || which -s tcsh ; then
 	touch "$HOME/.login"
 	
 	ReplaceLine "$HOME/.login" "^source ${HOME}.myx/etc/csh_profile*" ""
+	ReplaceLine "$HOME/.login" "^source ${HOME}/.myx/etc/csh_profile*" ""
 	
 	ReplaceLine "$HOME/.login" " ### myx.common setup/console ###$" \
 		"source /usr/local/share/myx.common/include/console/tcsh/login  ### myx.common setup/console ###"
