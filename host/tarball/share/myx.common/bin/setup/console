@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
-
-set -e
-
-echo "Setting up console for: $HOME"
-
-mkdir -p "$HOME/.myx/etc"
-
+	
 type ReplaceLine >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/replaceLine"
 
@@ -15,94 +9,100 @@ else
 	checkExecutable() { which -s "$1"; }
 fi
 
-if checkExecutable sh ; then
-	echo "Setting sh"
+SetupConsole(){
+	echo "Setting up console for: $HOME"
 	
-	# interactive
-
-	touch "$HOME/.shrc"
+	mkdir -p "$HOME/.myx/etc"
 	
-	ReplaceLine "$HOME/.shrc" "^. ${HOME}.myx/etc/shrc*" ""
-	ReplaceLine "$HOME/.shrc" "^. ${HOME}/.myx/etc/shrc*" ""
-	
-	ReplaceLine "$HOME/.shrc" " ### myx.common setup/console ###$" \
-		". /usr/local/share/myx.common/include/console/bash/sh-interactive  ### myx.common setup/console ###"
+	if checkExecutable sh ; then
+		echo "Setting sh"
 		
-	# login
+		# interactive
 	
-	touch "$HOME/.profile"
-	
-	ReplaceLine "$HOME/.profile" "^. ${HOME}.myx/etc/profile*" ""
-	ReplaceLine "$HOME/.profile" "^. ${HOME}/.myx/etc/profile*" ""
-	
-	ReplaceLine "$HOME/.profile" " ### myx.common setup/console ###$" \
-		". /usr/local/share/myx.common/include/console/bash/sh-login  ### myx.common setup/console ###"
+		touch "$HOME/.shrc"
 		
-else
-	echo "Skip: sh"
-fi
-
-if checkExecutable bash ; then
-	echo "Setting bash"
-	
-	# interactive
-
-	touch "$HOME/.bashrc"
-	
-	ReplaceLine "$HOME/.bashrc" "^. ${HOME}.myx/etc/bashrc*" ""
-	ReplaceLine "$HOME/.bashrc" "^. ${HOME}/.myx/etc/bashrc*" ""
-	
-	ReplaceLine "$HOME/.bashrc" " ### myx.common setup/console ###$" \
-		"source /usr/local/share/myx.common/include/console/bash/bash-interactive  ### myx.common setup/console ###"
+		ReplaceLine "$HOME/.shrc" "^. ${HOME}.myx/etc/shrc*" ""
+		ReplaceLine "$HOME/.shrc" "^. ${HOME}/.myx/etc/shrc*" ""
 		
-	# login
-	
-	touch "$HOME/.bash_profile"
-	
-	ReplaceLine "$HOME/.bash_profile" "^. ${HOME}.myx/etc/bash_profile*" ""
-	ReplaceLine "$HOME/.bash_profile" "^. ${HOME}/.myx/etc/bash_profile*" ""
-	
-	ReplaceLine "$HOME/.bash_profile" " ### myx.common setup/console ###$" \
-		"source /usr/local/share/myx.common/include/console/bash/bash-login  ### myx.common setup/console ###"
+		ReplaceLine "$HOME/.shrc" " ### myx.common setup/console ###$" \
+			". /usr/local/share/myx.common/include/console/bash/sh-interactive  ### myx.common setup/console ###"
+			
+		# login
 		
-	echo "The user needs to login again for login scripts to be run"
-	echo "run to apply login scripts now: source /usr/local/share/myx.common/include/console/bash/bash-login"
-	
-else
-	echo "Skip: bash"
-fi
-
-if checkExecutable csh || checkExecutable tcsh ; then
-	echo "Setting *csh"
-	
-	# interactive
-
-	touch "$HOME/.cshrc"
-	
-	ReplaceLine "$HOME/.cshrc" "^source ${HOME}.myx/etc/cshrc*" ""
-	ReplaceLine "$HOME/.cshrc" "^source ${HOME}/.myx/etc/cshrc*" ""
-	
-	ReplaceLine "$HOME/.cshrc" " ### myx.common setup/console ###$" \
-		"source /usr/local/share/myx.common/include/console/tcsh/interactive  ### myx.common setup/console ###"
+		touch "$HOME/.profile"
 		
-	# login
-	
-	touch "$HOME/.login"
-	
-	ReplaceLine "$HOME/.login" "^source ${HOME}.myx/etc/csh_profile*" ""
-	ReplaceLine "$HOME/.login" "^source ${HOME}/.myx/etc/csh_profile*" ""
-	
-	ReplaceLine "$HOME/.login" " ### myx.common setup/console ###$" \
-		"source /usr/local/share/myx.common/include/console/tcsh/login  ### myx.common setup/console ###"
+		ReplaceLine "$HOME/.profile" "^. ${HOME}.myx/etc/profile*" ""
+		ReplaceLine "$HOME/.profile" "^. ${HOME}/.myx/etc/profile*" ""
 		
-else
-	echo "Skip: *csh"
-fi
+		ReplaceLine "$HOME/.profile" " ### myx.common setup/console ###$" \
+			". /usr/local/share/myx.common/include/console/bash/sh-login  ### myx.common setup/console ###"
+			
+	else
+		echo "Skip: sh"
+	fi
+	
+	if checkExecutable bash ; then
+		echo "Setting bash"
+		
+		# interactive
+	
+		touch "$HOME/.bashrc"
+		
+		ReplaceLine "$HOME/.bashrc" "^. ${HOME}.myx/etc/bashrc*" ""
+		ReplaceLine "$HOME/.bashrc" "^. ${HOME}/.myx/etc/bashrc*" ""
+		
+		ReplaceLine "$HOME/.bashrc" " ### myx.common setup/console ###$" \
+			"source /usr/local/share/myx.common/include/console/bash/bash-interactive  ### myx.common setup/console ###"
+			
+		# login
+		
+		touch "$HOME/.bash_profile"
+		
+		ReplaceLine "$HOME/.bash_profile" "^. ${HOME}.myx/etc/bash_profile*" ""
+		ReplaceLine "$HOME/.bash_profile" "^. ${HOME}/.myx/etc/bash_profile*" ""
+		
+		ReplaceLine "$HOME/.bash_profile" " ### myx.common setup/console ###$" \
+			"source /usr/local/share/myx.common/include/console/bash/bash-login  ### myx.common setup/console ###"
+			
+		echo "The user needs to login again for login scripts to be run"
+		echo "run to apply login scripts now: source /usr/local/share/myx.common/include/console/bash/bash-login"
+		
+	else
+		echo "Skip: bash"
+	fi
+	
+	if checkExecutable csh || checkExecutable tcsh ; then
+		echo "Setting *csh"
+		
+		# interactive
+	
+		touch "$HOME/.cshrc"
+		
+		ReplaceLine "$HOME/.cshrc" "^source ${HOME}.myx/etc/cshrc*" ""
+		ReplaceLine "$HOME/.cshrc" "^source ${HOME}/.myx/etc/cshrc*" ""
+		
+		ReplaceLine "$HOME/.cshrc" " ### myx.common setup/console ###$" \
+			"source /usr/local/share/myx.common/include/console/tcsh/interactive  ### myx.common setup/console ###"
+			
+		# login
+		
+		touch "$HOME/.login"
+		
+		ReplaceLine "$HOME/.login" "^source ${HOME}.myx/etc/csh_profile*" ""
+		ReplaceLine "$HOME/.login" "^source ${HOME}/.myx/etc/csh_profile*" ""
+		
+		ReplaceLine "$HOME/.login" " ### myx.common setup/console ###$" \
+			"source /usr/local/share/myx.common/include/console/tcsh/login  ### myx.common setup/console ###"
+			
+	else
+		echo "Skip: *csh"
+	fi
+	
+	
+	myx.common setup/screen
+	
+}
 
-
-ReplaceLine "`myx.common os/getCommonScreenRc`" " ### myx.common setup/console ###$" \
-	". /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/console ###"
-
-# cp /usr/local/share/myx.common/include/console/screen/screenrc "`myx.common os/getCommonScreenRc`"
-
+set -e
+SetupConsole "$@"
 
