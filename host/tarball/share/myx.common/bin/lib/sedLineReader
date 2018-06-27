@@ -1,0 +1,21 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+#####  for OS that doesn't provide '-l' sed argument for line buffer.        #####
+
+## NOTE: because of ubuntu not supporting the '-l' option
+
+SedLineReader(){
+	sed -l "$@"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/sedLineReader) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/sedLineReader ['sed' arguments, see 'man sed'...]" >&2
+			exit 1
+		fi
+		set -e
+		SedLineReader "$@"
+	;;
+esac

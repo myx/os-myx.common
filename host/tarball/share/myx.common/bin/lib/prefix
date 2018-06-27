@@ -2,8 +2,8 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
-type SedInteractive >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/sedInteractive"
+type SedLineReader >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/sedLineReader"
 
 type Unbuffer >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/unbuffer"
@@ -40,7 +40,7 @@ Prefix(){
     (	(	( echo "" | Unbuffer "$@" 2>&1 ) \
 	    	&& echo "finished." \
     		|| echo "ERROR: exited with error status." \
-    	) | SedInteractive -e "s^\^^$PREFTEXT: ^" \
+    	) | SedLineReader -e "s^\^^$PREFTEXT: ^" \
     ) # not: `& # parallel`
 }
 
