@@ -5,6 +5,7 @@ type UserRequireRoot >/dev/null 2>&1 || \
 
 SetupMachine(){
 	UserRequireRoot "SetupHostCompletion"
+	myx.common install/ensure/utilBashRsyncScreenSudo
 	myx.common setup/completion --host
 }
 
