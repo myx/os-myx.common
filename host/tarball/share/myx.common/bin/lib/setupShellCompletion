@@ -59,7 +59,7 @@ SetupShellCompletion(){
 		"complete -W '\`$listCommand\`' $utilityName $commentText"
 		
 	[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " $commentText\$" \
-		"complete $utilityName 'p/*/\`$listCommand\`/' $commentText"
+		"complete $utilityName 'p:*:\`$listCommand\`:' $commentText"
 }
 
 case "$0" in
