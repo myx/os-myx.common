@@ -1,5 +1,5 @@
 Name: os-myx.common
-Requires: java
+Requires: 
 Provides: \
 	os-myx.common myx.common/os-myx.common myx/myx.common/os-myx.common \
 	freebsd-installer.sh:build.freebsd-installer \
