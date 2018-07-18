@@ -37,11 +37,16 @@ Prefix(){
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 
     echo "$PREFTEXT: starting..."
-    (	(	( echo "" | Unbuffer "$@" 2>&1 ) \
+    (	Unbuffer "$@" 2>&1 \
 	    	&& echo "finished." \
     		|| echo "ERROR: exited with error status." \
-    	) | SedLineReader -e "s^\^^$PREFTEXT: ^" \
-    ) # not: `& # parallel`
+   	) | SedLineReader -e "s^\^^$PREFTEXT: ^"
+   	
+#	(	( echo "" | Unbuffer "$@" 2>&1 ) \
+#	    	&& echo "finished." \
+#    		|| echo "ERROR: exited with error status." \
+#	) | SedLineReader -e "s^\^^$PREFTEXT: ^"
+
 }
 
 case "$0" in
