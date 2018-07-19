@@ -5,9 +5,11 @@
 
 ## NOTE: because of ubuntu not supporting the '-l' option
 
-SedLineReader(){
-	sed -l "$@"
-}
+alias SedLineReader='sed -l'
+
+# SedLineReader(){
+# 	sed -l "$@"
+# }
 
 case "$0" in
 	*/myx.common/bin/lib/sedLineReader) 
