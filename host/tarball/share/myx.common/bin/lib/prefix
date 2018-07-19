@@ -38,8 +38,8 @@ Prefix(){
 
     echo "$PREFTEXT: starting..."
     (	"$@" 2>&1 \
-	    	&& echo "finished." \
-    		|| echo "ERROR: exited with error status ($?)" \
+	    	&& echo "." \
+    		|| ( EXITCODE=$? ; echo "ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ) \
    	) | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2
    	
 #	(	( echo "" | Unbuffer "$@" 2>&1 ) \
