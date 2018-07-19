@@ -5,6 +5,7 @@
 
 ## NOTE: because of ubuntu not supporting the '-l' option
 
+export SedLineReader='sed -l'
 alias SedLineReader='sed -l'
 
 # SedLineReader(){

@@ -5,8 +5,8 @@
 type SedLineReader >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/sedLineReader"
 
-type Unbuffer >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/unbuffer"
+# type Unbuffer >/dev/null 2>&1 || \
+#	. "/usr/local/share/myx.common/bin/lib/unbuffer"
 
 
 Prefix(){
