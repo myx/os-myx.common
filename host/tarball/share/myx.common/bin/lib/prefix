@@ -37,7 +37,7 @@ Prefix(){
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 
     echo "$PREFTEXT: starting..."
-    (	Unbuffer "$@" 2>&1 \
+    (	"$@" 2>&1 \
 	    	&& echo "finished." \
     		|| echo "ERROR: exited with error status." \
    	) | SedLineReader -e "s^\^^$PREFTEXT: ^"
