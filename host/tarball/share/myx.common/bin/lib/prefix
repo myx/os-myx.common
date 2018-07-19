@@ -2,7 +2,7 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
-type SedLineReader >/dev/null 2>&1 || \
+type $SedLineReader >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/sedLineReader"
 
 # type Unbuffer >/dev/null 2>&1 || \
@@ -40,12 +40,12 @@ Prefix(){
     (	"$@" 2>&1 \
 	    	&& echo "finished." \
     		|| echo "ERROR: exited with error status." \
-   	) | SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2
+   	) | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2
    	
 #	(	( echo "" | Unbuffer "$@" 2>&1 ) \
 #	    	&& echo "finished." \
 #    		|| echo "ERROR: exited with error status." \
-#	) | SedLineReader -e "s^\^^$PREFTEXT: ^"
+#	) | $SedLineReader -e "s^\^^$PREFTEXT: ^"
 
 }
 
