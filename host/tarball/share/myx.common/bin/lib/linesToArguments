@@ -12,7 +12,7 @@ LinesToArguments(){
 				shift
 				local actCommand="$1" ; shift
 				set -e
-				$actCommand | sed -e 's:^:":' -e 's:$:":' -l "$@"
+				$actCommand | sed -e 's:^:":' -e 's: *$:":' -l "$@"
 				return 0
 			;;
 			*)
@@ -20,7 +20,7 @@ LinesToArguments(){
 			;;
 		esac
 	done
-	sed -e 's:^:":' -e 's:$:":' -l "$@"
+	sed -e 's:^:":' -e 's: *$:":' -l "$@"
 }
 
 case "$0" in
