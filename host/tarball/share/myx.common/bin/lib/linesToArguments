@@ -25,7 +25,7 @@ LinesToArguments(){
 
 case "$0" in
 	*/myx.common/bin/lib/linesToArguments) 
-		if [ -z "$1" ] ; then
+		if [ "--help" = "$1" ] ; then
 			echo "Syntax: myx.common lib/linesToArguments [--act 'command'] ['sed' arguments, see 'man sed'...]" >&2
 			exit 1
 		fi
