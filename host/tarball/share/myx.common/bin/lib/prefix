@@ -10,6 +10,12 @@
 
 
 Prefix(){
+	local verbose=""
+	if [ "--verbose" = "$1" ] ; then
+		shift
+		local verbose="true"
+	fi
+
 	case "$1" in
 			"")
 				echo "prefix: prefix text argument is required!" >&2 ; exit 1
@@ -28,6 +34,7 @@ Prefix(){
 	            ;;
 	        *)
 				local PREFTEXT="$1"
+				;;
 	esac
 	shift
 
@@ -36,10 +43,10 @@ Prefix(){
 	#!/usr/bin/env bash
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 
-    echo "$PREFTEXT: starting..."
+    [ -z "$verbose" ] || echo "$PREFTEXT: starting..."
     (	"$@" 2>&1 \
-	    	&& echo "." \
-    		|| ( EXITCODE=$? ; echo "ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ) \
+	    	&& [ -z "$verbose" ] || echo "." \
+    		|| ( set +x ; EXITCODE=$? ; echo "ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ) \
    	) | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2
    	
 #	(	( echo "" | Unbuffer "$@" 2>&1 ) \
@@ -52,7 +59,7 @@ Prefix(){
 case "$0" in
 	*/myx.common/bin/lib/prefix) 
 		if [ -z "$1" ] ; then
-			echo "Syntax: myx.common lib/prefix [-1|-2|-3|<prefix-text>] command [... arguments]" >&2
+			echo "Syntax: myx.common lib/prefix [--verbose] [-1|-2|-3|<prefix-text>] command [... arguments]" >&2
 			echo "    when -1, -2 or -3 is used in place of 'prefix text' argument" >$2
 			echo "    the corresponding following argument of the command is used." >$2
 			exit 1
