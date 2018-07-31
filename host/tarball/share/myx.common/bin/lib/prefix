@@ -43,9 +43,11 @@ Prefix(){
 	#!/usr/bin/env bash
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 
+	set -e
+
     [ -z "$verbose" ] || echo "$PREFTEXT: starting..."
     (	"$@" 2>&1 \
-	    	&& [ -z "$verbose" ] || echo "." \
+	    	&& ( [ -z "$verbose" ] || echo "." ) \
     		|| ( set +x ; EXITCODE=$? ; echo "ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ) \
    	) | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2
    	
