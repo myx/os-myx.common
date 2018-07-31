@@ -48,7 +48,7 @@ Prefix(){
     [ -z "$verbose" ] || echo "$PREFTEXT: starting..."
     (	"$@" 2>&1 \
 	    	&& ( [ -z "$verbose" ] || echo "." ) \
-    		|| ( set +x ; EXITCODE=$? ; echo "ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ) \
+    		|| ( EXITCODE=$? ; set +x ; echo "ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ) \
    	) | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2
    	
 #	(	( echo "" | Unbuffer "$@" 2>&1 ) \
