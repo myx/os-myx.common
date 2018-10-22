@@ -36,7 +36,7 @@ GitCloneSync(){
 	    mkdir -p "$TGT_DIR"
 	    git clone "$SRC_URL" "$TGT_DIR"
 	});
-    [ "$NOWRITE" = "true" -o -f "$TGT_DIR/README.md" ] || ({
+    [ "$NOWRITE" = "true" -o -f "$TGT_DIR/README.md" -o -f "$TGT_DIR/README.MD" ] || ({
         cd "$TGT_DIR"
         touch README.md
         git add README.md
