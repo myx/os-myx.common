@@ -25,6 +25,16 @@ GitCloneSync(){
 	
 	[ -d "$TGT_DIR" ] && ({
 		cd "$TGT_DIR"
+		[ -d ".git" ] || ({
+			[ -z "`git ls-remote "$SRC_URL" || echo fuck`" ] && ({
+				git init
+				git remote add origin "$SRC_URL"
+				git add .
+				git commit -m "Initial commit"
+				git push -u origin master
+			});
+		});
+		
 		git rev-parse --abbrev-ref HEAD > /dev/null \
 				&& [ "`git rev-parse --abbrev-ref HEAD`" != "${BRANCH:-master}" ] \
 				&& cd "$TGT_DIR/.." \
