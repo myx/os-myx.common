@@ -14,9 +14,6 @@ type ReplaceLine >/dev/null 2>&1 || \
 type GetRootHomeDirectory >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/os/getRootHomeDirectory"
 
-type GetWheelGroupName >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/os/getWheelGroupName"
-
 InstallRootAuthorizedKey(){
 	UserRequireRoot "InstallRootAuthorizedKey"
 
@@ -32,7 +29,7 @@ InstallRootAuthorizedKey(){
 	
 	ReplaceLine "$KEYS" "$KEY" "$KEY"
 	
-	chown root:`GetWheelGroupName` "$KEYS"
+	chown root:`GetWheelGroupNames` "$KEYS"
 	chmod 600 "$KEYS"
 }
 
