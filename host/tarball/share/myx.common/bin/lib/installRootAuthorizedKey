@@ -14,6 +14,9 @@ type ReplaceLine >/dev/null 2>&1 || \
 type GetRootHomeDirectory >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/os/getRootHomeDirectory"
 
+type GetWheelGroupNames >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/os/getWheelGroupNames"
+
 InstallRootAuthorizedKey(){
 	UserRequireRoot "InstallRootAuthorizedKey"
 
