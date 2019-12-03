@@ -11,6 +11,12 @@ type UserRequireRoot >/dev/null 2>&1 || \
 type GetWheelGroupNames >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/os/getWheelGroupNames"
 
+type InstallUser >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/installUser"
+
+type InstallUserGroupMembership >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/installUserGroupMembership"
+
 InstallWheelUser(){
 	UserRequireRoot "InstallWheelUser"
 
@@ -19,8 +25,8 @@ InstallWheelUser(){
 	[ -z "$NAME" ] && echo "InstallWheelUser: username is required!" && exit 1
 	[ -z "$TITLE" ] && echo "InstallWheelUser: usertitle is taken from name ($NAME)!" && TITLE="$NAME"
 	
-	/usr/local/share/myx.common/bin/lib/installUser "$NAME" "$TITLE"
-	/usr/local/share/myx.common/bin/lib/installUserGroupMembership "$NAME" "`GetWheelGroupNames`"
+	InstallUser "$NAME" "$TITLE"
+	InstallUserGroupMembership "$NAME" "`GetWheelGroupNames`"
 }
 
 case "$0" in
