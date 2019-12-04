@@ -1,0 +1,47 @@
+#!/bin/sh
+
+###
+###   TODO: myx.common lib/setupShellCompletion "myx.common" --command "myx.common help --bare"
+###   TODO: myx.common lib/setupShellCompletion "myx.common" --directory "/usr/local/share/myx.common/bin"
+###
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/user/requireRoot"
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/replaceLine"
+
+UnSetupHostScreen(){
+	UserRequireRoot "UnSetupHostScreen"
+
+	local commonScreenRc="$(myx.common os/getCommonScreenRc)"
+	echo "Removing screenrc for host at $commonScreenRc" >&2
+
+	[ ! -f "$commonScreenRc" ] || ReplaceLine "$commonScreenRc" " ### myx.common setup/screen ###$" \
+		"# removed by myx.common remove/screen  ### myx.common setup/screen ###"
+}
+
+UnSetupUserScreen(){
+	local userScreenRc="$( cd "$HOME" ; pwd )/.screenrc"
+	echo "Removing screen for: $HOME at $userScreenRc" >&2
+	
+	[ ! -f "$userScreenRc" ] || ReplaceLine "$userScreenRc" " ### myx.common setup/screen ###$" \
+		"# removed by myx.common remove/screen  ### myx.common setup/screen ###"
+}
+
+case "$0" in
+	*/myx.common/bin/remove/screen) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common remove/screen [--host]" >&2
+			exit 1
+		fi
+		set -e
+
+		if [ "$1" = "--host" ] ; then
+			UnSetupHostScreen
+		else
+			UnSetupUserScreen
+		fi
+	;;
+esac
+

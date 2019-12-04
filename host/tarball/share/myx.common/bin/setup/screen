@@ -1,10 +1,5 @@
 #!/bin/sh
 
-###
-###   myx.common lib/setupShellCompletion "myx.common" --command "myx.common help --bare"
-###   myx.common lib/setupShellCompletion "myx.common" --directory "/usr/local/share/myx.common/bin"
-###
-
 type UserRequireRoot >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/user/requireRoot"
 
@@ -20,8 +15,6 @@ SetupHostScreen(){
 	[ -f "$commonScreenRc" ] || touch "$commonScreenRc"
 	[ ! -f "$commonScreenRc" ] || ReplaceLine "$commonScreenRc" " ### myx.common setup/screen ###$" \
 		"source /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/screen ###"
-
-	# cp /usr/local/share/myx.common/include/console/screen/screenrc "$commonScreenRc"
 }
 
 SetupUserScreen(){
@@ -31,13 +24,20 @@ SetupUserScreen(){
 	[ -f "$userScreenRc" ] || touch "$userScreenRc"
 	[ ! -f "$userScreenRc" ] || ReplaceLine "$userScreenRc" " ### myx.common setup/screen ###$" \
 		"source /usr/local/share/myx.common/include/console/screen/screenrc  ### myx.common setup/screen ###"
-
-	# cp /usr/local/share/myx.common/include/console/screen/screenrc "$userScreenRc"
 }
 
+case "$0" in
+	*/myx.common/bin/setup/screen) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/screen [--host]" >&2
+			exit 1
+		fi
+		set -e
 
-if [ "$1" = "--host" ] ; then
-	SetupHostScreen
-else
-	SetupUserScreen
-fi
+		if [ "$1" = "--host" ] ; then
+			SetupHostScreen
+		else
+			SetupUserScreen
+		fi
+	;;
+esac

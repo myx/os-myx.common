@@ -1,19 +1,72 @@
 #!/bin/sh
 
 ###
+###   myx.common lib/setupShellCompletion "myx.common" --command "myx.common help --bare"
+###   myx.common lib/setupShellCompletion "myx.common" --directory "/usr/local/share/myx.common/bin"
 ###   myx.common lib/setupShellCompletion "myx.common" --remove
 ###
+
+
+
+#
+#type SetupShellCompletion >/dev/null 2>&1 || \
+#	. "/usr/local/share/myx.common/bin/lib/setupShellCompletion"
+#
+#
+#
+#SetupShellCompletion "$@"
+#
+#exit 0
+#
+
+
+
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/user/requireRoot"
 
 type ReplaceLine >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/replaceLine"
 
-echo "Removing completion for: $HOME" >&2
+UnSetupHostCompletion(){
+	UserRequireRoot "UnSetupHostCompletion"
 
-[ ! -f "$HOME/.bash_profile" ] || ReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
-	"# removed by myx.common remove/completion  ### myx.common completion ###"
+	echo "Removing completion for host" >&2
 	
-[ ! -f "$HOME/.bashrc" ] || ReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
-	"# removed by myx.common remove/completion  ### myx.common completion ###"
 	
-[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
-	"# removed by myx.common remove/completion  ### myx.common completion ###"
+	[ ! -f "/etc/.bash_profile" ] || ReplaceLine "/etc/.bash_profile" " ### myx.common completion ###$" \
+		"# removed by myx.common remove/screen  ### myx.common completion ###"
+	
+	[ ! -f "/etc/csh.login" ] || ReplaceLine "/etc/csh.login" " ### myx.common completion ###$" \
+		"# removed by myx.common remove/screen  ### myx.common completion ###"
+}
+
+UnSetupUserCompletion(){
+	echo "Removing completion for: $HOME" >&2
+	
+	[ ! -f "$HOME/.bash_profile" ] || ReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
+		"# removed by myx.common remove/screen  ### myx.common completion ###"
+	
+	[ ! -f "$HOME/.bashrc" ] || ReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
+		"# removed by myx.common remove/screen  ### myx.common completion ###"
+		
+	[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
+		"# removed by myx.common remove/screen  ### myx.common completion ###"
+}
+
+case "$0" in
+	*/myx.common/bin/remove/completion) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common remove/completion [--host]" >&2
+			exit 1
+		fi
+		set -e
+
+		if [ "$1" = "--host" ] ; then
+			UnSetupHostCompletion
+		else
+			UnSetupUserCompletion
+		fi
+	;;
+esac
+

@@ -3,7 +3,24 @@
 ###
 ###   myx.common lib/setupShellCompletion "myx.common" --command "myx.common help --bare"
 ###   myx.common lib/setupShellCompletion "myx.common" --directory "/usr/local/share/myx.common/bin"
+###   myx.common lib/setupShellCompletion "myx.common" --remove
 ###
+
+
+
+#
+#type SetupShellCompletion >/dev/null 2>&1 || \
+#	. "/usr/local/share/myx.common/bin/lib/setupShellCompletion"
+#
+#
+#
+#SetupShellCompletion "$@"
+#
+#exit 0
+#
+
+
+
 
 type UserRequireRoot >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/user/requireRoot"
@@ -37,9 +54,18 @@ SetupUserCompletion(){
 		"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
 }
 
+case "$0" in
+	*/myx.common/bin/setup/completion) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/completion [--host]" >&2
+			exit 1
+		fi
+		set -e
 
-if [ "$1" = "--host" ] ; then
-	SetupHostCompletion
-else
-	SetupUserCompletion
-fi
+		if [ "$1" = "--host" ] ; then
+			SetupHostCompletion
+		else
+			SetupUserCompletion
+		fi
+	;;
+esac
