@@ -1,0 +1,16 @@
+#!/bin/sh
+
+ExecShStdin(){
+	sh -c 'eval "`cat`"'
+}
+
+case "$0" in
+	*/myx.common/bin/lib/execShStdin) 
+		if [ "--help" = "$1" ] ; then
+			echo "Syntax: myx.common lib/execShStdin" >&2
+			exit 1
+		fi
+		set -e
+		LinesToArguments "$@"
+	;;
+esac
