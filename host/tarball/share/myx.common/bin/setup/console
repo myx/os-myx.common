@@ -98,7 +98,6 @@ SetupConsole(){
 		echo "Skip: *csh"
 	fi
 	
-	
 	myx.common setup/screen
 	
 }
