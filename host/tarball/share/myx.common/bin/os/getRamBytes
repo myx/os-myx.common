@@ -2,8 +2,8 @@
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-GetRamBytes(){
-	echo "ERROR: GetRamBytes must be re-implemented" >&2
+OsGetRamBytes(){
+	echo "ERROR: OsGetRamBytes must be re-implemented" >&2
 	exit 1
 }
 
@@ -15,6 +15,6 @@ case "$0" in
 			exit 1
 		fi
 		set -e
-		GetRamBytes "$@"
+		OsGetRamBytes "$@"
 	;;
 esac

@@ -2,9 +2,9 @@
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-GetBaseHomeDirectory(){
+OsGetBaseHomeDirectory(){
 	# `echo /home`
-	echo "ERROR: GetBaseHomeDirectory must be re-implemented" >&2
+	echo "ERROR: OsGetBaseHomeDirectory must be re-implemented" >&2
 	exit 1
 }
 
@@ -16,6 +16,6 @@ case "$0" in
 			exit 1
 		fi
 		set -e
-		GetBaseHomeDirectory "$@"
+		OsGetBaseHomeDirectory "$@"
 	;;
 esac

@@ -3,15 +3,15 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 
-type GetWheelGroupNames >/dev/null 2>&1 || \
+type OsGetWheelGroupNames >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/os/getWheelGroupNames"
 
-GetWheelGroupName(){
+OsGetWheelGroupName(){
 	if [ "$1" = "--print-first" ] ; then
 		echo "$2"
 		exit 0
 	fi
-	GetWheelGroupName --print-first `GetWheelGroupNames`
+	OsGetWheelGroupName --print-first `OsGetWheelGroupNames`
 }
 
 
@@ -23,6 +23,6 @@ case "$0" in
 			exit 1
 		fi
 		set -e
-		GetWheelGroupName --print-first `GetWheelGroupNames`
+		OsGetWheelGroupName --print-first `OsGetWheelGroupNames`
 	;;
 esac

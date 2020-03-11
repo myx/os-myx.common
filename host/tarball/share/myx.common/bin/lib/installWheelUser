@@ -8,7 +8,7 @@ set -e
 type UserRequireRoot >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/user/requireRoot"
 
-type GetWheelGroupNames >/dev/null 2>&1 || \
+type OsGetWheelGroupNames >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/os/getWheelGroupNames"
 
 type InstallUser >/dev/null 2>&1 || \
@@ -26,7 +26,7 @@ InstallWheelUser(){
 	[ -z "$TITLE" ] && echo "InstallWheelUser: usertitle is taken from name ($NAME)!" && TITLE="$NAME"
 	
 	InstallUser "$NAME" "$TITLE"
-	InstallUserGroupMembership "$NAME" "`GetWheelGroupNames`"
+	InstallUserGroupMembership "$NAME" "`OsGetWheelGroupNames`"
 }
 
 case "$0" in

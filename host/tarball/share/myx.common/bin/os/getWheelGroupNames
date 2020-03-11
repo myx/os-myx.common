@@ -2,9 +2,9 @@
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-GetWheelGroupNames(){
+OsGetWheelGroupNames(){
 	# `echo wheel`
-	echo "ERROR: GetWheelGroupNames must be re-implemented" >&2
+	echo "ERROR: OsGetWheelGroupNames must be re-implemented" >&2
 	exit 1
 }
 
@@ -17,6 +17,6 @@ case "$0" in
 			exit 1
 		fi
 		set -e
-		GetWheelGroupNames "$@"
+		OsGetWheelGroupNames "$@"
 	;;
 esac

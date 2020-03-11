@@ -2,8 +2,8 @@
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-GetCpuCount(){
-	echo "ERROR: GetCpuCount must be re-implemented" >&2
+OsGetCpuCount(){
+	echo "ERROR: OsGetCpuCount must be re-implemented" >&2
 	exit 1
 }
 
@@ -15,6 +15,6 @@ case "$0" in
 			exit 1
 		fi
 		set -e
-		GetCpuCount "$@"
+		OsGetCpuCount "$@"
 	;;
 esac

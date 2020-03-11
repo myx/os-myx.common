@@ -11,7 +11,7 @@ type UserRequireRoot >/dev/null 2>&1 || \
 type ReplaceLine >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/replaceLine"
 
-type GetBaseHomeDirectory >/dev/null 2>&1 || \
+type OsGetBaseHomeDirectory >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/os/getBaseHomeDirectory"
 
 InstallAuthorizedKey(){
@@ -23,7 +23,7 @@ InstallAuthorizedKey(){
 
 	test "$NAME" = "`whoami`" || UserRequireRoot "InstallAuthorizedKey(AsRoot)"
 
-	local HOME="`GetBaseHomeDirectory`/$NAME"
+	local HOME="`OsGetBaseHomeDirectory`/$NAME"
 	local KEYS="$HOME/.ssh/authorized_keys"
 	
 	mkdir -p "$HOME/.ssh"
