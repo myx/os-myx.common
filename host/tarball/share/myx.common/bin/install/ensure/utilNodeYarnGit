@@ -1,0 +1,12 @@
+#!/bin/sh
+
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+test `id -u` = 0 || { echo '$1: Must be run under "root" user!'; exit 1; }
+
+set -e
+
+for PKG in node yarn git bash nano $@ ; do
+	myx.common lib/installEnsurePackage $PKG
+done
