@@ -8,7 +8,7 @@ set -e
 type UserRequireRoot >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/user/requireRoot"
 
-UserRequireRoot "install/git"
+UserRequireRoot "InstallGit"
 
 [ ! -z `which git` ] && echo "git is already installed, version: " && echo "`git --version`" && exit 0 
 
