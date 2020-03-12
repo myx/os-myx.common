@@ -7,6 +7,10 @@ test `id -u` = 0 || { echo '$1: Must be run under "root" user!'; exit 1; }
 
 set -e
 
+LIST=""
+
 for PKG in go git bash nano $@ ; do
-	myx.common lib/installEnsurePackage $PKG
+	[ ! -z "`which $PKG`" ] && echo "ensure: $PKG already present, skip" >&2 || LIST="$LIST $PKG"
 done
+
+[ -z "$LIST" ] && echo "all packages installed." >&2 || myx.common lib/installEnsurePackage $LIST
