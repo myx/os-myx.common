@@ -1,0 +1,80 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+GitCloneSync(){
+	if [ "$1" = "--no-write" ] ; then
+		local NOWRITE=true
+		shift
+	fi
+	if [ "$1" = "--no-push" ] ; then
+		local NOWRITE=true
+		local NOPUSH=true
+		shift
+	fi
+
+	local TGT_DIR="$1"
+	[ -z "$TGT_DIR" ] && echo "GitCloneSync: TGT_DIR is required!" >&2 && exit 1
+
+	local SRC_URL="$2"
+	[ -z "$SRC_URL" ] && echo "GitCloneSync: SRC_URL is required!" >&2 && exit 1
+
+	local BRANCH="$3"
+	
+	local PWD="`pwd`"
+	
+	[ -d "$TGT_DIR" ] && ({
+		cd "$TGT_DIR"
+		[ -d ".git" ] || ({
+			[ -z "`git ls-remote "$SRC_URL" || echo fuck`" ] && ({
+				git init
+				git remote add origin "$SRC_URL"
+				git add .
+				git commit -m "Initial commit"
+				git push -u origin master
+			});
+		});
+		
+		git rev-parse --abbrev-ref HEAD > /dev/null \
+				&& [ "`git rev-parse --abbrev-ref HEAD`" != "${BRANCH:-master}" ] \
+				&& cd "$TGT_DIR/.." \
+				&& rm -rf "$TGT_DIR" \
+			|| true
+	}) || true;
+	[ -d "$TGT_DIR" ] || ({
+	    echo "$TGT_DIR: creating..."
+	    mkdir -p "$TGT_DIR"
+	    git clone "$SRC_URL" "$TGT_DIR"
+	});
+    [ "$NOWRITE" = "true" -o -f "$TGT_DIR/README.md" -o -f "$TGT_DIR/README.MD" ] || ({
+        cd "$TGT_DIR"
+        touch README.md
+        git add README.md
+        git commit -m "add/touch README"
+        git push -u
+    });
+	[ -d "$TGT_DIR" ] && ({
+	    cd "$TGT_DIR"
+	    echo "$TGT_DIR: updating..."
+	    git remote set-url origin "$SRC_URL"
+	    [ -n $BRANCH ] && git checkout $BRANCH
+	    git pull
+	    [ "$NOPUSH" = "true" ] || git push
+	    echo "$TGT_DIR: finished."
+	}) || true;
+	
+	cd "$PWD"
+}
+
+case "$0" in
+	*/myx.common/bin/git/cloneSync) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common git/cloneSync [--no-write/--no-push] dst_path repo_url [branch]" >&2
+			echo "    If 'branch' argument is not set, 'master' will be used." >&2
+			echo "    '--no-push' makes it equivalent to: 'myx.common git/clonePull'." >&2
+			exit 1
+		fi
+		set -e
+		GitCloneSync "$@"
+	;;
+esac
