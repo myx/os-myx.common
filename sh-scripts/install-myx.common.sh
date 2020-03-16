@@ -76,11 +76,11 @@ if test `id -u` = 0 ; then
 	FetchStdout "$FETCH" | UPACK "$T_DIR"
 	
     if [ "`which rsync`" -a -d "/usr/local/share/myx.common/" ] ; then
-    	echo "using rsync"
-    	rsync -aq --progress "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common"
-    	rsync -aq --progress --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/"
+    	echo "Using: rsync"
+    	rsync -rltOPi --no-motd --progress "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common"
+    	rsync -rltOPi --no-motd --progress --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/"
     else
-    	echo "using tar-tar"
+    	echo "Using: tar-tar"
 	   	RSYNC(){ tar -cpf - -C "$1" `ls "$1"` | tar -xvpf - -C "/usr/local/" ; }
 		RSYNC "$T_DIR"
     fi
@@ -98,6 +98,8 @@ if test `id -u` = 0 ; then
 	chmod -R 755 "/usr/local/share/myx.common/include/obsolete/user/bin"
 	
 	# exec "/usr/local/share/myx.common/bin/reinstall"
+
+   	echo "Done."
 	
 	#
 	# completion for root in bash:
