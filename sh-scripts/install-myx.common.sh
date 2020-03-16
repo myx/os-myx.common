@@ -77,8 +77,8 @@ if test `id -u` = 0 ; then
 	
     if [ "`which rsync`" -a -d "/usr/local/share/myx.common/" ] ; then
     	echo "Using: rsync"
-    	rsync -rltOPi --no-motd --progress "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common"
-    	rsync -rltOPi --no-motd --progress --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/"
+    	rsync -rltOi --no-motd "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common"
+    	rsync -rltOi --no-motd --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/"
     else
     	echo "Using: tar-tar"
 	   	RSYNC(){ tar -cpf - -C "$1" `ls "$1"` | tar -xvpf - -C "/usr/local/" ; }
