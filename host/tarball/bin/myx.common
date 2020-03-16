@@ -12,28 +12,36 @@ PrintDefault(){
 	echo '  Try running "myx.common help".'
 }
 
-if [ ! $COMMAND ]; then
+if [ ! "$COMMAND" ]; then
 	PrintDefault
 	exit 1
 fi
 
-if [ ! -x "/usr/local/share/myx.common/bin/$COMMAND" ]; then
-	# Get into bash
-	if [ ! -n "$BASH_VERSION" ] ; then
-		if [ -x "/usr/local/bin/bash" ] ; then
-			exec /usr/local/bin/bash -e "$0" "$@"
-		fi
-		if [ -x "/bin/bash" ] ; then
-			exec /bin/bash -e "$0" "$@"
-		fi
-		exec bash -e "$0" "$@"
+if [ -x "/usr/local/share/myx.common/bin/$COMMAND" ]; then
+	shift
+	set -e
+	"/usr/local/share/myx.common/bin/$COMMAND" "$@"
+	exit 0
+fi
+
+if [ -x "/usr/local/share/myx.common/include/obsolete/user/bin/$COMMAND" ]; then
+	shift
+	set -e
+	"/usr/local/share/myx.common/include/obsolete/user/bin/$COMMAND" "$@"
+	exit 0
+fi
+
+# Get into bash
+if [ ! -n "$BASH_VERSION" ] ; then
+	if [ -x "/usr/local/bin/bash" ] ; then
+		exec /usr/local/bin/bash -e "$0" "$@"
 	fi
-
-	PrintDefault
-	echo "  ERROR: Unknown command: $COMMAND"
-	exit 1
+	if [ -x "/bin/bash" ] ; then
+		exec /bin/bash -e "$0" "$@"
+	fi
+	exec bash -e "$0" "$@"
 fi
 
-shift
-
-"/usr/local/share/myx.common/bin/$COMMAND" "$@"
+PrintDefault
+echo "  ERROR: Unknown command: $COMMAND"
+exit 1

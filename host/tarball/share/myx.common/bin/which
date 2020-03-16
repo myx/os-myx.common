@@ -7,6 +7,8 @@ Which(){
 	[ -z "$COMMAND" ] && echo "Which: COMMAND argument is required!" && exit 1
 	local CHECK="/usr/local/share/myx.common/bin/$COMMAND"
 	[ -f "$CHECK" ] && echo "$CHECK" && return 0
+	local CHECK="/usr/local/share/myx.common/include/obsolete/user/bin/$COMMAND"
+	[ -f "$CHECK" ] && echo "$CHECK" && return 0
 	return 1
 }
 

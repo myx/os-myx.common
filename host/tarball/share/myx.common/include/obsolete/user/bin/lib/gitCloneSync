@@ -1,0 +1,17 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+type GitCloneSync >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/git/cloneSync"
+
+case "$0" in
+	*/bin/lib/gitCloneSync) 
+		if [ -z "$1" -o "$1" = "--help" ] ; then
+			echo "Syntax: see: myx.common git/cloneSync" >&2
+			exit 1
+		fi
+		set -e
+		GitCloneSync "$@"
+	;;
+esac

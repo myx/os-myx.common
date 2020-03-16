@@ -1,49 +1,46 @@
 #!/usr/bin/env bash
 
-##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-#####
-##### Note: must support following keywords: bash screen git rsync java go
-#####
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
 
 type UserRequireRoot >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/user/requireRoot"
 
-InstallEnsurePackageTransformPackageName(){
-		case "$1" in
-				*)
-					echo "$1"
-		        	return 0
-					;;
-		esac
-}
+type OsGetUtilityPackage >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/os/getUtilityPackage"
+
+type InstallEnsureNativePackage >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/install/ensure/nativePackage"
 
 InstallEnsurePackage(){
+	set -e
+	
 	UserRequireRoot "InstallEnsurePackage"
 
 	local NAME="$1"
-	[ -z "$NAME" ] && echo "The utility name is required!" && exit 1
+	[ -z "$NAME" ] && echo "The utility name is required!" && return 1
 
 	local LIST=""
 
 	for NAME in $@ ; do
 		[ ! -z "`which $NAME`" ] \
 			&& echo "ensure: $NAME already present, skip" >&2 \
-			|| LIST="$LIST `InstallEnsurePackageTransformPackageName $NAME`"
+			|| LIST="$LIST `OsGetUtilityPackage "$NAME"`"
 	done
-
-	echo "myx.common lib/installEnsurePackage: abstract method" >&2
-	exit 1 
 
 	[ -z "$LIST" ] \
 		&& echo "all packages installed." >&2 \
-		|| myx.common lib/installEnsurePackage $LIST
+		|| InstallEnsureNativePackage $LIST
 }
 
 case "$0" in
 	*/myx.common/bin/lib/installEnsurePackage) 
-		if [ -z "$1" ] ; then
+		if [ -z "$1" -o "$1" = "--help" ] ; then
 			echo "Syntax: myx.common lib/installEnsurePackage utility_name [utility_name2 [...]]" >&2
+			echo "  supported utility names:" >&2
+			echo "       `myx.common os/getUtilityPackage --list-basic-utilities`" >&2
 			exit 1
 		fi
 		set -e

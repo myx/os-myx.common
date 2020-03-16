@@ -1,0 +1,6 @@
+bash	bash
+java	java
+git		git
+go		go
+nano	nano
+rsync	rsync
