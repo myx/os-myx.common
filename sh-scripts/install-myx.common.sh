@@ -77,8 +77,8 @@ if test `id -u` = 0 ; then
 	
     if [ "`which rsync`" -a -d "/usr/local/share/myx.common/" ] ; then
     	echo "using rsync"
-    	rsync -a --progress "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common"
-    	rsync -a --progress --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/"
+    	rsync -aq --progress "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common"
+    	rsync -aq --progress --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/"
     else
     	echo "using tar-tar"
 	   	RSYNC(){ tar -cpf - -C "$1" `ls "$1"` | tar -xvpf - -C "/usr/local/" ; }
