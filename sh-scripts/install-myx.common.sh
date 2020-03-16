@@ -71,12 +71,20 @@ if test `id -u` = 0 ; then
 	esac
 
 	
-   	RSYNC(){ tar -cpf - -C "$1" `ls "$1"` | tar -xvpf - -C "/usr/local/" ; }
-   	
    	T_DIR="`mktemp -d`"
 	FetchStdout https://github.com/myx/os-myx.common/archive/master.tar.gz | UPACK "$T_DIR"
 	FetchStdout "$FETCH" | UPACK "$T_DIR"
-	RSYNC "$T_DIR"
+	
+    if [ "`which rsync`" -a -d "/usr/local/share/myx.common/" ] ; then
+    	echo "using rsync"
+    	rsync -a --progress "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common"
+    	rsync -a --progress --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/"
+    else
+    	echo "using tar-tar"
+	   	RSYNC(){ tar -cpf - -C "$1" `ls "$1"` | tar -xvpf - -C "/usr/local/" ; }
+		RSYNC "$T_DIR"
+    fi
+	
 	rm -rf "$T_DIR"
 	
 	
@@ -85,6 +93,9 @@ if test `id -u` = 0 ; then
 	
 	chown -R $CHOWN "/usr/local/share/myx.common/bin"
 	chmod -R 755 "/usr/local/share/myx.common/bin"
+
+	chown -R $CHOWN "/usr/local/share/myx.common/include/obsolete/user/bin"
+	chmod -R 755 "/usr/local/share/myx.common/include/obsolete/user/bin"
 	
 	# exec "/usr/local/share/myx.common/bin/reinstall"
 	
