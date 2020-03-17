@@ -28,6 +28,8 @@ InstallRootAuthorizedKey(){
 	local KEYS="$HOME/.ssh/authorized_keys"
 	
 	mkdir -p "$HOME/.ssh"
+	chmod 700 "$HOME/.ssh"
+	
 	touch "$KEYS"
 	
 	ReplaceLine "$KEYS" "$KEY" "$KEY"
