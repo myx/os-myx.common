@@ -1,0 +1,17 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+type OsGetRootHome >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/os/getRootHome"
+
+case "$0" in
+	*/bin/os/getRootHomeDirectory) 
+		if [ -z "$1" -o "$1" = "--help" ] ; then
+			echo "Syntax: see: myx.common os/getRootHome --help" >&2
+			exit 1
+		fi
+		set -e
+		OsGetRootHome "$@"
+	;;
+esac

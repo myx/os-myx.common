@@ -2,8 +2,8 @@
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-OsGetBaseHomeDirectory(){
-	echo "ERROR: OsGetBaseHomeDirectory must be re-implemented" >&2
+OsGetUserHome(){
+	echo "ERROR: OsGetUserHome must be re-implemented" >&2
 	exit 1
 
 	[ -z "$1" ] && \
@@ -13,30 +13,30 @@ OsGetBaseHomeDirectory(){
 	set -e
 	if [ "$1" = "--user" ] ; then
 		[ -z "$2" ] && \
-			echo "OsGetBaseHomeDirectory: username required after --user " >&2 && \
+			echo "OsGetUserHome: username required after --user " >&2 && \
 			return 1
 			
 		local HOME_PATH="`grep "^$2\\:" /etc/passwd | cut -d":" -f6`"
 		 
 		[ -z "$HOME_PATH" ] && \
-			echo "OsGetBaseHomeDirectory: no such user: $2" >&2 && \
+			echo "OsGetUserHome: no such user: $2" >&2 && \
 			return 1
 			
 		echo "$HOME_PATH"
 		return 0
 	fi
 	
-	echo "OsGetBaseHomeDirectory: Invalid arguments: $@" >&2
+	echo "OsGetUserHome: Invalid arguments: $@" >&2
 }
 
 
 case "$0" in
-	*/myx.common/bin/os/getBaseHomeDirectory) 
+	*/myx.common/bin/os/getUserHome) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/getBaseHomeDirectory [--user username]" >&2
+			echo "Syntax: myx.common os/getUserHome [--user username]" >&2
 			exit 1
 		fi
 		set -e
-		OsGetBaseHomeDirectory "$@"
+		OsGetUserHome "$@"
 	;;
 esac
