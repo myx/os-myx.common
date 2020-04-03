@@ -6,6 +6,8 @@ type ReplaceLine >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/replaceLine"
 
 OsGetUtilityPackage(){
+	local UTIL_NAME
+	local PKG_NAME
 	if [ "$1" = "--list-basic-utilities" ] ; then
 		while read -r UTIL_NAME PKG_NAME; do 
 			echo "$UTIL_NAME"

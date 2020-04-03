@@ -13,4 +13,10 @@ for PKG in node yarn git bash nano $@ ; do
 	[ ! -z "`which $PKG`" ] && echo "ensure: $PKG already present, skip" >&2 || LIST="$LIST $PKG"
 done
 
-[ -z "$LIST" ] && echo "all packages installed." >&2 || myx.common lib/installEnsurePackage $LIST
+if [ -z "$LIST" ] ; then
+	echo "ensure: all packages installed." >&2
+	exit 0
+fi
+
+echo "ensure: will install: $LIST" >&2
+myx.common lib/installEnsurePackage $LIST
