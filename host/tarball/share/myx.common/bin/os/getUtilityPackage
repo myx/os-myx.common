@@ -44,7 +44,7 @@ OsGetUtilityPackage(){
 		return 1
 	fi
 	
-	echo "$UTIL_NAME"
+	echo "$REQ_UTIL_NAME"
 	return 0
 }
 

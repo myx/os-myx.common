@@ -30,9 +30,12 @@ InstallEnsurePackage(){
 			|| LIST="$LIST `OsGetUtilityPackage "$NAME"`"
 	done
 
-	[ -z "$LIST" ] \
-		&& echo "all packages installed." >&2 \
-		|| InstallEnsureNativePackage $LIST
+	if [ -z "$LIST" ] ; then
+		echo "ensure: all requested packages already installed." >&2
+		return 0
+	fi
+
+	InstallEnsureNativePackage $LIST
 }
 
 case "$0" in
