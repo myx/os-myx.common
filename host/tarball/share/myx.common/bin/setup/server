@@ -2,4 +2,32 @@
 
 set -e
 
-myx.common setup/machine
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/user/requireRoot"
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "/usr/local/share/myx.common/bin/lib/replaceLine"
+
+SetupServer(){
+	UserRequireRoot "setup/server"
+
+	myx.common setup/machine
+	
+	ReplaceLine "/etc/ssh/sshd_config" "^PermitRootLogin *" "PermitRootLogin prohibit-password"
+	##ReplaceLine "/etc/ssh/sshd_config" "^PermitRootLogin *" "PermitRootLogin forced-commands-only"
+	##ReplaceLine "/etc/ssh/sshd_config" "^PermitRootLogin *" "PermitRootLogin no"
+}
+
+
+case "$0" in
+	*/myx.common/bin/setup/server) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/server" >&2
+			exit 1
+		fi
+		set -e
+		SetupServer "$@"
+	;;
+esac
+
+
