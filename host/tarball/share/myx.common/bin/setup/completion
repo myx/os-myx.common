@@ -44,14 +44,25 @@ SetupHostCompletion(){
 SetupUserCompletion(){
 	echo "Setting up completion for: $HOME" >&2
 	
-	[ ! -f "$HOME/.bash_profile" ] || ReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
-		"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+	if [ -f "/etc/.bash_profile" ] ; then
+
+		touch "$HOME/.bash_profile"
+		ReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
+			"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+
+		touch "$HOME/.bashrc"
+		ReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
+			"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+
+	fi
 	
-	[ ! -f "$HOME/.bashrc" ] || ReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
-		"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
-		
-	[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
-		"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
+	if [ -f "/etc/csh.login" ] ; then
+	
+		touch "$HOME/.cshrc"
+		ReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
+			"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
+			
+	fi
 }
 
 case "$0" in
