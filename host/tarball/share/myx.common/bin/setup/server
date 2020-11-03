@@ -15,6 +15,7 @@ SetupServer(){
 	
 	ReplaceLine "/etc/ssh/sshd_config" "^PermitEmptyPasswords *" "PermitEmptyPasswords no"
 	ReplaceLine "/etc/ssh/sshd_config" "^PasswordAuthentication *" "PasswordAuthentication no"
+	ReplaceLine "/etc/ssh/sshd_config" "^ChallengeResponseAuthentication *" "ChallengeResponseAuthentication no"
 
 	ReplaceLine "/etc/ssh/sshd_config" "^PermitRootLogin *" "PermitRootLogin prohibit-password"
 	##ReplaceLine "/etc/ssh/sshd_config" "^PermitRootLogin *" "PermitRootLogin forced-commands-only"
