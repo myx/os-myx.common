@@ -32,7 +32,11 @@ InstallRootAuthorizedKey(){
 	
 	touch "$KEYS"
 	
-	ReplaceLine "$KEYS" "$KEY" "$KEY"
+	if [ "$2" = "--remove" ] ; then
+		ReplaceLine "$KEYS" "$KEY" ""
+	else
+		ReplaceLine "$KEYS" "$KEY" "$KEY"
+	fi
 	
 	chown root:`OsGetWheelGroupName` "$KEYS"
 	chmod 600 "$KEYS"
@@ -41,7 +45,7 @@ InstallRootAuthorizedKey(){
 case "$0" in
 	*/myx.common/bin/lib/installRootAuthorizedKey) 
 		if [ -z "$1" -o "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/installRootAuthorizedKey <ssh-key>" >&2
+			echo "Syntax: myx.common lib/installRootAuthorizedKey <ssh-key> [--remove]" >&2
 			exit 1
 		fi
 		set -e

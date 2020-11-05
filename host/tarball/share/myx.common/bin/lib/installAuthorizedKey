@@ -32,9 +32,13 @@ InstallAuthorizedKey(){
 	chmod 700 "$HOME/.ssh"
 
 	touch "$KEYS"
-	
-	ReplaceLine "$KEYS" "$KEY" "$KEY"
-	
+
+	if [ "$3" = "--remove" ] ; then
+		ReplaceLine "$KEYS" "$KEY" ""
+	else
+		ReplaceLine "$KEYS" "$KEY" "$KEY"
+	fi
+
 	chown $NAME:$NAME "$KEYS"
 	chmod 600 "$KEYS"
 }
@@ -42,7 +46,7 @@ InstallAuthorizedKey(){
 case "$0" in
 	*/myx.common/bin/lib/installAuthorizedKey) 
 		if [ -z "$1" -o "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/installAuthorizedKey <user-name> <ssh-key>" >&2
+			echo "Syntax: myx.common lib/installAuthorizedKey <user-name> <ssh-key> [--remove]" >&2
 			exit 1
 		fi
 		set -e
