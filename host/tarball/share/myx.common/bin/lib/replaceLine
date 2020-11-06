@@ -22,7 +22,7 @@ ReplaceLine(){
 case "$0" in
 	*/myx.common/bin/lib/replaceLine) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/replaceLine file from-regexp to-value" >&2
+			echo "Syntax: myx.common lib/replaceLine <file> <from-regexp> <to-value>" >&2
 			exit 1
 		fi
 		set -e
