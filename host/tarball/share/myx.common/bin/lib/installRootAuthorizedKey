@@ -18,6 +18,9 @@ type OsGetWheelGroupName >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/os/getWheelGroupName"
 
 InstallRootAuthorizedKey(){
+
+	set -e
+
 	UserRequireRoot "InstallRootAuthorizedKey"
 
 	local KEY="$1"
