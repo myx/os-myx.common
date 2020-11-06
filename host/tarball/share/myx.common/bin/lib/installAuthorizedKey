@@ -26,6 +26,10 @@ InstallAuthorizedKey(){
 	test "$NAME" = "`whoami`" || UserRequireRoot "InstallAuthorizedKey(AsRoot)"
 
 	local HOME="`OsGetUserHome --user "$NAME"`"
+
+	test ! -z "$HOME" || ( echo "InstallAuthorizedKey: no home for $NAME!" >&2 ; return 3 )
+	test -d "$HOME" || ( echo "InstallAuthorizedKey: home directory $HOME is missing for $NAME!" >&2 ; return 4 )
+
 	local KEYS="$HOME/.ssh/authorized_keys"
 	
 	mkdir -p "$HOME/.ssh"
