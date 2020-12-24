@@ -7,7 +7,7 @@ Provides: \
 	source-process:project-source.tgz \
 	deploy-export:project-source.tgz:github.com/myx/os-myx.common/archive/master.tar.gz \
 	deploy-export:sh-scripts/install-myx.common.sh:raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh \
-	deploy-install-before:sh-scripts/install-myx.common.sh \
+	image-install:exec-update-before:sh-scripts/install-myx.common.sh \
 			
 Installs:
 Compiles: 
