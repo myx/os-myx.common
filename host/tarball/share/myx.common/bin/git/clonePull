@@ -3,39 +3,43 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 GitClonePull(){
-	local TGT_DIR="$1"
-	[ -z "$TGT_DIR" ] && echo "GitClonePull: TGT_DIR is required!" >&2 && exit 1
+	set -e
 
-	local SRC_URL="$2"
-	[ -z "$SRC_URL" ] && echo "GitClonePull: SRC_URL is required!" >&2 && exit 1
+	local tgtPath="$1"
+	[ -z "$tgtPath" ] && echo "GitClonePull: tgtPath is required!" >&2 && return 1
 
-	local BRANCH="$3"
+	local repoUrl="$2"
+	[ -z "$repoUrl" ] && echo "GitClonePull: repoUrl is required!" >&2 && return 1
+
+	local specificBranch="$3"
 	
-	local PWD="`pwd`"
+	local currentPath="`pwd`"
 	
-	[ -d "$TGT_DIR" ] && ({
-		cd "$TGT_DIR"
+	if [ -d "$tgtPath" ] ; then
+		cd "$tgtPath"
 		git rev-parse --abbrev-ref HEAD > /dev/null \
-				&& [ "`git rev-parse --abbrev-ref HEAD`" != "${BRANCH:-master}" ] \
-				&& cd "$TGT_DIR/.." \
-				&& rm -rf "$TGT_DIR" \
-			|| true
-	}) || true;
-	[ -d "$TGT_DIR" ] || ({
-	    echo "$TGT_DIR: creating..."
-	    mkdir -p "$TGT_DIR"
-	    git clone "$SRC_URL" "$TGT_DIR"
-	});
-	[ -d "$TGT_DIR" ] && ({
-	    cd "$TGT_DIR"
-	    echo "$TGT_DIR: updating..."
-	    git remote set-url origin "$SRC_URL"
-	    [ -n $BRANCH ] && git checkout $BRANCH
+			&& [ "`git rev-parse --abbrev-ref HEAD`" != "${specificBranch:-master}" ] \
+			&& cd "$tgtPath/.." \
+			&& rm -rf "$tgtPath" \
+		|| true
+	fi
+	if [ ! -d "$tgtPath" ] ; then
+	    echo "GitClonePull: $tgtPath: creating..." >&2
+	    mkdir -p "$tgtPath"
+	    git clone "$repoUrl" "$tgtPath"
+	fi
+	if [ -d "$tgtPath" ] ; then
+	    cd "$tgtPath"
+	    echo "GitClonePull: $tgtPath: updating..." >&2
+	    git remote set-url origin "$repoUrl"
+	    if [ -n $specificBranch ] ; then
+	    	git checkout $specificBranch
+	    fi
 	    git pull
-	    echo "$TGT_DIR: finished."
-	}) || true;
+	    echo "GitClonePull: $tgtPath: finished." >&2
+	fi
 	
-	cd "$PWD"
+	cd "$currentPath"
 }
 
 case "$0" in
