@@ -23,7 +23,7 @@ GitCloneSync(){
 	
 	local PWD="`pwd`"
 	
-	[ -d "$TGT_DIR" ] && ({
+	if [ -d "$TGT_DIR" ] ; then
 		cd "$TGT_DIR"
 		[ -d ".git" ] || ({
 			[ -z "`git ls-remote "$SRC_URL" || echo fuck`" ] && ({
@@ -40,30 +40,30 @@ GitCloneSync(){
 				&& cd "$TGT_DIR/.." \
 				&& rm -rf "$TGT_DIR" \
 			|| true
-	}) || true;
-	[ -d "$TGT_DIR" ] || ({
+	fi
+	if [ ! -d "$TGT_DIR" ] ; then
 	    echo "$TGT_DIR: creating..."
 	    mkdir -p "$TGT_DIR"
 	    git clone "$SRC_URL" "$TGT_DIR"
-	});
-    [ "$NOWRITE" = "true" -o -f "$TGT_DIR/README.md" -o -f "$TGT_DIR/README.MD" ] || ({
+	fi
+    if [ "$NOWRITE" != "true" ] && [ ! -f "$TGT_DIR/README.md" -a ! -f "$TGT_DIR/README.MD" ] ; then
         cd "$TGT_DIR"
         touch README.md
         git add README.md
         git commit -m "add/touch README"
         git push -u
-    });
-	[ -d "$TGT_DIR" ] && ({
+    fi
+	if [ -d "$TGT_DIR" ] ; then
 	    cd "$TGT_DIR"
 	    echo "$TGT_DIR: updating..."
 	    git remote set-url origin "$SRC_URL"
 	    [ -n $BRANCH ] && git checkout $BRANCH
 	    git pull
-	    if [ "$NOPUSH" != "true" ] && git diff --exit-code 2&>1 > /dev/null ; then
+	    if [ "$NOPUSH" != "true" ] && git diff --exit-code 2>&1 > /dev/null ; then
 	    	git push
 	    fi
 	    echo "$TGT_DIR: finished."
-	}) || true;
+	fi
 	
 	cd "$PWD"
 }
