@@ -59,7 +59,7 @@ GitCloneSync(){
 	    git remote set-url origin "$SRC_URL"
 	    [ -n $BRANCH ] && git checkout $BRANCH
 	    git pull
-	    if [ "$NOPUSH" != "true" ] && git diff --exit-code 2>&1 > /dev/null ; then
+	    if [ "$NOPUSH" != "true" ] && git diff --quiet "@{push}" "${BRANCH:-master}" ; then
 	    	git push
 	    fi
 	    echo "$TGT_DIR: finished."
