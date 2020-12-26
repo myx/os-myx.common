@@ -61,7 +61,7 @@ GitCloneSync(){
 	    	git checkout $specificBranch
 	    fi
 	    git pull
-	    if [ "$noPush" != "true" ] && git diff --quiet "@{push}" HEAD ; then
+	    if [ "$noPush" != "true" ] && ! git diff --quiet "@{push}" HEAD ; then
 	    	git push
 	    fi
 	    echo "GitCloneSync: $tgtPath: finished." >&2
