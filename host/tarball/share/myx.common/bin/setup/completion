@@ -20,6 +20,12 @@
 #
 
 
+if [ "`uname -s`" = "Linux" ] ; then
+	checkExecutable() { [ -x "`which "$1" 2> /dev/null`" ]; }
+else
+	checkExecutable() { which -s "$1"; }
+fi
+
 
 
 type UserRequireRoot >/dev/null 2>&1 || \
@@ -34,12 +40,12 @@ SetupHostCompletion(){
 	echo "Setting up completion for host" >&2
 	
 	
-	if which -s bash ; then
+	if checkExecutable bash ; then
 		ReplaceLine "/etc/bashrc" " ### myx.common completion ###$" \
 			"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
 	fi
 	
-	if which -s csh ; then
+	if checkExecutable csh ; then
 		ReplaceLine "/etc/csh.login" " ### myx.common completion ###$" \
 			"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
 	fi
@@ -48,7 +54,7 @@ SetupHostCompletion(){
 SetupUserCompletion(){
 	echo "Setting up completion for: $HOME" >&2
 	
-	if which -s bash ; then
+	if checkExecutable bash ; then
 
 		touch "$HOME/.bash_profile"
 		ReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
@@ -60,7 +66,7 @@ SetupUserCompletion(){
 
 	fi
 	
-	if which -s csh ; then
+	if checkExecutable csh ; then
 	
 		touch "$HOME/.cshrc"
 		ReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
