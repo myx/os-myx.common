@@ -44,7 +44,10 @@ GitCloneSync(){
 	if [ ! -d "$tgtPath" ] ; then
 	    echo "GitCloneSync: $tgtPath: creating..." >&2
 	    mkdir -p "$tgtPath"
-	    git clone "$repoUrl" "$tgtPath"
+		if ! git clone "$repoUrl" "$tgtPath" ; then
+		    rm -rf "$tgtPath"
+		    return 1
+		fi
 	fi
     if [ "$noWrite" != "true" ] && [ ! -f "$tgtPath/README.md" -a ! -f "$tgtPath/README.MD" ] ; then
         cd "$tgtPath"

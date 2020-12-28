@@ -26,7 +26,10 @@ GitClonePull(){
 	if [ ! -d "$tgtPath" ] ; then
 	    echo "GitClonePull: $tgtPath: creating..." >&2
 	    mkdir -p "$tgtPath"
-	    git clone "$repoUrl" "$tgtPath"
+		if ! git clone "$repoUrl" "$tgtPath" ; then
+		    rm -rf "$tgtPath"
+		    return 1
+		fi
 	fi
 	if [ -d "$tgtPath" ] ; then
 	    cd "$tgtPath"
