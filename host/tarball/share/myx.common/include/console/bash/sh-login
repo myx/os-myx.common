@@ -5,4 +5,9 @@ export PS1="`whoami`@\\H:\\w % "
 # # no need, will execute anyway
 # . /usr/local/share/myx.common/include/console/bash/common
 
-[ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)" ] && [ -x "$(which bash)" ] && $(which screen) -s $(which bash) -q -O -U -D -R
+if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)" ] ; then
+	if [ -x "$(which bash)" ] ; then
+		export SHELL=$(which bash)
+	fi
+	$(which screen) -q -O -U -D -R
+fi
