@@ -3,18 +3,18 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 ReplaceLine(){
-	local FL="$1" FR="$2" TO="$3"
-	[ ! -z "$FL" ] || { echo "ReplaceLine: FL argument is required!" >&2 ; return 1 ; }
-	[ -f "$FL" ] || { echo "ReplaceLine: FL file is expected!" >&2 ; return 1 ; }
+	local fileName="$1" textSearch="$2" lineReplace="$3"
+	[ ! -z "$fileName" ] || { echo "ReplaceLine: fileName argument is required!" >&2 ; return 1 ; }
+	[ -f "$fileName" ] || { echo "ReplaceLine: fileName file is expected!" >&2 ; return 1 ; }
 	
-	grep -q "$FR" "$FL" && \
-		cp -pf "$FL" "$FL.bak" && \
-		chmod 664 "$FL.bak" && \
-		grep -v "$FR" "$FL.bak" > "$FL" && \
-		rm "$FL.bak"
+	grep -q "$textSearch" "$fileName" && \
+		cp -pf "$fileName" "$fileName.bak" && \
+		chmod 664 "$fileName.bak" && \
+		grep -v "$textSearch" "$fileName.bak" > "$fileName" && \
+		rm "$fileName.bak"
 		
-	grep -q -x -F "$TO" "$FL" || \
-		echo "$TO" >> "$FL"
+	grep -q -x -F "$lineReplace" "$fileName" || \
+		echo "$lineReplace" >> "$fileName"
 		
 	return 0;
 }
