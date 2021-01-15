@@ -27,7 +27,7 @@ GitCloneSync(){
 	
 	if [ -d "$tgtPath" ] ; then
 		cd "$tgtPath"
-		if [ ! -d ".git" ] && [ "0" = "`git ls-remote --exit-code -h "$repoUrl" ; echo $? | tr '2' '0'`" ] ; then
+		if [ "$noPush" != "true" ] && [ ! -d ".git" ] && [ "0" = "`git ls-remote --exit-code -h "$repoUrl" ; echo $? | tr '2' '0'`" ] ; then
 			git init
 			git remote add origin "$repoUrl"
 			git add .
