@@ -40,7 +40,7 @@ SetupHostCompletion(){
 	echo "Setting up completion for host" >&2
 	
 	
-	if checkExecutable bash ; then
+	if checkExecutable bash && [ -f "/etc/bashrc" ] ; then
 		ReplaceLine "/etc/bashrc" " ### myx.common completion ###$" \
 			"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
 	fi
