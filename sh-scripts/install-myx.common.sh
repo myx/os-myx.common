@@ -21,14 +21,14 @@
 
 FetchStdout(){
 	local URL="$1"
-	[ ! -z "$URL" ] || (echo "FetchStdout: The URL is required!" ; exit 1)
+	[ ! -z "$URL" ] || (echo "ERROR: FetchStdout: The URL is required!" >&2 ; exit 1)
 	set -e
 
 	if [ ! -z "`which curl || true`" ]  ; then curl --silent -L "$URL"  ; return 0 ; fi
 	if [ ! -z "`which fetch || true`" ] ; then fetch -o - "$URL"        ; return 0 ; fi
 	if [ ! -z "`which wget || true`" ]  ; then wget --quiet -O - "$URL" ; return 0 ; fi
 
-	echo "ERROR: curl, fetch or wget were not found, do not know how to download!"
+	echo "ERROR: curl, fetch or wget were not found, do not know how to download!" >&2
 	exit 1
 }
 
@@ -56,12 +56,12 @@ if test `id -u` = 0 ; then
 		        	CHOWN="root:adm"
 		        fi
 	            if [ -z "$FETCH" ] ; then
-	            	echo "Unknown Linux: $0 '`uname -a`' {'apt' is expected}" >&2
+	            	echo "ERROR: Unknown Linux: $0 '`uname -a`' {'apt' is expected}" >&2
 	            	exit 1
 	            fi
 				;;
 	        *)
-	            echo "Unknown OS: $0 '`uname -s`' {Darwin/FreeBSD/Linux expected}" >&2
+	            echo "ERROR: Unknown OS: $0 '`uname -s`' {Darwin/FreeBSD/Linux expected}" >&2
 	            echo "  Can't choose OS for you. If you wish to forcefully " >&2
 	            echo "  install particular version, try:" >&2
 				echo "  - macosx:  curl --silent -L https://raw.githubusercontent.com/myx/os-myx.common-macosx/master/sh-scripts/install-myx.common-macosx.sh | sh -e" >&2
@@ -108,6 +108,6 @@ if test `id -u` = 0 ; then
 else
 	echo "installer is in 'user' mode..."
 
-	test -x "/usr/local/bin/myx.common" || (echo "System-wide 'myx.common' is already installed, skipping (in 'user' mode)."; exit 0)
-	test ! -z "`which myx.common`" || (echo "'myx.common' is required, can't proceed in 'user' mode!"; exit 1)
+	test -x "/usr/local/bin/myx.common" || (echo "System-wide 'myx.common' is already installed, skipping (in 'user' mode)." >&2 ; exit 0)
+	test ! -z "`which myx.common`" || (echo "ERROR: 'myx.common' is required, can't proceed in 'user' mode!"  >&2 ; exit 1)
 fi

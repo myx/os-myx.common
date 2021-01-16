@@ -7,14 +7,14 @@ FetchStdout(){
 	if [ "$1" = "--local-cache" ] ; then
 		shift
 		local LOCAL_CACHE="$1"
-		[ -z "$LOCAL_CACHE" ] && echo "FetchStdout: The CACHE_ROOT is required!" >&2 && exit 1
+		[ -z "$LOCAL_CACHE" ] && echo "ERROR: FetchStdout: The CACHE_ROOT is required!" >&2 && exit 1
 		shift
 	else
 		local LOCAL_CACHE="$ENV_FETCH_LOCAL_CACHE"
 	fi
 	
 	local URL="$1"
-	[ -z "$URL" ] && echo "FetchStdout: The URL is required!" >&2 && exit 1
+	[ -z "$URL" ] && echo "ERROR: FetchStdout: The URL is required!" >&2 && exit 1
 	
 	set -e
 

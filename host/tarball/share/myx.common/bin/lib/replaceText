@@ -17,8 +17,8 @@ ReplaceText(){
 	esac
 
 	local fileName="$1"
-	[ ! -z "$fileName" ] || { echo "ReplaceText: fileName argument is required!" >&2 ; return 1 ; }
-	[ -f "$fileName" ] || { echo "ReplaceText: $fileName file is expected!" >&2 ; return 1 ; }
+	[ ! -z "$fileName" ] || { echo "ERROR: ReplaceText: fileName argument is required!" >&2 ; return 1 ; }
+	[ -f "$fileName" ] || { echo "ERROR: ReplaceText: $fileName file is expected!" >&2 ; return 1 ; }
 	
 	local textSearch="$( echo "$2" | sed -e "$escapeFn" )" 
 	local textReplace="$( echo "$3" | sed -e "$escapeFn" )"

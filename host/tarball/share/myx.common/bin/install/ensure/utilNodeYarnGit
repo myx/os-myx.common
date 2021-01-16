@@ -2,7 +2,7 @@
 
 ##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
 
-test `id -u` = 0 || { echo '$1: Must be run under "root" user!'; exit 1; }
+test `id -u` = 0 || { echo 'ERROR: $1: Must be run under "root" user!' >&2 ; exit 1; }
 
 set -e
 

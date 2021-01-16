@@ -13,13 +13,13 @@ OsGetUserHome(){
 	set -e
 	if [ "$1" = "--user" ] ; then
 		[ -z "$2" ] && \
-			echo "OsGetUserHome: username required after --user " >&2 && \
+			echo "ERROR: OsGetUserHome: username required after --user " >&2 && \
 			return 1
 			
 		local HOME_PATH="`grep "^$2\\:" /etc/passwd | cut -d":" -f6`"
 		 
 		[ -z "$HOME_PATH" ] && \
-			echo "OsGetUserHome: no such user: $2" >&2 && \
+			echo "ERROR: OsGetUserHome: no such user: $2" >&2 && \
 			return 1
 			
 		echo "$HOME_PATH"

@@ -4,7 +4,7 @@ if [ -z "$MMDAPP" ] ; then
 	set -e
 	export MMDAPP="$( cd $(dirname "$0")/../../../../../.. ; pwd )"
 	echo "$0: Working in: $MMDAPP"  >&2
-	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
+	[ -d "$MMDAPP/source" ] || ( echo "ERROR: expecting 'source' directory." >&2 && exit 1 )
 fi
 
 if test `id -u` != 0 ; then
@@ -15,7 +15,7 @@ if test `id -u` != 0 ; then
 fi 
 
 ACTION="$MMDAPP/source/myx/myx.common/os-myx.common/host/tarball/share/myx.common/bin/install/myx.common-reinstall"
-[ -f "$ACTION" ] || ( echo "expecting 'action' script." >&2 && exit 1 )
+[ -f "$ACTION" ] || ( echo "ERROR: expecting 'action' script." >&2 && exit 1 )
 
 . "$ACTION"
 
