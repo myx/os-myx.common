@@ -71,17 +71,17 @@ if test `id -u` = 0 ; then
 	esac
 
 	
-   	T_DIR="`mktemp -d`"
+   	T_DIR="$( mktemp -t "myx.common-installer-" -d )"
 	FetchStdout https://github.com/myx/os-myx.common/archive/master.tar.gz | UPACK "$T_DIR"
 	FetchStdout "$FETCH" | UPACK "$T_DIR"
 	
-    if [ "`which rsync`" -a -d "/usr/local/share/myx.common/" ] ; then
+    if [ ! -z "$( which rsync )" ] && [ -d "/usr/local/share/myx.common/" ] ; then
     	echo "Using: rsync"
     	rsync -rltOi --no-motd "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common"
     	rsync -rltOi --no-motd --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/"
     else
     	echo "Using: tar-tar"
-	   	RSYNC(){ tar -cpf - -C "$1" `ls "$1"` | tar -xvpf - -C "/usr/local/" ; }
+	   	RSYNC(){ tar -cpf - -C "$1" $( ls "$1" ) | tar -xvpf - -C "/usr/local/" ; }
 		RSYNC "$T_DIR"
     fi
 	
