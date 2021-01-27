@@ -77,10 +77,10 @@ if test `id -u` = 0 ; then
 	
     if [ ! -z "$( which rsync )" ] && [ -d "/usr/local/share/myx.common/" ] ; then
     	echo "Using: rsync"
-    	rsync -rltOi --no-motd "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common" \
-    				2>&1 | grep -v --fixed-strings --line-buffered '>f..t....... ' >&2
-    	rsync -rltOi --no-motd --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/" \
-    				2>&1 | grep -v --fixed-strings --line-buffered '>f..t....... ' >&2
+    	rsync -rltOi --no-motd "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common" 2>&1 \
+		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || true)
+    	rsync -rltOi --no-motd --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/" 2>&1 \
+		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || true)
     else
     	echo "Using: tar-tar"
 	   	RSYNC(){ tar -cpf - -C "$1" $( ls "$1" ) | tar -xvpf - -C "/usr/local/" ; }
