@@ -6,17 +6,20 @@ ReplaceLine(){
 	local fileName="$1" textSearch="$2" lineReplace="$3"
 	[ ! -z "$fileName" ] || { echo "ERROR: ReplaceLine: fileName argument is required!" >&2 ; return 1 ; }
 	[ -f "$fileName" ] || { echo "ERROR: ReplaceLine: $fileName file is expected!" >&2 ; return 1 ; }
-	
-	grep -q "$textSearch" "$fileName" && \
+
+	set -e
+		
+	if grep -q "$textSearch" "$fileName" ; then
 		cp -pf "$fileName" "$fileName.bak" && \
 		chmod 664 "$fileName.bak" && \
 		grep -v "$textSearch" "$fileName.bak" > "$fileName" && \
 		rm "$fileName.bak"
-		
+	fi
+
 	grep -q -x -F "$lineReplace" "$fileName" || \
 		echo "$lineReplace" >> "$fileName"
 		
-	return 0;
+	return 0
 }
 
 case "$0" in
