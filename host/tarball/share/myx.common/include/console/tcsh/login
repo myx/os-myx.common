@@ -1,3 +1,3 @@
-echo "myx.common: *csh-login"
+printf "myx.common: *csh-login\033]0;$(hostname)\a\n" >&2
 source /usr/local/share/myx.common/include/console/tcsh/common
 [ "$TERM" != screen ] && [ $?SSH_CONNECTION = 1 ] && [ -x "`which screen`" ] && [ -x "`which bash`" ] && `which screen` -s `which bash` -q -O -U -D -R
