@@ -1,3 +1,12 @@
-printf "myx.common: *csh-login\033]0;$(hostname)\a\n" >&2
+printf "myx.common: *csh-login\033]0;`hostname`\a\n" >&2
 source /usr/local/share/myx.common/include/console/tcsh/common
-[ "$TERM" != screen ] && [ $?SSH_CONNECTION = 1 ] && [ -x "`which screen`" ] && [ -x "`which bash`" ] && `which screen` -s `which bash` -q -O -U -D -R
+
+if ( $?SSH_CONNECTION == 1 && "$TERM" != screen && -x "`which screen`" && -x "`which bash`" ) then
+    if ( $?SSH_AUTH_SOCK == 1 ) then
+        if ( "$SSH_AUTH_SOCK" != "~/.ssh/ssh_auth_sock" ) then
+            ln -sf $SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock
+            setenv SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock
+        endif
+    endif
+    `which screen` -s `which bash` -q -O -U -D -R
+endif

@@ -6,6 +6,10 @@ export PS1="`whoami`@\\H:\\w % "
 # . /usr/local/share/myx.common/include/console/bash/common
 
 if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)" ] ; then
+	if [ ! -z "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "~/.ssh/ssh_auth_sock" ] ; then
+		ln -sf $SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock
+		export SSH_AUTH_SOCK="~/.ssh/ssh_auth_sock"
+	fi
 	if [ -x "$(which bash)" ] ; then
 		export SHELL=$(which bash)
 	fi
