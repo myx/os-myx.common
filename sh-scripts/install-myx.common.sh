@@ -71,7 +71,7 @@ if test `id -u` = 0 ; then
 	esac
 
 	
-   	T_DIR="$( mktemp -t "myx.common-installer-" -d )"
+   	T_DIR="$( mktemp -t "myx.common-installer-XXXXXXXX" -d )"
 	FetchStdout https://github.com/myx/os-myx.common/archive/master.tar.gz | UPACK "$T_DIR"
 	FetchStdout "$FETCH" | UPACK "$T_DIR"
 	
