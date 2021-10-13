@@ -79,7 +79,9 @@ NotifySlack(){
 		return 1
 	fi
 
-	[ "TRUE" = "$doLogger" ] && logger -s -t "$slackChannel" "@${slackUser:-"unknown"}: $slackText"
+	if [ "TRUE" = "$doLogger" ] ; then
+		logger -s -t "$slackChannel" "@${slackUser:-"unknown"}: $slackText"
+	fi
 
 	(	\
 		curl 'https://slack.com/api/chat.postMessage' \
