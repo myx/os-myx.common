@@ -81,13 +81,17 @@ NotifySlack(){
 
 	[ "TRUE" = "$doLogger" ] && logger -s -t "$slackChannel" "@${slackUser:-"unknown"}: $slackText"
 
-	( curl 'https://slack.com/api/chat.postMessage' \
+	(	\
+		curl 'https://slack.com/api/chat.postMessage' \
 			--insecure \
 			--silent \
 			--show-error \
-			-H "Authorization: Bearer ${slackBearer}" \
+			--data-binary "@/dev/stdin" \
 			-H "Content-Type: application/json; charset=utf-8" \
-			--data-binary @/dev/stdin 2&>1 >> /dev/null || true ) <<- RESTJSON
+			-H "Authorization: Bearer ${slackBearer}" \
+			2>&1 >> /dev/null \
+		|| true \
+	) <<- RESTJSON
 		{
 			"text": "$slackText", 
 			"channel": "$slackChannel", 
