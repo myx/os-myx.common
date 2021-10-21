@@ -1,0 +1,105 @@
+#!/bin/sh
+
+NotifySmart(){
+
+	set -e
+
+	local eventType="unset" eventText="" eventUser="${eventUser:-$(hostname)}" eventEmoji=""
+
+	while [ "$1" != "" ] ; do
+		case "$1" in
+			--text)
+				[ -z "$2" ] && echo "NotifySmart: argument expected after $1 option" >&2 && return 1
+				local eventText="$2" ; shift ; shift
+			;;
+			--user)
+				[ -z "$2" ] && echo "NotifySmart: argument expected after $1 option" >&2 && return 1
+				local eventUser="$2" ; shift ; shift
+			;;
+			--emoji)
+				[ -z "$2" ] && echo "NotifySmart: argument expected after $1 option" >&2 && return 1
+				local eventEmoji="$2" ; shift ; shift
+			;;
+			--alert|--audit|--track|--debug)
+				local eventType="${1##--}" ; shift
+			;;
+			*)
+				echo "NotifySmart: invalid option: $1" >&2
+				return 1
+			;;
+		esac
+	done
+
+	if [ -z "$eventText" ] ; then
+		echo "NotifySmart: slack text message is required!" >&2
+		return 1
+	fi
+
+
+	logger -s -t "$eventType" "@${eventUser:-$(whoami)}: $eventText"
+
+	if [ ! -z "$SLACK_TOKEN" ] ; then
+		local slackBearer="${slackBearer:-$SLACK_TOKEN}" slackChannel="${slackChannel:-$SLACK_TOPIC}"
+		case "$eventType" in
+			alert)
+				local slackChannel="${SLACK_ALERT:-$SLACK_TOPIC}"
+			;;
+			audit)
+				local slackChannel="${SLACK_AUDIT:-$SLACK_TOPIC}"
+			;;
+			track)
+				local slackChannel="${SLACK_TRACK:-$SLACK_TOPIC}"
+			;;
+			debug)
+				local slackChannel="${SLACK_DEBUG:-$SLACK_TOPIC}"
+			;;
+			unset)
+			;;
+			*)
+				echo "NotifySmart: invalid event type: $eventType" >&2
+				return 1
+			;;
+		esac
+
+
+		if [ -z "$slackChannel" ] ; then
+			echo "NotifySmart: slack channel name is required!" >&2
+			return 1
+		fi
+
+		(	\
+			curl 'https://slack.com/api/chat.postMessage' \
+				--insecure \
+				--silent \
+				--show-error \
+				--data-binary "@/dev/stdin" \
+				-H "Content-Type: application/json; charset=utf-8" \
+				-H "Authorization: Bearer ${slackBearer}" \
+				2>&1 >> /dev/null \
+			|| true \
+		) <<- RESTJSON
+			{
+				"text": "$( echo -n "$eventText" | sed -e 's/\"/\\\"/;s/\r/\\\r/;s/\n/\\\n/' )", 
+				"channel": "$slackChannel", 
+				"username": "$eventUser", 
+				"icon_emoji": "$eventEmoji"
+			}	
+		RESTJSON
+	fi
+
+	return 0
+}
+
+
+case "$0" in
+	*/myx.common/bin/lib/notifySmart) 
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common lib/notifySmart --alert|--audit|--track|--debug [--user <user-name>] [--emoji <emoji>] --text <message>" >&2
+			echo "Note:" >&2
+			echo "  This command will write the message to stderr and system logging utility." >&2
+			echo "  If there is SLACK_TOKEN environment variable set, it will try sending Slack message as well." >&2
+			exit 1
+		fi
+		NotifySmart "$@"
+	;;
+esac

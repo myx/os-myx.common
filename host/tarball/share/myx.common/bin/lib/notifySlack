@@ -4,14 +4,14 @@ NotifySlack(){
 
 	set -e
 
-	local slackText="" slackBearer="${slackBearer:-$SLACK_TOKEN}" slackChannel="${slackChannel:-$SLACK_TOPIC}" slackUser="${slackUser:-$(hostname)}" slackIconEmoji=""
-	local doLogger="" eventType="unset"
+	local eventType="unset" eventText="" eventUser="${eventUser:-$(hostname)}" eventEmoji=""
+	local doLogger="" slackBearer="${slackBearer:-$SLACK_TOKEN}" slackChannel="${slackChannel:-$SLACK_TOPIC}"
 
 	while [ "$1" != "" ] ; do
 		case "$1" in
 			--text)
 				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local slackText="$2" ; shift ; shift
+				local eventText="$2" ; shift ; shift
 			;;
 			--bearer)
 				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
@@ -23,11 +23,11 @@ NotifySlack(){
 			;;
 			--user)
 				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local slackUser="$2" ; shift ; shift
+				local eventUser="$2" ; shift ; shift
 			;;
 			--emoji)
 				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local slackIconEmoji="$2" ; shift ; shift
+				local eventEmoji="$2" ; shift ; shift
 			;;
 			--logger)
 				local doLogger="TRUE" ; shift
@@ -42,13 +42,13 @@ NotifySlack(){
 		esac
 	done
 
-	if [ -z "$slackBearer" ] ; then
-		echo "NotifySlack: slack bearer token is required!" >&2
+	if [ -z "$eventText" ] ; then
+		echo "NotifySlack: slack text message is required!" >&2
 		return 1
 	fi
 
-	if [ -z "$slackText" ] ; then
-		echo "NotifySlack: slack text message is required!" >&2
+	if [ -z "$slackBearer" ] ; then
+		echo "NotifySlack: slack bearer token is required!" >&2
 		return 1
 	fi
 
@@ -68,7 +68,7 @@ NotifySlack(){
 		unset)
 		;;
 		*)
-			echo "NotifySmart: invalid event type: $eventType" >&2
+			echo "NotifySlack: invalid event type: $eventType" >&2
 			return 1
 		;;
 	esac
@@ -80,7 +80,7 @@ NotifySlack(){
 	fi
 
 	if [ "TRUE" = "$doLogger" ] ; then
-		logger -s -t "$slackChannel" "@${slackUser:-"unknown"}: $slackText"
+		logger -s -t "$slackChannel" "@${eventUser:-"unknown"}: $eventText"
 	fi
 
 	(	\
@@ -95,10 +95,10 @@ NotifySlack(){
 		|| true \
 	) <<- RESTJSON
 		{
-			"text": "$slackText", 
+			"text": "$( echo -n "$eventText" | sed -e 's/\"/\\\"/;s/\r/\\\r/;s/\n/\\\n/' )", 
 			"channel": "$slackChannel", 
-			"username": "$slackUser", 
-			"icon_emoji": "$slackIconEmoji"
+			"username": "$eventUser", 
+			"icon_emoji": "$eventEmoji"
 		}	
 	RESTJSON
 
