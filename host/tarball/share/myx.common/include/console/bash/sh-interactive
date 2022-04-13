@@ -2,4 +2,4 @@ if [ -z "$PS1" ]; then
 	echo "myx.common: sh-interactive" >&2
 fi
 . /usr/local/share/myx.common/include/console/bash/common
-export PS1="`whoami`@\\H:\\w % "
+export PS1="`whoami`@`hostname`:\\w % "
