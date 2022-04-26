@@ -44,6 +44,7 @@ if test `id -u` = 0 ; then
 				;;
 	        FreeBSD)
 	       		echo "Using: freebsd"
+			pkg bootstrap -y
 				[ ! -z "$( pkg info | grep ca_root )" ] || pkg install -y ca_root_nss
 	        	FETCH="https://github.com/myx/os-myx.common-freebsd/archive/master.tar.gz"
 	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
