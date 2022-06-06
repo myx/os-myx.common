@@ -1,6 +1,8 @@
 printf "myx.common: bash-login\033]0;$(hostname)\a\n" >&2
 
 source /usr/local/share/myx.common/include/console/bash/common
+export INPUTRC=/usr/local/share/myx.common/include/console/etc/inputrc
+export PROMPT_COMMAND='history -w; history -r'
 export PS1='\[\e]0;\u@\h: \w\a\]\[\e[0;32m\]\u@\H\[\e[m\]:\[\e[0;34m\]\w\[\e[m\]\[\e[0;32m\]\$\[\e[m\] \[\e[0m\]'
 if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)" ] && [ -x "$(which bash)" ] ; then
 	if [ ! -z "$SSH_AUTH_SOCK" ] && [ "$(ls $SSH_AUTH_SOCK)" != "$(ls ~/.ssh/ssh_auth_sock)" ] ; then
