@@ -6,9 +6,10 @@ export PS1="`whoami`@\\H:\\w % "
 # . /usr/local/share/myx.common/include/console/bash/common
 
 if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)" ] ; then
-	if [ ! -z "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "~/.ssh/ssh_auth_sock" ] ; then
+	if [ ! -z "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "~/.ssh/ssh_auth_sock" ] && [ "$SSH_AUTH_SOCK" != "$(ls ~/.ssh/ssh_auth_sock 2>/dev/null)" ] ; then
 		ln -sf $SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock
 		export SSH_AUTH_SOCK="~/.ssh/ssh_auth_sock"
+		printf "myx.common: ssh-agent socket available\n" >&2
 	fi
 	if [ -x "$(which bash)" ] ; then
 		export SHELL=$(which bash)
