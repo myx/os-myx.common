@@ -35,12 +35,12 @@ GitCloneSync(){
 			git commit -m "GitCloneSync: Initial commit"
 			git push -u origin master
 		fi
-		
 		git rev-parse --abbrev-ref HEAD > /dev/null \
 			&& [ "`git rev-parse --abbrev-ref HEAD`" != "${specificBranch:-master}" ] \
 			&& cd "$tgtPath/.." \
 			&& rm -rf "$tgtPath" \
 		|| true
+		cd "$currentPath"
 	fi
 	if [ ! -d "$tgtPath" ] ; then
 	    echo "GitCloneSync: $tgtPath: creating..." >&2
@@ -56,6 +56,7 @@ GitCloneSync(){
         git add README.md
         git commit -m "add/touch README"
         git push -u
+		cd "$currentPath"
     fi
 	if [ -d "$tgtPath" ] ; then
 	    cd "$tgtPath"
@@ -68,10 +69,9 @@ GitCloneSync(){
 	    if [ "$noPush" != "true" ] && ! git diff --quiet "@{push}" HEAD ; then
 	    	git push
 	    fi
+		cd "$currentPath"
 	    echo "GitCloneSync: $tgtPath: finished." >&2
 	fi
-	
-	cd "$currentPath"
 }
 
 case "$0" in

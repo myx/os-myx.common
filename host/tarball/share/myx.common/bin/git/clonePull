@@ -22,6 +22,7 @@ GitClonePull(){
 			&& cd "$tgtPath/.." \
 			&& rm -rf "$tgtPath" \
 		|| true
+		cd "$currentPath"
 	fi
 	if [ ! -d "$tgtPath" ] ; then
 	    echo "GitClonePull: $tgtPath: creating..." >&2
@@ -30,6 +31,7 @@ GitClonePull(){
 		    rm -rf "$tgtPath"
 		    return 1
 		fi
+		cd "$currentPath"
 	fi
 	if [ -d "$tgtPath" ] ; then
 	    cd "$tgtPath"
@@ -40,9 +42,8 @@ GitClonePull(){
 	    fi
 	    git pull
 	    echo "GitClonePull: $tgtPath: finished." >&2
+		cd "$currentPath"
 	fi
-	
-	cd "$currentPath"
 }
 
 case "$0" in
