@@ -3,9 +3,20 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 ReplaceLine(){
+	local DO_CREATE=""
+	if [ "$1" = "--create"] ; then
+		local DO_CREATE=true ; shift
+	fi
 	local fileName="$1" textSearch="$2" lineReplace="$3"
 	[ ! -z "$fileName" ] || { echo "ERROR: ReplaceLine: fileName argument is required!" >&2 ; return 1 ; }
+	if [ -f "$fileName" ] && [ ! -z "$DO_CREATE" ] ; then
+		mkdir -p "$(dirname "$fileName")" || { echo "ERROR: ReplaceLine: can't create directory: $(dirname "$fileName")" >&2 ; return 1 ; }
+		touch "$fileName" || { echo "ERROR: ReplaceLine: can't create file $fileName" >&2 ; return 1 ; }
+	fi
 	[ -f "$fileName" ] || { echo "ERROR: ReplaceLine: $fileName file is expected!" >&2 ; return 1 ; }
+	[ -r "$fileName" ] || { echo "ERROR: ReplaceLine: $fileName file is not readable!" >&2 ; return 1 ; }
+	[ -w "$fileName" ] || { echo "ERROR: ReplaceLine: $fileName file is not writable!" >&2 ; return 1 ; }
+	[ -w "$(dirname "$fileName")" ] || { echo "ERROR: ReplaceLine: $fileName parent directory is not writable!" >&2 ; return 1 ; }
 
 	set -e
 		
@@ -25,7 +36,13 @@ ReplaceLine(){
 case "$0" in
 	*/myx.common/bin/lib/replaceLine) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/replaceLine <file> <from-regexp> <to-value>" >&2
+			echo 'Syntax:' >&2
+			echo '  myx.common lib/replaceLine [--create] <file> <from-regexp> <to-value>' >&2
+			if [ "$1" = "--help" ] ; then
+				echo 'Examples:' >&2
+				echo '  myx.common lib/replaceLine /etc/ssh/sshd_config "^Port *" "Port 7727"' >&2
+				echo '  myx.common lib/replaceLine /usr/local/etc/sudoers "^%wheel ALL=*" "%wheel ALL=(root) ALL"' >&2
+			fi
 			exit 1
 		fi
 		set -e
