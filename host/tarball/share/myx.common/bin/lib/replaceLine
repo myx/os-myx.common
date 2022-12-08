@@ -9,7 +9,7 @@ ReplaceLine(){
 	fi
 	local fileName="$1" textSearch="$2" lineReplace="$3"
 	[ ! -z "$fileName" ] || { echo "ERROR: ReplaceLine: fileName argument is required!" >&2 ; return 1 ; }
-	if [ -f "$fileName" ] && [ ! -z "$DO_CREATE" ] ; then
+	if [ ! -f "$fileName" ] && [ ! -z "$DO_CREATE" ] ; then
 		mkdir -p "$(dirname "$fileName")" || { echo "ERROR: ReplaceLine: can't create directory: $(dirname "$fileName")" >&2 ; return 1 ; }
 		touch "$fileName" || { echo "ERROR: ReplaceLine: can't create file $fileName" >&2 ; return 1 ; }
 	fi
