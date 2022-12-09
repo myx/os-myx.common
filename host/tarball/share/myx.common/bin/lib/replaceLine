@@ -4,7 +4,7 @@
 
 ReplaceLine(){
 	local DO_CREATE=""
-	if [ "$1" = "--create"] ; then
+	if [ "$1" = "--create" ] ; then
 		local DO_CREATE=true ; shift
 	fi
 	local fileName="$1" textSearch="$2" lineReplace="$3"
