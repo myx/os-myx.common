@@ -102,6 +102,13 @@ if test `id -u` = 0 ; then
 	
 	# exec "/usr/local/share/myx.common/bin/reinstall"
 
+	if [ ! -z "$OS_PACKAGES" ] ; then
+		set -e
+		echo "OS_PACKAGES set, will install packages..."
+		/usr/local/bin/myx.common lib/installEnsurePackage $( echo "$OS_PACKAGES" | tr '\n' ' ' )
+		echo "OS_PACKAGES done."
+	fi
+
    	echo "Done."
 	
 	#
