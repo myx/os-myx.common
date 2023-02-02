@@ -104,9 +104,9 @@ if test `id -u` = 0 ; then
 
 	if [ ! -z "$OS_PACKAGES" ] ; then
 		set -e
-		echo "OS_PACKAGES set, will install packages..."
+		echo "OS_PACKAGES set, will check/install packages..." >&2 
 		/usr/local/bin/myx.common lib/installEnsurePackage $( echo "$OS_PACKAGES" | tr '\n' ' ' )
-		echo "OS_PACKAGES done."
+		echo "OS_PACKAGES done." >&2 
 	fi
 
    	echo "Done."
