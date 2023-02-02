@@ -15,7 +15,7 @@ GitClonePull(){
 	
 	local currentPath="`pwd`"
 	
-	if [ -d "$tgtPath" ] ; then
+	if [ -d "$tgtPath" ] && [ -d "$tgtPath/.git" ] ; then
 		cd "$tgtPath"
 		git rev-parse --abbrev-ref HEAD > /dev/null \
 			&& [ "`git rev-parse --abbrev-ref HEAD`" != "${specificBranch:-master}" ] \
@@ -24,7 +24,7 @@ GitClonePull(){
 		|| true
 		cd "$currentPath"
 	fi
-	if [ ! -d "$tgtPath" ] ; then
+	if [ ! -d "$tgtPath" ] || [ ! -d "$tgtPath/.git" ] ; then
 	    echo "GitClonePull: $tgtPath: creating..." >&2
 	    mkdir -p "$tgtPath"
 		if ! git clone "$repoUrl" "$tgtPath" ; then
@@ -43,6 +43,7 @@ GitClonePull(){
 	    git pull
 	    echo "GitClonePull: $tgtPath: finished." >&2
 		cd "$currentPath"
+	    echo "GitClonePull: $tgtPath: finished." >&2
 	fi
 }
 
