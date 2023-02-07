@@ -32,18 +32,23 @@ GitClonePull(){
 		    return 1
 		fi
 		cd "$currentPath"
+	else
+		if [ -d "$tgtPath" ] ; then
+			cd "$tgtPath"
+			echo "GitClonePull: $tgtPath: updating..." >&2
+			git remote set-url origin "$repoUrl"
+			if [ -n $specificBranch ] ; then
+				git checkout $specificBranch
+			fi
+			git pull
+			cd "$currentPath"
+		fi
 	fi
-	if [ -d "$tgtPath" ] ; then
-	    cd "$tgtPath"
-	    echo "GitClonePull: $tgtPath: updating..." >&2
-	    git remote set-url origin "$repoUrl"
-	    if [ -n $specificBranch ] ; then
-	    	git checkout $specificBranch
-	    fi
-	    git pull
-		cd "$currentPath"
-	    echo "GitClonePull: $tgtPath: finished." >&2
+	if [ ! -d "$tgtPath" ] || [ ! -d "$tgtPath/.git" ] ; then
+		echo "ERROR: GitClonePull: error checking out!" >&2 && return 1
 	fi
+	
+	echo "GitClonePull: $tgtPath: finished." >&2
 }
 
 case "$0" in
