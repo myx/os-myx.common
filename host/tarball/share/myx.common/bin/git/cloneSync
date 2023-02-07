@@ -45,7 +45,10 @@ GitCloneSync(){
 	if [ ! -d "$tgtPath" ] || [ ! -d "$tgtPath/.git" ] ; then
 	    echo "GitCloneSync: $tgtPath: creating..." >&2
 	    mkdir -p "$tgtPath"
-		if ! git clone "$repoUrl" "$tgtPath" ; then
+		if [ -n $specificBranch ] ; then
+			local GIT_BRANCH_OPT="--branch $specificBranch"
+		fi
+		if ! git clone $GIT_BRANCH_OPT "$repoUrl" "$tgtPath" ; then
 		    rm -rf "$tgtPath"
 		    return 1
 		fi
