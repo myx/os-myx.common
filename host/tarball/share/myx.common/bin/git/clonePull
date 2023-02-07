@@ -41,7 +41,6 @@ GitClonePull(){
 	    	git checkout $specificBranch
 	    fi
 	    git pull
-	    echo "GitClonePull: $tgtPath: finished." >&2
 		cd "$currentPath"
 	    echo "GitClonePull: $tgtPath: finished." >&2
 	fi
