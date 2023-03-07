@@ -17,11 +17,14 @@ GitClonePull(){
 	
 	if [ -d "$tgtPath" ] && [ -d "$tgtPath/.git" ] ; then
 		cd "$tgtPath"
-		git rev-parse --abbrev-ref HEAD > /dev/null \
-			&& [ "`git rev-parse --abbrev-ref HEAD`" != "${specificBranch:-master}" ] \
-			&& cd "$tgtPath/.." \
-			&& rm -rf "$tgtPath" \
-		|| true
+		if git rev-parse --abbrev-ref HEAD > /dev/null ; then
+			local clonedBranch="`git rev-parse --abbrev-ref HEAD`"
+			if [ "$clonedBranch" != "${specificBranch:-master}" ] && [ "$clonedBranch" != "${specificBranch:-main}" ] ; then
+				echo "GitClonePull: Switch branches: $clonedBranch -> ${specificBranch:-master}..." >&2
+				cd "$tgtPath/.."
+				rm -rf "$tgtPath"
+			fi
+		fi
 		cd "$currentPath"
 	fi
 	if [ ! -d "$tgtPath" ] || [ ! -d "$tgtPath/.git" ] ; then
