@@ -14,7 +14,7 @@ if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)"
 	if [ -x "$(which bash)" ] ; then
 		export SHELL="$(which bash)"
 		$(which screen) -q -O -U -D -R -s "$SHELL"
-	elif
+	else
 		$(which screen) -q -O -U -D -R
 	fi
 fi
