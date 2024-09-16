@@ -9,5 +9,10 @@ if ( $?SSH_CONNECTION == 1 && "$TERM" != screen && -x "`which screen`" && -x "`w
 			printf "myx.common: ssh-agent socket available\n" > /dev/stderr
         endif
     endif
-    `which screen` -s `which bash` -q -O -U -D -R
+	if ( -x "`which bash`" ) then
+        setenv SHELL "`which bash`"
+	    `which screen` -s "`which bash`" -q -O -U -D -R
+	else
+	    `which screen` -q -O -U -D -R
+    endif
 endif
