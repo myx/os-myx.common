@@ -12,7 +12,9 @@ if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)"
 		printf "myx.common: ssh-agent socket available\n" >&2
 	fi
 	if [ -x "$(which bash)" ] ; then
-		export SHELL=$(which bash)
+		export SHELL="$(which bash)"
+		$(which screen) -q -O -U -D -R -s "$SHELL"
+	elif
+		$(which screen) -q -O -U -D -R
 	fi
-	$(which screen) -q -O -U -D -R
 fi
