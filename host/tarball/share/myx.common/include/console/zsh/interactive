@@ -41,6 +41,8 @@ zstyle :compinstall filename '$HOME/.zshrc'
 
 autoload -Uz compinit
 compinit
+autoload -Uz bashcompinit
+bashcompinit
 
 if which fzf > /dev/null; then
 	if fzf --zsh 2>/dev/null; then

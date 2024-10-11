@@ -44,6 +44,9 @@ SetupShellCompletion(){
 			[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " $commentText\$" \
 				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
 				
+			[ ! -f "$HOME/.zshrc" ] || ReplaceLine "$HOME/.zshrc" " $commentText\$" \
+				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
+
 			return 0
 			;;
 	
@@ -60,6 +63,9 @@ SetupShellCompletion(){
 		
 	[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " $commentText\$" \
 		"complete $utilityName 'p:*:\`$listCommand\`:' $commentText"
+
+	[ ! -f "$HOME/.zshrc" ] || ReplaceLine "$HOME/.zshrc" " $commentText\$" \
+		"complete -W \"\$($listCommand)\" $utilityName $commentText"
 }
 
 case "$0" in
