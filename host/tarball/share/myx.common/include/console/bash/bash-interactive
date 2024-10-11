@@ -9,7 +9,7 @@ export PS1='\[\e]0;\u@\h: \w\a\]\[\e[0;32m\]\u@\H\[\e[m\]:\[\e[0;34m\]\w\[\e[m\]
 if which fzf > /dev/null; then
 	if fzf --bash 2>/dev/null; then
 		source <(fzf --bash)
-	elif [ -f ~/.fzf.zsh ]; then
+	elif [ -f ~/.fzf.bash ]; then
 		source ~/.fzf.bash
 	else
 		source /usr/local/share/examples/fzf/shell/completion.bash
