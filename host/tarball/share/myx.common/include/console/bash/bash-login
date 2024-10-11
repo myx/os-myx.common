@@ -10,7 +10,7 @@ if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)"
 		export SSH_AUTH_SOCK="~/.ssh/ssh_auth_sock"
 		printf "myx.common: ssh-agent socket available\n" >&2
 	fi
-    $(which screen) -s $(which bash) -q -O -U -D -R
+	$(which screen) -s $(which bash) -q -O -U -D -R
 fi
 
 if which fzf > /dev/null; then
