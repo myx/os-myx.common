@@ -73,6 +73,14 @@ SetupUserCompletion(){
 			"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
 			
 	fi
+
+	if checkExecutable zsh ; then
+
+		touch "$HOME/.zshrc"
+		ReplaceLine "$HOME/.zshrc" " ### myx.common completion ###$" \
+			"complete -W \"\$(myx.common help --bare)\" myx.common  ### myx.common completion ###"
+
+	fi
 }
 
 case "$0" in
