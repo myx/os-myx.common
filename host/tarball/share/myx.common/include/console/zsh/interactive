@@ -5,7 +5,7 @@ fi
 # export PS1="`whoami`@`hostname`:\\w % "
 
 [[ "$COLORTERM" == (24bit|truecolor) || "${terminfo[colors]}" -eq '16777216' ]] || zmodload zsh/nearcolor
-PROMPT='%F{green}%n%f@%F{magenta}%m%f %F{blue}%B%~%b%f %# '
+PROMPT='%F{green}%n%f@%F{magenta}%M%f %F{blue}%B%~%b%f %# '
 
 if [ -f "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
 	source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
