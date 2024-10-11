@@ -8,19 +8,19 @@ fi
 PROMPT='%F{green}%n%f@%F{magenta}%m%f %F{blue}%B%~%b%f %# '
 
 if [ -f "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
-    source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+	source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 elif [ -f "/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
-    source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-elif [ -f "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
-    source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+	source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+elif which brew > /dev/null && [ -f "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+	source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
 if [ -f "/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
-    source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+	source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 elif [ -f "/usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
-    source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-elif [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
-    source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+	source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+elif which brew > /dev/null && [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+	source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
 zstyle ':completion:*' completer _expand _complete _ignored _correct _approximate
@@ -34,5 +34,12 @@ autoload -Uz compinit
 compinit
 
 if which fzf > /dev/null; then
-    source <(fzf --zsh)
+	if fzf --zsh 2>/dev/null; then
+		source <(fzf --zsh)
+	elif [ -f ~/.fzf.zsh ]; then
+		source ~/.fzf.zsh
+	else
+		source /usr/local/share/examples/fzf/shell/completion.zsh
+		source /usr/local/share/examples/fzf/shell/key-bindings.zsh
+	fi
 fi
