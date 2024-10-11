@@ -1,5 +1,5 @@
 printf "myx.common: zsh-login\033]0;$(hostname)\a\n" >&2
-ENV=~/.shrc; export ENV
+ENV=~/.zshrc; export ENV
 export PS1="`whoami`@\\H:\\w % "
 
 if [ "$TERM" = screen ] ; then
