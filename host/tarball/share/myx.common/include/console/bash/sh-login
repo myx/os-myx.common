@@ -2,7 +2,7 @@ printf "myx.common: sh-login\033]0;$(hostname)\a\n" >&2
 ENV=~/.shrc; export ENV
 export PS1="`whoami`@\\H:\\w % "
 
-if [ "$TERM" == screen ] ; then
+if [ "$TERM" = screen ] ; then
 	. /usr/local/share/myx.common/include/console/bash/common
 fi
 
