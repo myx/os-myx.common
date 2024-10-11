@@ -1,5 +1,5 @@
 #!/bin/sh
 
-myx.common setup/completion
 myx.common setup/console
+myx.common setup/completion
 
