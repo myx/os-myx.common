@@ -1,0 +1,22 @@
+printf "myx.common: zsh-login\033]0;$(hostname)\a\n" >&2
+ENV=~/.shrc; export ENV
+export PS1="`whoami`@\\H:\\w % "
+
+if [ "$TERM" == screen ] ; then
+	. /usr/local/share/myx.common/include/console/zsh/common
+fi
+
+if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)" ] ; then
+	if [ ! -z "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "~/.ssh/ssh_auth_sock" ] && [ "$SSH_AUTH_SOCK" != "$(ls ~/.ssh/ssh_auth_sock 2>/dev/null)" ] ; then
+		ln -sf $SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock
+		export SSH_AUTH_SOCK="~/.ssh/ssh_auth_sock"
+		printf "myx.common: ssh-agent socket available\n" >&2
+	fi
+	if [ -x "$(which bash)" ] ; then
+		printf "myx.common: bash available\n" >&2
+		export SHELL="$(which bash)"
+		$(which screen) -q -O -U -D -R -s "$(which bash)"
+	else
+		$(which screen) -q -O -U -D -R
+	fi
+fi

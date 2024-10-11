@@ -1,0 +1,25 @@
+# common: zsh
+
+HISTSIZE=240000
+SAVEHIST=200000
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_FIND_NO_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_SPACE
+setopt HIST_SAVE_NO_DUPS
+
+umask 002
+export EDITOR='nano'
+export HISTCONTROL=erasedups
+export HISTCONTROL=ignoredups
+export HISTSIZE=999
+export HISTFILESIZE=99999
+export CLICOLOR='YES'
+export LSCOLORS='ExGxFxdxCxDxDxhbadExEx'
+export GREP_COLOR='00;38;5;157'
+export LOCALE=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+alias ll='ls -laFo'

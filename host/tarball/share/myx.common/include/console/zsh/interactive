@@ -1,0 +1,5 @@
+if [ -z "$PS1" ]; then
+	echo "myx.common: zsh-interactive" >&2
+fi
+. /usr/local/share/myx.common/include/console/zsh/common
+export PS1="`whoami`@`hostname`:\\w % "
