@@ -7,5 +7,12 @@ export PROMPT_COMMAND='history -w; history -r'
 export PS1='\[\e]0;\u@\h: \w\a\]\[\e[0;32m\]\u@\H\[\e[m\]:\[\e[0;34m\]\w\[\e[m\]\[\e[0;32m\]\$\[\e[m\] \[\e[0m\]'
 
 if which fzf > /dev/null; then
-    source <(fzf --bash)
+	if fzf --bash 2>/dev/null; then
+		source <(fzf --bash)
+	elif [ -f ~/.fzf.zsh ]; then
+		source ~/.fzf.bash
+	else
+		source /usr/local/share/examples/fzf/shell/completion.bash
+		source /usr/local/share/examples/fzf/shell/key-bindings.bash
+	fi
 fi
