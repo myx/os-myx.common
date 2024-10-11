@@ -7,6 +7,15 @@ fi
 [[ "$COLORTERM" == (24bit|truecolor) || "${terminfo[colors]}" -eq '16777216' ]] || zmodload zsh/nearcolor
 PROMPT='%F{green}%n%f@%F{magenta}%M%f %F{blue}%B%~%b%f %# '
 
+bindkey "^[[1~" beginning-of-line
+bindkey "^[[4~" end-of-line
+bindkey "^[[5~" beginning-of-history
+bindkey "^[[6~" end-of-history
+bindkey "^[[3~" delete-char
+bindkey "^[[2~" quoted-insert
+bindkey "^[[5C" forward-word
+bindkey "^[[5D" backward-word
+
 if [ -f "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
 	source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 elif [ -f "/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
