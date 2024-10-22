@@ -14,7 +14,7 @@ if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)"
 fi
 
 if which fzf > /dev/null; then
-	if fzf --bash 2>/dev/null; then
+	if fzf --bash 2>&1 >/dev/null; then
 		source <(fzf --bash)
 	elif [ -f ~/.fzf.bash ]; then
 		source ~/.fzf.bash
