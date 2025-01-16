@@ -1,4 +1,4 @@
 if( $?prompt == 1 ) then
-	echo "myx.common: *csh-interactive" >&2
+	echo "myx.common: *csh-interactive" >& /dev/stderr
 endif
 source /usr/local/share/myx.common/include/console/tcsh/common
