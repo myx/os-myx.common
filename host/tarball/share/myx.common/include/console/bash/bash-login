@@ -12,22 +12,3 @@ if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)"
 	fi
 	$(which screen) -s $(which bash) -q -O -U -D -R
 fi
-
-if which fzf > /dev/null; then
-	if fzf --bash >/dev/null 2>&1; then
-		source <(fzf --bash)
-	elif [ -f ~/.fzf.bash ]; then
-		source ~/.fzf.bash
-	else
-		if [ -f /usr/local/share/examples/fzf/shell/completion.bash ]; then
-			source /usr/local/share/examples/fzf/shell/completion.bash
-		elif [ -f /usr/share/doc/fzf/examples/completion.bash ]; then
-			source /usr/share/doc/fzf/examples/completion.bash
-		fi
-		if [ -f /usr/local/share/examples/fzf/shell/key-bindings.bash ]; then
-			source /usr/local/share/examples/fzf/shell/key-bindings.bash
-		elif [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
-			source /usr/share/doc/fzf/examples/key-bindings.bash
-		fi
-	fi
-fi
