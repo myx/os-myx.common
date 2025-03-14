@@ -1,0 +1,18 @@
+if which fzf > /dev/null && [ "$SHELL_NAME" ]; then
+	if fzf --$SHELL_NAME >/dev/null 2>&1; then
+		source <(fzf --$SHELL_NAME)
+	elif [ -f ~/.fzf.$SHELL_NAME ]; then
+		source ~/.fzf.$SHELL_NAME
+	else
+		if [ -f /usr/local/share/examples/fzf/shell/completion.$SHELL_NAME ]; then
+			source /usr/local/share/examples/fzf/shell/completion.$SHELL_NAME
+		elif [ -f /usr/share/doc/fzf/examples/completion.$SHELL_NAME ]; then
+			source /usr/share/doc/fzf/examples/completion.$SHELL_NAME
+		fi
+		if [ -f /usr/local/share/examples/fzf/shell/key-bindings.$SHELL_NAME ]; then
+			source /usr/local/share/examples/fzf/shell/key-bindings.$SHELL_NAME
+		elif [ -f /usr/share/doc/fzf/examples/key-bindings.$SHELL_NAME ]; then
+			source /usr/share/doc/fzf/examples/key-bindings.$SHELL_NAME
+		fi
+	fi
+fi
