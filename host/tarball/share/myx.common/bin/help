@@ -4,7 +4,7 @@
 
 Help(){
 	local MYXROOT="${MYXROOT:-/usr/local/share/myx.common}"
-	local FINDREZ="$( find "$MYXROOT/bin" -type f | sed "s:^$MYXROOT/bin/::g" | sort )"
+	local FINDREZ="$( cd "$MYXROOT/bin" ; find . -type f | sed "s:^./::g" | sort )"
 
 	if [ "$1" = "--bare" ] ; then
 		echo "$FINDREZ"
