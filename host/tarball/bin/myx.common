@@ -17,8 +17,7 @@ fi
 COMMAND="$1"
 
 PrintDefault(){
-	echo 'myx.common script'
-	echo '  Try running "myx.common help".'
+	printf 'myx.common script\n\t  Try running "myx.common help".' >&2
 }
 
 if [ ! "$COMMAND" ]; then
