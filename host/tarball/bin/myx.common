@@ -41,12 +41,12 @@ fi
 # Get into bash
 if [ ! -n "$BASH_VERSION" ] ; then
 	if [ -x "/usr/local/bin/bash" ] ; then
-		exec /usr/local/bin/bash -e "$0" "$@"
+		exec /usr/local/bin/bash --noprofile --norc -e "$0" "$@"
 	fi
 	if [ -x "/bin/bash" ] ; then
-		exec /bin/bash -e "$0" "$@"
+		exec /bin/bash --noprofile --norc -e "$0" "$@"
 	fi
-	exec bash -e "$0" "$@"
+	exec bash --noprofile --norc -e "$0" "$@"
 fi
 
 PrintDefault
