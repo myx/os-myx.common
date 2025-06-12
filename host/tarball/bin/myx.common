@@ -11,6 +11,7 @@ if [ -z "$MYXROOT" ]; then
 	*) MYXROOT="/usr/local/share/myx.common" ;;
 	esac
 	export MYXROOT
+	echo "MYXROOT is set to: $MYXROOT"
 fi
 
 COMMAND="$1"
