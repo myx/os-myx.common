@@ -5,7 +5,13 @@
 # This script is universal for FreeBSD, Darwin, Ubuntu.
 #
 
-export MYXROOT="${MYXROOT:-/usr/local/share/myx.common}"
+if [ -z "$MYXROOT" ]; then
+	case "$0" in
+	*/bin/myx.common) MYXROOT="${0%/bin/myx.common}/share/myx.common" ;;
+	*) MYXROOT="/usr/local/share/myx.common" ;;
+	esac
+	export MYXROOT
+fi
 
 COMMAND="$1"
 
