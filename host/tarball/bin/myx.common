@@ -5,6 +5,8 @@
 # This script is universal for FreeBSD, Darwin, Ubuntu.
 #
 
+export MYXROOT="${MYXROOT:-/usr/local/share/myx.common}"
+
 COMMAND="$1"
 
 PrintDefault(){
@@ -17,17 +19,17 @@ if [ ! "$COMMAND" ]; then
 	exit 1
 fi
 
-if [ -x "/usr/local/share/myx.common/bin/$COMMAND" ]; then
+if [ -x "$MYXROOT/bin/$COMMAND" ]; then
 	shift
 	set -e
-	"/usr/local/share/myx.common/bin/$COMMAND" "$@"
+	"$MYXROOT/bin/$COMMAND" "$@"
 	exit 0
 fi
 
-if [ -x "/usr/local/share/myx.common/include/obsolete/user/bin/$COMMAND" ]; then
+if [ -x "$MYXROOT/include/obsolete/user/bin/$COMMAND" ]; then
 	shift
 	set -e
-	"/usr/local/share/myx.common/include/obsolete/user/bin/$COMMAND" "$@"
+	"$MYXROOT/include/obsolete/user/bin/$COMMAND" "$@"
 	exit 0
 fi
 

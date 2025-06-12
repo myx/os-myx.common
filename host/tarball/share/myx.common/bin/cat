@@ -3,15 +3,16 @@
 # This script is universal for FreeBSD, Darwin, Ubuntu.
 
 Cat(){
+	local MYXROOT="${MYXROOT:-/usr/local/share/myx.common}"
 	local EXECUTE="sed -n '/^case \"\$0\" in/q;p' \"\$CHECK\""
 	if [ "--full" = "$1" ] ; then
 		local EXECUTE='cat "$CHECK"' ; shift
 	fi
 	local COMMAND="$1"
 	[ -z "$COMMAND" ] && echo "ERROR: Cat: COMMAND argument is required!" >&2 && exit 1
-	local CHECK="/usr/local/share/myx.common/bin/$COMMAND"
+	local CHECK="$MYXROOT/bin/$COMMAND"
 	[ -f "$CHECK" ] && eval $EXECUTE && return 0
-	local CHECK="/usr/local/share/myx.common/include/obsolete/user/bin/$COMMAND"
+	local CHECK="$MYXROOT/include/obsolete/user/bin/$COMMAND"
 	[ -f "$CHECK" ] && eval $EXECUTE && return 0
 	return 1
 }

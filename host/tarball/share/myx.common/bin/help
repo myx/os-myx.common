@@ -3,15 +3,17 @@
 # This script is universal for FreeBSD, Darwin, Ubuntu.
 
 Help(){
+	local MYXROOT="${MYXROOT:-/usr/local/share/myx.common}"
+	local FINDREZ="$( find "$MYXROOT/bin" -type f | sed "s:^$MYXROOT/bin/::g" | sort )"
+
 	if [ "$1" = "--bare" ] ; then
-		find "/usr/local/share/myx.common/bin" -type f | sed "s,/usr/local/share/myx.common/bin/,,g" | sort
+		echo "$FINDREZ"
 		return 0 
 	fi
 
-	echo "'myx.common' script commands:"
-	
-	for ITEM in $(find "/usr/local/share/myx.common/bin" -type f | sed "s,/usr/local/share/myx.common/bin/,,g" | sort); do
-		echo "  $ITEM"
+	echo "'myx.common' script commands:" >&2
+	for ITEM in $FINDREZ ; do
+		echo "  $ITEM" >&2
 	done
 }
 
