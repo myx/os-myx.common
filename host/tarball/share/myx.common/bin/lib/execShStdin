@@ -3,7 +3,7 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 ExecShStdin(){
-	sh -c 'eval "`cat`"'
+	eval "$( cat )"
 }
 
 case "$0" in
@@ -17,11 +17,12 @@ case "$0" in
 		if [ "--bash" = "$1" ] ; then
 			shift
 			if [ ! -n "$BASH_VERSION" ] ; then
-				bash -c 'eval "`cat`"'
+				set -x
+				bash -c "(eval \"\$( cat )\")" "$@"
 				exit 0
 			fi
 		fi
 
-		eval "`cat`" "$@"
+		eval "$( cat )"
 	;;
 esac
