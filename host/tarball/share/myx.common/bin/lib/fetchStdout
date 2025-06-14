@@ -4,34 +4,46 @@
 ##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
 FetchStdout(){
-	if [ "$1" = "--local-cache" ] ; then
-		shift
-		local LOCAL_CACHE="$1"
-		[ -z "$LOCAL_CACHE" ] && echo "ERROR: FetchStdout: The CACHE_ROOT is required!" >&2 && exit 1
+	# declare all locals up front
+	local CACHE_ROOT URL KEY cmd
+
+	# parse optional --local-cache
+	if [ "$1" = "--local-cache" ]; then
+		shift ; CACHE_ROOT=$1
+		[ -n "$CACHE_ROOT" ] || { printf '⛔ ERROR: FetchStdout: The CACHE_ROOT is required!\n' >&2; exit 1; }
 		shift
 	else
-		local LOCAL_CACHE="$ENV_FETCH_LOCAL_CACHE"
+		CACHE_ROOT=${ENV_FETCH_LOCAL_CACHE-}
 	fi
-	
-	local URL="$1"
-	[ -z "$URL" ] && echo "ERROR: FetchStdout: The URL is required!" >&2 && exit 1
-	
+
+	# require URL
+	URL=$1
+	[ -n "$URL" ] || { printf '⛔ ERROR: FetchStdout: The URL is required!\n' >&2; exit 1; }
 	set -e
 
-	if [ ! -z "$LOCAL_CACHE" ] ; then
-		local CHECK_URL="`echo $URL | sed 's~^http[s]*://~~g'`"
-		if [ -f "$LOCAL_CACHE/$CHECK_URL" ] ; then
-			echo "FetchStdout: using local cache: $CHECK_URL" >&2 
-			cat "$LOCAL_CACHE/$CHECK_URL"
+	# try local cache
+	if [ -n "$CACHE_ROOT" ]; then
+		KEY=$(printf '%s' "$URL" | sed 's~^https\?://~~')
+		if [ -f "$CACHE_ROOT/$KEY" ]; then
+			printf 'FetchStdout: using local cache: %s\n' "$KEY" >&2
+			cat "$CACHE_ROOT/$KEY"
 			return 0
 		fi
 	fi
-	
-	if [ ! -z "`which curl || true`" ]  ; then curl --silent -L $URL  ; return 0 ; fi
-	if [ ! -z "`which fetch || true`" ] ; then fetch -o - $URL        ; return 0 ; fi
-	if [ ! -z "`which wget || true`" ]  ; then wget --quiet -O - $URL ; return 0 ; fi
 
-	echo "ERROR: curl, fetch or wget were not found, do not know how to download!" >&2 
+	# try curl, fetch, wget
+	for cmd in curl fetch wget; do
+		if command -v "$cmd" >/dev/null 2>&1; then
+			case "$cmd" in
+				curl)  curl --silent -L "$URL" ;;
+				fetch) fetch -o - "$URL"   ;;
+				wget)  wget --quiet -O - "$URL" ;;
+			esac
+			return 0
+		fi
+	done
+
+	printf '⛔ ERROR: curl, fetch or wget not found - cannot download!\n' >&2
 	exit 1
 }
 

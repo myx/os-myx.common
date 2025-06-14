@@ -19,17 +19,17 @@
 
 
 
-FetchStdout(){
-	local URL="$1"
-	[ ! -z "$URL" ] || (echo "ERROR: FetchStdout: The URL is required!" >&2 ; exit 1)
-	set -e
+FetchStdout() {
+    local URL="$1"
+    [ -n "$URL" ] || { echo "ERROR: FetchStdout: The URL is required!" >&2; exit 1; }
+    set -e
 
-	if [ ! -z "`which curl || true`" ]  ; then curl --silent -L "$URL"  ; return 0 ; fi
-	if [ ! -z "`which fetch || true`" ] ; then fetch -o - "$URL"        ; return 0 ; fi
-	if [ ! -z "`which wget || true`" ]  ; then wget --quiet -O - "$URL" ; return 0 ; fi
+    command -v curl  >/dev/null 2>&1 && { curl --silent -L "$URL"; return 0; }
+    command -v fetch >/dev/null 2>&1 && { fetch -o - "$URL"; return 0; }
+    command -v wget  >/dev/null 2>&1 && { wget --quiet -O - "$URL"; return 0; }
 
-	echo "ERROR: curl, fetch or wget were not found, do not know how to download!" >&2
-	exit 1
+    echo "ERROR: curl, fetch, or wget were not found, do not know how to download!" >&2
+    exit 1
 }
 
 if test `id -u` = 0 ; then 
