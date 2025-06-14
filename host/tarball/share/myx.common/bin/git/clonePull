@@ -13,7 +13,7 @@ GitClonePull(){
 
 	local specificBranch="$3"
 	
-	local currentPath="`pwd`"
+	local currentPath="$PWD"
 	
 	if [ -d "$tgtPath" ] && [ -d "$tgtPath/.git" ] ; then
 		cd "$tgtPath"

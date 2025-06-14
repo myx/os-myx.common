@@ -18,6 +18,7 @@ SetupHostScreen(){
 }
 
 SetupUserScreen(){
+	# local userScreenRc="$( realpath "$HOME/.screenrc" )" ## doen't work on ancient Macs - waiting for them to die off ##
 	local userScreenRc="$( cd "$HOME" ; pwd )/.screenrc"
 	echo "Setting up screen for: $HOME at $userScreenRc" >&2
 	
