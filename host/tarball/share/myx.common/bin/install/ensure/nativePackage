@@ -15,7 +15,7 @@ InstallEnsureNativePackage(){
 
 	UserRequireRoot "InstallEnsureNativePackage"
 
-	[ -z "$1" ] && echo "ERROR: InstallEnsureNativePackage: Arguments are expected!" && return 1
+	[ -z "$1" ] && echo "⛔ ERROR: InstallEnsureNativePackage: Arguments are expected!" && return 1
 
 	echo "myx.common install/ensure/nativePackage: abstract method" >&2
 	return 1 

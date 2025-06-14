@@ -5,7 +5,7 @@
 Which(){
 	local MYXROOT="${MYXROOT:-/usr/local/share/myx.common}"
 	local COMMAND="$1"
-	[ -z "$COMMAND" ] && echo "ERROR: Which: COMMAND argument is required!" >&2 && exit 1
+	[ -z "$COMMAND" ] && echo "⛔ ERROR: Which: COMMAND argument is required!" >&2 && exit 1
 	local CHECK="$MYXROOT/bin/$COMMAND"
 	[ -f "$CHECK" ] && echo "$CHECK" && return 0
 	local CHECK="$MYXROOT/include/obsolete/user/bin/$COMMAND"

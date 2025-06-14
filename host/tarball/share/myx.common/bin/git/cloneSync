@@ -16,10 +16,10 @@ GitCloneSync(){
 	fi
 
 	local tgtPath="$1"
-	[ -z "$tgtPath" ] && echo "ERROR: GitCloneSync: tgtPath is required!" >&2 && return 1
+	[ -z "$tgtPath" ] && echo "⛔ ERROR: GitCloneSync: tgtPath is required!" >&2 && return 1
 
 	local repoUrl="$2"
-	[ -z "$repoUrl" ] && echo "ERROR: GitCloneSync: repoUrl is required!" >&2 && return 1
+	[ -z "$repoUrl" ] && echo "⛔ ERROR: GitCloneSync: repoUrl is required!" >&2 && return 1
 
 	local specificBranch="$3"
 	

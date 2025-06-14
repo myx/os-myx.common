@@ -6,10 +6,10 @@ GitClonePull(){
 	set -e
 
 	local tgtPath="$1"
-	[ -z "$tgtPath" ] && echo "ERROR: GitClonePull: tgtPath is required!" >&2 && return 1
+	[ -z "$tgtPath" ] && echo "⛔ ERROR: GitClonePull: tgtPath is required!" >&2 && return 1
 
 	local repoUrl="$2"
-	[ -z "$repoUrl" ] && echo "ERROR: GitClonePull: repoUrl is required!" >&2 && return 1
+	[ -z "$repoUrl" ] && echo "⛔ ERROR: GitClonePull: repoUrl is required!" >&2 && return 1
 
 	local specificBranch="$3"
 	
@@ -52,7 +52,7 @@ GitClonePull(){
 		fi
 	fi
 	if [ ! -d "$tgtPath" ] || [ ! -d "$tgtPath/.git" ] ; then
-		echo "ERROR: GitClonePull: error checking out!" >&2 && return 1
+		echo "⛔ ERROR: GitClonePull: error checking out!" >&2 && return 1
 	fi
 
 	echo "GitClonePull: $tgtPath: finished." >&2
