@@ -23,7 +23,7 @@ InstallWheelUser(){
 	local NAME="$1" TITLE="$2"
 
 	[ -z "$NAME" ] && echo "⛔ ERROR: InstallWheelUser: username is required!" >&2 && exit 1
-	[ -z "$TITLE" ] && echo "WARNING: InstallWheelUser: usertitle is taken from name ($NAME)!" >&2 && TITLE="$NAME"
+	[ -z "$TITLE" ] && echo "🙋 WARNING: InstallWheelUser: usertitle is taken from name ($NAME)!" >&2 && TITLE="$NAME"
 	
 	InstallUser "$NAME" "$TITLE"
 	InstallUserGroupMembership "$NAME" "`OsGetWheelGroupNames`"
