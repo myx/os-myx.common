@@ -20,8 +20,8 @@ InstallAuthorizedKey(){
 
 	set -e
 
-	test ! -z "$NAME" || ( echo "ERROR: InstallAuthorizedKey: username is required!" >&2 ; return 1 )
-	test ! -z "$KEY" || ( echo "ERROR: InstallAuthorizedKey: key is required!" >&2 ; return 2 )
+	test ! -z "$NAME" || ( echo "⛔ ERROR: InstallAuthorizedKey: username is required!" >&2 ; return 1 )
+	test ! -z "$KEY" || ( echo "⛔ ERROR: InstallAuthorizedKey: key is required!" >&2 ; return 2 )
 
 	test "$NAME" = "`whoami`" || UserRequireRoot "InstallAuthorizedKey(AsRoot)"
 

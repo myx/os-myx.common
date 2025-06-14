@@ -3,7 +3,7 @@
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
 OsGetUserHome(){
-	echo "ERROR: OsGetUserHome must be re-implemented" >&2
+	echo "⛔ ERROR: OsGetUserHome must be re-implemented" >&2
 	exit 1
 
 	[ -z "$1" ] && \
@@ -13,13 +13,13 @@ OsGetUserHome(){
 	set -e
 	if [ "$1" = "--user" ] ; then
 		[ -z "$2" ] && \
-			echo "ERROR: OsGetUserHome: username required after --user " >&2 && \
+			echo "⛔ ERROR: OsGetUserHome: username required after --user " >&2 && \
 			return 1
 			
 		local HOME_PATH="`grep "^$2\\:" /etc/passwd | cut -d":" -f6`"
 		 
 		[ -z "$HOME_PATH" ] && \
-			echo "ERROR: OsGetUserHome: no such user: $2" >&2 && \
+			echo "⛔ ERROR: OsGetUserHome: no such user: $2" >&2 && \
 			return 1
 			
 		echo "$HOME_PATH"

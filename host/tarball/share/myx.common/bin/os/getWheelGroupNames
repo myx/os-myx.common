@@ -4,7 +4,7 @@
 
 OsGetWheelGroupNames(){
 	# `echo wheel`
-	echo "ERROR: OsGetWheelGroupNames must be re-implemented" >&2
+	echo "⛔ ERROR: OsGetWheelGroupNames must be re-implemented" >&2
 	exit 1
 }
 

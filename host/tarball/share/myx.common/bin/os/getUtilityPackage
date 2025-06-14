@@ -29,7 +29,7 @@ OsGetUtilityPackage(){
 	
 	local REQ_UTIL_NAME="$1"
 	if [ -z "$REQ_UTIL_NAME" ] ; then
-		echo "ERROR: OsGetUtilityPackage: utilityName is required!" >&2
+		echo "⛔ ERROR: OsGetUtilityPackage: utilityName is required!" >&2
 		return 1
 	fi
 

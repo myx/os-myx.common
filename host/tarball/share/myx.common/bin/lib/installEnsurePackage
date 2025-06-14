@@ -20,7 +20,7 @@ InstallEnsurePackage(){
 	UserRequireRoot "InstallEnsurePackage"
 
 	local NAME="$1"
-	[ -z "$NAME" ] && echo "ERROR: The utility name is required!" >&2 && return 1
+	[ -z "$NAME" ] && echo "⛔ ERROR: The utility name is required!" >&2 && return 1
 
 	local LIST=""
 

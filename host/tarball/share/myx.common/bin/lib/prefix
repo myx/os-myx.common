@@ -18,7 +18,7 @@ Prefix(){
 
 	case "$1" in
 			"")
-				echo "ERROR: prefix: prefix text argument is required!" >&2 ; exit 1
+				echo "⛔ ERROR: prefix: prefix text argument is required!" >&2 ; exit 1
 				;;
 	        -1)
 				local PREFTEXT="`basename $2`"
@@ -48,12 +48,12 @@ Prefix(){
     [ -z "$verbose" ] || echo "$PREFTEXT: starting..."
     (	"$@" 2>&1 \
 	    	&& ( [ -z "$verbose" ] || echo "." ) \
-    		|| ( EXITCODE=$? ; set +x ; echo "ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ) \
+    		|| ( EXITCODE=$? ; set +x ; echo "⛔ ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ) \
    	) | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2
    	
 #	(	( echo "" | Unbuffer "$@" 2>&1 ) \
 #	    	&& echo "finished." \
-#    		|| echo "ERROR: exited with error status." \
+#    		|| echo "⛔ ERROR: exited with error status." \
 #	) | $SedLineReader -e "s^\^^$PREFTEXT: ^"
 
 }

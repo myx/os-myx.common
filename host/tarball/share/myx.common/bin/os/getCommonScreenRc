@@ -4,7 +4,7 @@
 
 OsGetCommonScreenRc(){
 	# `echo /usr/local/etc/screenrc`
-	echo "ERROR: OsGetCommonScreenRc must be re-implemented" >&2
+	echo "⛔ ERROR: OsGetCommonScreenRc must be re-implemented" >&2
 	exit 1
 }
 

@@ -3,7 +3,7 @@
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
 OsGetRamBytes(){
-	echo "ERROR: OsGetRamBytes must be re-implemented" >&2
+	echo "⛔ ERROR: OsGetRamBytes must be re-implemented" >&2
 	exit 1
 }
 

@@ -9,7 +9,7 @@ SetupShellCompletion(){
 	
 	local utilityName="$1"
 	if [ -z "$utilityName" ] ; then
-		echo "ERROR: SetupShellCompletion: utilityName is required!" >&2
+		echo "⛔ ERROR: SetupShellCompletion: utilityName is required!" >&2
 		exit 1
 	fi
 
@@ -20,7 +20,7 @@ SetupShellCompletion(){
 	case "$2" in
 		--command)
 			if [ -z "$3" ] ; then
-				echo "ERROR: SetupShellCompletion: listCommand is required!" >&2
+				echo "⛔ ERROR: SetupShellCompletion: listCommand is required!" >&2
 				exit 1
 			fi
 			local listCommand="$3"
@@ -28,7 +28,7 @@ SetupShellCompletion(){
 			
 		--directory)
 			if [ -z "$3" ] ; then
-				echo "ERROR: SetupShellCompletion: listDirectory is required!" >&2
+				echo "⛔ ERROR: SetupShellCompletion: listDirectory is required!" >&2
 				exit 1
 			fi
 			local listCommand="find \"$3\" -type f | sed \"s,$3/,,g\" | sort"
@@ -51,7 +51,7 @@ SetupShellCompletion(){
 			;;
 	
 		*)
-			echo "ERROR: SetupShellCompletion: invalid mode: $2" >&2
+			echo "⛔ ERROR: SetupShellCompletion: invalid mode: $2" >&2
 			exit 1
 	esac 
 	
