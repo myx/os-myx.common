@@ -25,7 +25,7 @@ InstallEnsurePackage(){
 	local LIST=""
 
 	for NAME in $@ ; do
-		[ ! -z "`which $NAME`" ] \
+		[ -n "`which $NAME`" ] \
 			&& echo "ensure: $NAME already present, skip" >&2 \
 			|| LIST="$LIST `OsGetUtilityPackage "$NAME"`"
 	done

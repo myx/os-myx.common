@@ -25,11 +25,11 @@ InstallRootAuthorizedKey(){
 
 	local KEY="$1"
 
-	test ! -z "$KEY" || ( echo "InstallRootAuthorizedKey: key is required!" ; exit 2 )
+	test -n "$KEY" || ( echo "InstallRootAuthorizedKey: key is required!" ; exit 2 )
 
 	local HOME="`OsGetUserHome --user root`"
 
-	test ! -z "$HOME" || ( echo "InstallAuthorizedKey: no home for $NAME!" >&2 ; return 3 )
+	test -n "$HOME" || ( echo "InstallAuthorizedKey: no home for $NAME!" >&2 ; return 3 )
 	test -d "$HOME" || ( echo "InstallAuthorizedKey: home directory $HOME is missing for $NAME!" >&2 ; return 4 )
 
 	local KEYS="$HOME/.ssh/authorized_keys"

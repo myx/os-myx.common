@@ -44,13 +44,13 @@ if test `id -u` = 0 ; then
 				;;
 	        FreeBSD)
 	       		echo "Using: freebsd"
-				pkg bootstrap -y ; [ ! -z "$( pkg info | grep ca_root )" ] || pkg install -y ca_root_nss
+				pkg bootstrap -y ; [ -n "$( pkg info | grep ca_root )" ] || pkg install -y ca_root_nss
 	        	FETCH="https://github.com/myx/os-myx.common-freebsd/archive/master.tar.gz"
 	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
 	        	CHOWN="root:wheel"
 				;;
 	        Linux)
-	        	if [ -z "$FETCH" -a ! -z "`which apt || true`" ] ; then
+	        	if [ -z "$FETCH" -a -n "`which apt || true`" ] ; then
 	        		echo "Using: linux + apt"
 		        	FETCH="https://github.com/myx/os-myx.common-ubuntu/archive/master.tar.gz"
 		        	UPACK(){ tar -xzf - --strip-components=3 -C "$1" --wildcards '**/host/tarball/*' ; }
@@ -76,7 +76,7 @@ if test `id -u` = 0 ; then
 	FetchStdout https://github.com/myx/os-myx.common/archive/master.tar.gz | UPACK "$T_DIR"
 	FetchStdout "$FETCH" | UPACK "$T_DIR"
 	
-    if [ ! -z "$( which rsync )" ] && [ -d "/usr/local/share/myx.common/" ] ; then
+    if [ -n "$( which rsync )" ] && [ -d "/usr/local/share/myx.common/" ] ; then
     	echo "Using: rsync"
     	rsync -rltOi --no-motd "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common" 2>&1 \
 		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || true)
@@ -102,7 +102,7 @@ if test `id -u` = 0 ; then
 	
 	# exec "/usr/local/share/myx.common/bin/reinstall"
 
-	if [ ! -z "$OS_PACKAGES" ] ; then
+	if [ -n "$OS_PACKAGES" ] ; then
 		set -e
 		echo "OS_PACKAGES set, will check/install packages..." >&2 
 		/usr/local/bin/myx.common lib/installEnsurePackage $( echo "$OS_PACKAGES" | tr '\n' ' ' )
@@ -119,5 +119,5 @@ else
 	echo "installer is in 'user' mode..."
 
 	test -x "/usr/local/bin/myx.common" || (echo "System-wide 'myx.common' is already installed, skipping (in 'user' mode)." >&2 ; exit 0)
-	test ! -z "`which myx.common`" || (echo "⛔ ERROR: 'myx.common' is required, can't proceed in 'user' mode!"  >&2 ; exit 1)
+	test -n "`which myx.common`" || (echo "⛔ ERROR: 'myx.common' is required, can't proceed in 'user' mode!"  >&2 ; exit 1)
 fi

@@ -12,9 +12,9 @@ MyxCommonReinstall(){
 	local URL="https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh"
 	set -e
 
-	if [ ! -z "`which curl || true`" ]  ; then echo "using curl: "  && curl --silent -L $URL | sh -e  ; return 0 ; fi
-	if [ ! -z "`which fetch || true`" ] ; then echo "using fetch: " && fetch -o - $URL | sh -e        ; return 0 ; fi
-	if [ ! -z "`which wget || true`" ]  ; then echo "using wget: "  && wget --quiet -O - $URL | sh -e ; return 0 ; fi
+	if [ -n "`which curl || true`" ]  ; then echo "using curl: "  && curl --silent -L $URL | sh -e  ; return 0 ; fi
+	if [ -n "`which fetch || true`" ] ; then echo "using fetch: " && fetch -o - $URL | sh -e        ; return 0 ; fi
+	if [ -n "`which wget || true`" ]  ; then echo "using wget: "  && wget --quiet -O - $URL | sh -e ; return 0 ; fi
 
 	echo "⛔ ERROR: curl, fetch or wget were not found, do not know how to download!" >&2
 	exit 1

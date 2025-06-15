@@ -2,7 +2,7 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
-[ ! -z "$SedLineReader" ] || \
+[ -n "$SedLineReader" ] || \
 	. "/usr/local/share/myx.common/bin/lib/sedLineReader"
 
 # type Unbuffer >/dev/null 2>&1 || \

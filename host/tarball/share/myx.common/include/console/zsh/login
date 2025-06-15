@@ -6,8 +6,8 @@ if [ "$TERM" = screen ] ; then
 	. /usr/local/share/myx.common/include/console/zsh/common
 fi
 
-if [ "$TERM" != screen ] && [ ! -z "$SSH_CONNECTION" ] && [ -x "$(which screen)" ] ; then
-	if [ ! -z "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "~/.ssh/ssh_auth_sock" ] && [ "$SSH_AUTH_SOCK" != "$(ls ~/.ssh/ssh_auth_sock 2>/dev/null)" ] ; then
+if [ "$TERM" != screen ] && [ -n "$SSH_CONNECTION" ] && [ -x "$(which screen)" ] ; then
+	if [ -n "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "~/.ssh/ssh_auth_sock" ] && [ "$SSH_AUTH_SOCK" != "$(ls ~/.ssh/ssh_auth_sock 2>/dev/null)" ] ; then
 		ln -sf $SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock
 		export SSH_AUTH_SOCK="~/.ssh/ssh_auth_sock"
 		printf "myx.common: ssh-agent socket available\n" >&2
