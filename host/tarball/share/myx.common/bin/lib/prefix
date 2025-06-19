@@ -3,10 +3,10 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 [ -n "$SedLineReader" ] || \
-	. "/usr/local/share/myx.common/bin/lib/sedLineReader"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/sedLineReader"
 
 # type Unbuffer >/dev/null 2>&1 || \
-#	. "/usr/local/share/myx.common/bin/lib/unbuffer"
+#	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/unbuffer"
 
 
 Prefix(){
