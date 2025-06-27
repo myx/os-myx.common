@@ -35,14 +35,8 @@ ReplaceLine(){
 
 case "$0" in
 	*/myx.common/bin/lib/replaceLine) 
-		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo 'Syntax:' >&2
-			echo '  myx.common lib/replaceLine [--create] <file> <from-regexp> <to-value>' >&2
-			if [ "$1" = "--help" ] ; then
-				echo 'Examples:' >&2
-				echo '  myx.common lib/replaceLine /etc/ssh/sshd_config "^Port *" "Port 7727"' >&2
-				echo '  myx.common lib/replaceLine /usr/local/etc/sudoers "^%wheel ALL=*" "%wheel ALL=(root) ALL"' >&2
-			fi
+		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/replaceLine.help.include" >&2
 			exit 1
 		fi
 		set -e

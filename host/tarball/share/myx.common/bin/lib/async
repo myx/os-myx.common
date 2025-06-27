@@ -3,7 +3,7 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 type Prefix >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/prefix"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/prefix"
 
 
 Async(){
@@ -12,10 +12,8 @@ Async(){
 
 case "$0" in
 	*/myx.common/bin/lib/async) 
-		if [ -z "$1" ] ; then
-			echo "Syntax: myx.common lib/async [-1|-2|-3|<prefix-text>] command [... arguments]" >&2
-			echo "    when -1, -2 or -3 is used in place of 'prefix text' argument" >$2
-			echo "    the corresponding following argument of the command is used." >$2
+		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/async.help.include" >&2
 			exit 1
 		fi
 		set -e
