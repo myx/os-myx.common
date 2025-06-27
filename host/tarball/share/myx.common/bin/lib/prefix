@@ -15,7 +15,7 @@ Prefix(){
 		case "$1" in
 			--verbose|-v) verbose="$1" ; shift ;;
 			--elapsed|-e) prefixElapsed="$1" ; shift ;;
-			--prefix-limit)
+			--prefix-limit|-l)
 				: "${2:?"⛔ ERROR: $1 <number> - numeric argument is expected!"}"
 				case "$2" in
 					''|*[!0-9]*) echo "⛔ ERROR: $1 expects a numeric value, but got '$2'" >&2 ; exit 1 ;;
@@ -40,7 +40,8 @@ Prefix(){
 				local PREFTEXT="`basename $4`" ; shift
 	            ;;
 	        --)
-				local PREFTEXT="${!#}" ; shift
+				eval 'local PREFTEXT=$'"$#" ; shift
+				# local PREFTEXT="${!#}" ; shift # bash only
 	            ;;
 	        *)
 				local PREFTEXT="$1" ; shift
