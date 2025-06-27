@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-#!/bin/sh -- ${PREFIX:...} doesn't work, TODO: separate os-specific implementations?
+#!/bin/sh
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
@@ -49,7 +48,7 @@ Prefix(){
 	esac
 	
 
-	local PREFTEXT="`printf %s "${PREFTEXT:0:$prefixLimit}" | tr '^' '-' | tr -d '\n' `"
+	local PREFTEXT="`printf %s "$( eval "echo '\${PREFTEXT:0:$prefixLimit}'" )" | tr '^' '-' | tr -d '\n' `"
 	
 	#!/usr/bin/env bash
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"

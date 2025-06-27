@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-#!/bin/sh -- ${PREFIX:...} doesn't work, TODO: separate os-specific implementations?
+#!/bin/sh
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
