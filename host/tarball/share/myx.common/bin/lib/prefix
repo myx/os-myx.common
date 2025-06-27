@@ -10,7 +10,7 @@
 
 
 Prefix(){
-	local verbose="" prefixLimit=64 prefixElapsed=""
+	local verbose="" prefixLimit= prefixElapsed=""
 	while true; do
 		case "$1" in
 			--verbose|-v) verbose="$1" ; shift ;;
@@ -47,8 +47,11 @@ Prefix(){
 				;;
 	esac
 	
-
-	local PREFTEXT="`printf %s "$( eval "echo '\${PREFTEXT:0:$prefixLimit}'" )" | tr '^' '-' | tr -d '\n' `"
+	if [ -n "$prefixLimit" ] ; then
+		local PREFTEXT="`printf %s "$( eval "echo '\${PREFTEXT:0:$prefixLimit}'" )" | tr '^' '-' | tr -d '\n' `"
+	else
+		local PREFTEXT="`printf %s "${PREFTEXT:0:64}" | tr '^' '-' | tr -d '\n' `"
+	fi
 	
 	#!/usr/bin/env bash
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
