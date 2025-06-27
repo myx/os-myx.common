@@ -48,9 +48,9 @@ Prefix(){
 	esac
 	
 	if [ -n "$prefixLimit" ] ; then
-		local PREFTEXT="`printf %s "$( eval "echo '\${PREFTEXT:0:$prefixLimit}'" )" | tr '^' '-' | tr -d '\n' `"
+		local PREFTEXT="$( printf '%.*s' "$prefixLimit" "$PREFTEXT" | tr '^' '-' | tr -d '\n' )"
 	else
-		local PREFTEXT="`printf %s "${PREFTEXT:0:64}" | tr '^' '-' | tr -d '\n' `"
+		local PREFTEXT="$( printf %s "${PREFTEXT:0:64}" | tr '^' '-' | tr -d '\n' )"
 	fi
 	
 	#!/usr/bin/env bash
