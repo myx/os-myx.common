@@ -13,16 +13,17 @@ if [ -z "$MYXROOT" ]; then
 	export MYXROOT
 fi
 
-COMMAND="$1"
-
 PrintDefault(){
-	printf 'myx.common script\n\t  Try running "myx.common help".' >&2
+	printf 'myx.common script\n\t  Try running "myx.common help".\n' >&2
 }
 
-if [ ! "$COMMAND" ]; then
+# require at least one arg
+[ $# -gt 0 ] || {
 	PrintDefault
 	exit 1
-fi
+}
+
+COMMAND="$1"
 
 if [ -x "$MYXROOT/bin/$COMMAND" ]; then
 	shift
@@ -39,7 +40,7 @@ if [ -x "$MYXROOT/include/obsolete/user/bin/$COMMAND" ]; then
 fi
 
 # Get into bash
-if [ ! -n "$BASH_VERSION" ] ; then
+if [ -z "$BASH_VERSION" ] ; then
 	if [ -x "/usr/local/bin/bash" ] ; then
 		exec /usr/local/bin/bash --noprofile --norc -e "$0" "$@"
 	fi
@@ -49,6 +50,5 @@ if [ ! -n "$BASH_VERSION" ] ; then
 	exec bash --noprofile --norc -e "$0" "$@"
 fi
 
-PrintDefault
-echo "  ⛔ ERROR: Unknown command: $COMMAND"
+echo "⛔ ERROR: myx.common: Unknown command: '$COMMAND'" >&2
 exit 1
