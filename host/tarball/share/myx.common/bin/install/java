@@ -10,6 +10,9 @@ type UserRequireRoot >/dev/null 2>&1 || \
 
 UserRequireRoot "InstallJava"
 
-[ -n `which java` ] && echo "java is already installed, version: " && echo "`java -Xinternalversion || java -version`" && exit 0 
+if command -v java >/dev/null 2>&1 ; then
+	echo "java is already installed, version: " >&2
+	echo "$( java -Xinternalversion || java -version )" >&2
+fi
 
 myx.common lib/installEnsurePackage java
