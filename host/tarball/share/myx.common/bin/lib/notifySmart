@@ -10,15 +10,15 @@ NotifySmart(){
 		case "$1" in
 			--text)
 				[ -z "$2" ] && echo "NotifySmart: argument expected after $1 option" >&2 && return 1
-				local eventText="$2" ; shift ; shift
+				local eventText="$2" ; shift 2
 			;;
 			--user)
 				[ -z "$2" ] && echo "NotifySmart: argument expected after $1 option" >&2 && return 1
-				local eventUser="$2" ; shift ; shift
+				local eventUser="$2" ; shift 2
 			;;
 			--emoji)
 				[ -z "$2" ] && echo "NotifySmart: argument expected after $1 option" >&2 && return 1
-				local eventEmoji="$2" ; shift ; shift
+				local eventEmoji="$2" ; shift 2
 			;;
 			--alert|--audit|--track|--debug)
 				local eventType="${1##--}" ; shift

@@ -11,23 +11,23 @@ NotifySlack(){
 		case "$1" in
 			--text)
 				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local eventText="$2" ; shift ; shift
+				local eventText="$2" ; shift 2
 			;;
 			--bearer)
 				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local slackBearer="$2" ; shift ; shift
+				local slackBearer="$2" ; shift 2
 			;;
 			--channel)
 				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local slackChannel="$2" ; shift ; shift
+				local slackChannel="$2" ; shift 2
 			;;
 			--user)
 				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local eventUser="$2" ; shift ; shift
+				local eventUser="$2" ; shift 2
 			;;
 			--emoji)
 				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local eventEmoji="$2" ; shift ; shift
+				local eventEmoji="$2" ; shift 2
 			;;
 			--logger)
 				local doLogger="TRUE" ; shift
