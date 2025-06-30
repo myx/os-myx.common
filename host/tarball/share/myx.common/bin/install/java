@@ -13,6 +13,7 @@ UserRequireRoot "InstallJava"
 if command -v java >/dev/null 2>&1 ; then
 	echo "java is already installed, version: " >&2
 	echo "$( java -Xinternalversion || java -version )" >&2
+	exit 0
 fi
 
 myx.common lib/installEnsurePackage java
