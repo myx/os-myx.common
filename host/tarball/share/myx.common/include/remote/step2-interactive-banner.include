@@ -1,0 +1,71 @@
+#!/bin/sh
+
+print_distro_banner() {
+  #─── ANSI escapes ────────────────────────────────────────────
+  ESC=$(printf '\033[')          # Control‐Sequence Introducer
+  RESET="${ESC}0m"               # reset all
+  BOLD="${ESC}1m"                # bold on
+  BLINK="${ESC}5m"               # blink on
+  CYN="${ESC}36;1m"              # bright cyan
+  MAG="${ESC}35;1m"              # bright magenta
+  GRN="${ESC}32;1m"              # bright green
+  YEL="${ESC}33;1m"              # bright yellow
+  WHT="${ESC}37;1m"              # bright white
+
+  #─── hide cursor + clear screen ─────────────────────────────
+  printf '%s' "${ESC}?25l"       # hide
+  printf '%s' "${ESC}2J${ESC}H"  # clear + home
+
+  #─── draw header, one line at a time ───────────────────────
+  printf '%s\n'; sleep 0.1
+  printf '%s%s%s\n' "${CYN}${BOLD}" "╔══════════════════════════════════════════╗" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${CYN}${BOLD}" "║                                          ║" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${MAG}${BOLD}" "║   ██████╗ ██╗   ██╗███████╗████████╗      ║" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${MAG}${BOLD}" "║   ██╔═══██╗██║   ██║██╔════╝╚══██╔══╝      ║" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${GRN}${BOLD}" "║   ██║   ██║██║   ██║█████╗     ██║        ║" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${GRN}${BOLD}" "║   ██║▄▄ ██║██║   ██║██╔══╝     ██║        ║" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${YEL}${BOLD}" "║   ╚██████╔╝╚██████╔╝███████╗   ██║        ║" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${YEL}${BOLD}" "║    ╚══▀▀═╝  ╚═════╝ ╚══════╝   ╚═╝        ║" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${CYN}${BOLD}" "║              Distro Console             ║" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${CYN}${BOLD}" "║                                          ║" "${RESET}"; sleep 0.1
+  printf '%s%s%s\n' "${CYN}${BOLD}" "╚══════════════════════════════════════════╝" "${RESET}"; sleep 0.2
+
+  #─── show workspace + tools ─────────────────────────────────
+  printf '\n%s%s%s\n'   "${BOLD}${WHT}" " Workspace:" "${RESET} ${GRN}${MMDAPP:-<unset>}${RESET}"
+  printf '%s%s%s\n\n'   "${BOLD}${WHT}" " Tools    :" "${RESET} ${GRN}${MDLT_ORIGIN:-<unset>}${RESET}"
+
+  #─── spinner animation ──────────────────────────────────────
+  i=0
+  printf '%s' "${YEL}${BOLD}Loading console... ${RESET}"
+  while [ $i -lt 16 ]; do
+    case $i in
+      0|4|8|12) char='|';;
+      1|5|9|13) char='/';;
+      2|6|10|14) char='-';;
+      *)         char='\'\\'';;  # single backslash
+    esac
+    printf '%s' "$char"
+    sleep 0.1
+    printf '\b'
+    i=`expr $i + 1`
+  done
+  printf '\n\n'
+
+  #─── blinking help prompt ───────────────────────────────────
+  help=" Hello, type 'help' for help! "
+  j=0
+  while [ $j -lt 4 ]; do
+    printf '%s%s%s\r' "${BLINK}${WHT}" "$help" "${RESET}"
+    sleep 0.5
+    printf '\r%*s\r' "`expr ${#help}`" ""
+    sleep 0.5
+    j=`expr $j + 1`
+  done
+  printf '\n'
+
+  #─── restore cursor ─────────────────────────────────────────
+  printf '%s' "${ESC}?25h"
+}
+
+# Example invocation
+print_distro_banner
