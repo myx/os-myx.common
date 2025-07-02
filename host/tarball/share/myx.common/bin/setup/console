@@ -3,18 +3,12 @@
 type ReplaceLine >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/lib/replaceLine"
 
-if [ "`uname -s`" = "Linux" ] ; then
-	checkExecutable() { [ -x "`which $1 2> /dev/null`" ]; }
-else
-	checkExecutable() { which -s "$1"; }
-fi
-
 SetupConsole(){
 	echo "Setting up console for: $HOME"
 	
 	mkdir -p "$HOME/.myx/etc"
 	
-	if checkExecutable sh ; then
+	if command -v sh >/dev/null 2>&1 ; then
 		echo "Setting sh"
 		
 		# interactive
@@ -33,7 +27,7 @@ SetupConsole(){
 		echo "Skip: sh"
 	fi
 	
-	if checkExecutable bash ; then
+	if command -v bash >/dev/null 2>&1 ; then
 		echo "Setting bash"
 		
 		# interactive
@@ -55,7 +49,7 @@ SetupConsole(){
 		echo "Skip: bash"
 	fi
 	
-	if checkExecutable csh || checkExecutable tcsh ; then
+	if command -v csh >/dev/null 2>&1 || command -v tcsh >/dev/null 2>&1 ; then
 		echo "Setting *csh"
 		
 		# interactive
@@ -74,7 +68,7 @@ SetupConsole(){
 		echo "Skip: *csh"
 	fi
 	
-	if checkExecutable zsh ; then
+	if command -v zsh >/dev/null 2>&1 ; then
 		echo "Setting zsh"
 		
 		# interactive

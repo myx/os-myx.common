@@ -20,14 +20,6 @@
 #
 
 
-if [ "`uname -s`" = "Linux" ] ; then
-	checkExecutable() { [ -x "`which "$1" 2> /dev/null`" ]; }
-else
-	checkExecutable() { which -s "$1"; }
-fi
-
-
-
 type UserRequireRoot >/dev/null 2>&1 || \
 	. "/usr/local/share/myx.common/bin/user/requireRoot"
 
@@ -40,12 +32,12 @@ SetupHostCompletion(){
 	echo "Setting up completion for host" >&2
 	
 	
-	if checkExecutable bash && [ -f "/etc/bashrc" ] ; then
+	if command -v bash >/dev/null 2>&1 && [ -f "/etc/bashrc" ] ; then
 		ReplaceLine "/etc/bashrc" " ### myx.common completion ###$" \
 			"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
 	fi
 	
-	if checkExecutable csh ; then
+	if command -v csh >/dev/null 2>&1 ; then
 		ReplaceLine "/etc/csh.login" " ### myx.common completion ###$" \
 			"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
 	fi
@@ -54,7 +46,7 @@ SetupHostCompletion(){
 SetupUserCompletion(){
 	echo "Setting up completion for: $HOME" >&2
 	
-	if checkExecutable bash ; then
+	if command -v bash >/dev/null 2>&1 ; then
 
 		touch "$HOME/.bash_profile"
 		ReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
@@ -66,7 +58,7 @@ SetupUserCompletion(){
 
 	fi
 	
-	if checkExecutable csh ; then
+	if command -v csh >/dev/null 2>&1 ; then
 	
 		touch "$HOME/.cshrc"
 		ReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
@@ -74,7 +66,7 @@ SetupUserCompletion(){
 			
 	fi
 
-	if checkExecutable zsh ; then
+	if command -v zsh >/dev/null 2>&1 ; then
 
 		touch "$HOME/.zshrc"
 		ReplaceLine "$HOME/.zshrc" " ### myx.common completion ###$" \
