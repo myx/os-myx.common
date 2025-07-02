@@ -1,0 +1,5 @@
+#!/bin/sh
+while IFS= read -r line; do
+	[ "$line" != "#END-NON-INTERACTIVE#" ] || break
+	printf "%s\n" "$line"
+done > ./console.rc

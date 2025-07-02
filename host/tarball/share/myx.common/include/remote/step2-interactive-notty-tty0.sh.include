@@ -1,0 +1,8 @@
+#!/bin/sh
+
+notty() {
+	printf '\n>>>> %s: notty tty0 start\n\n' "$$" >&2
+	set -e
+	"$@" </dev/tty >/dev/tty 2>/dev/tty
+	printf '\n>>>> %s: notty tty0 done\n\n' "$$" >&2
+}

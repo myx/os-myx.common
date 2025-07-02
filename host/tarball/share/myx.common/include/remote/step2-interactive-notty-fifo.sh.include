@@ -1,0 +1,23 @@
+#!/bin/sh
+
+notty() {
+	printf "\n>>>> $$: notty fifo start\n\n" >&2
+	# 1) make a FIFO
+	FIFO=$(mktemp -u ./fifo.XXXXXX)
+	mkfifo "$FIFO"
+
+	# 2) pump your keyboard (tty) into it in background
+	trap '' TTIN
+	{ cat < /dev/tty > "$FIFO" & }
+	CATPID=$!
+	trap - TTIN   # restore default behavior
+
+	# 3) run the command with stdin from the FIFO
+	set -e
+	"$@" < "$FIFO"
+	printf "\n>>>> $$: notty fifo done\n\n" >&2
+
+	# 4) cleanup
+	kill $CATPID 2>/dev/null || :
+	rm -f "$FIFO"
+}

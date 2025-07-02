@@ -1,0 +1,31 @@
+#!/bin/sh
+# must create temp directory and echo the path
+
+# ─── BOOTSTRAP TO POSIX‐SH / BASH ───
+# If we’re in zsh (in zsh-mode), switch to sh-emulation
+if [ -n "${ZSH_VERSION-}" ]; then
+  emulate sh      # put zsh into POSIX-sh mode
+  setopt NO_GLOB_SUBST   # optional: disable zsh extensions you don’t want
+  echo 'Remote: ⎆ use zsh' >&2
+fi
+
+# If we’re in bash, make sure POSIX mode is on (optional)
+if [ -n "${BASH_VERSION-}" ]; then
+  set -eo posix
+  PS1="Remote: ⎆ use bash; "
+  #echo '⎆ use bash shell' >&2
+fi
+
+# At this point, if we’re neither bash nor zsh (or zsh already emulating),
+# we hope we’re in a POSIX shell.  If $BASH and $ZSH are both empty,
+# force‐reexec under /bin/sh (fallback to bash if sh is missing).
+if [ -z "${BASH_VERSION-}${ZSH_VERSION-}" ]; then
+  if command -v bash >/dev/null; then
+  	PS1="Remote: ⎆ spawn bash; " exec bash --noprofile --norc -e
+  elif command -v sh >/dev/null; then
+  	PS1="Remote: ⎆ spawn sh; " exec sh -e
+  else
+    printf '❌ No POSIX shell found!\n' >&2
+    exit 1
+  fi
+fi

@@ -1,0 +1,53 @@
+#!/bin/sh
+# Image Deploy Remote Host Script prefix
+
+set -euo pipefail
+
+[ -n "${IMAGE_UNPACK_DIR-}" ] || {
+	IMAGE_UNPACK_DIR=$(
+		mktemp -d "${TMPDIR:-/tmp}/myx-remote.XXXXXX"
+	) || { 
+		echo "⛔ ERROR: Remote: can't create temp directory" >&2; exit 1; 
+	}
+	export IMAGE_UNPACK_DIR
+}
+
+
+MDSC_DETAIL=true
+IMAGE_USE_TEMPFS=
+MDSC_DEPLOY_STARTED="$(date +%s)"
+
+echo "Remote: 🛠 starting: 👤 $(whoami) @ $(hostname), 📂 temporary directory: $IMAGE_UNPACK_DIR" >&2
+
+DeployTaskCleanup(){
+	[ "full" != "$MDSC_DETAIL" ] || echo "ImageDeploy: ⏫ leaving directory..." >&2
+	cd /
+	
+	if [ "true" = "$IMAGE_USE_TEMPFS" ] ; then
+		[ -z "$MDSC_DETAIL" ] || echo "ImageDeploy: 🗑 unmounting tempfs..." >&2
+		rm -fR "$IMAGE_UNPACK_DIR/*" # do not leak tmpfs memory
+		umount -f "$IMAGE_UNPACK_DIR"
+	fi
+	
+	[ -z "$MDSC_DETAIL" ] || echo "ImageDeploy: 🧻 removing temporaries..." >&2
+	rm -fR "$IMAGE_UNPACK_DIR"
+
+	echo "ImageDeploy: 🧹 cleaned up." >&2
+}
+
+trap DeployTaskCleanup EXIT
+
+if case "$(uname)" in \
+     Linux)   awk '/^MemTotal:/ {exit ($2 < 4194304)}' /proc/meminfo ;; \
+     Darwin)  test $(( $(sysctl -n hw.memsize) / 1024 )) -ge 4194304 ;; \
+     FreeBSD) test $(( $(sysctl -n hw.physmem) / 1024 )) -ge 4194304 ;; \
+     *)       false ;; \
+   esac \
+   && mount -t tmpfs tmpfs "$IMAGE_UNPACK_DIR" >/dev/null 2>&1
+then
+  [ -z "$MDSC_DETAIL" ] || echo "ImageDeploy: 🗂 tmpfs mounted" >&2
+  IMAGE_USE_TEMPFS=true
+fi
+
+cd "$IMAGE_UNPACK_DIR"
+

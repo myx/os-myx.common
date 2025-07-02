@@ -1,0 +1,3 @@
+echo "🔸 Base Directory: $PWD" >&2
+echo "🔸 Uname: $( uname -a )" >&2
+export PATH="$PWD/bin:$PATH"

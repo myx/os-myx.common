@@ -1,0 +1,11 @@
+#!/bin/sh
+
+notty() {
+	printf "\n>>>> $$: notty fds0 start\n\n" >&2
+	exec 3<&0 
+	exec 0</dev/tty
+	set -e
+	cat | "$@"
+	printf "\n>>>> $$: notty fds0 done\n\n" >&2
+	exec 0<&3 3<&-
+}

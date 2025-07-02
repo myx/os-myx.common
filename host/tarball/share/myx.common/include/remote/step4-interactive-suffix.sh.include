@@ -1,0 +1,25 @@
+#!/bin/sh
+
+unset INPUTRC
+
+stty sane || true
+stty echo
+
+#export INPUTRC=/usr/local/share/myx.common/include/console/etc/inputrc
+export PS1='\[\e]0;\u@\h: \w\a\]\[\e[0;32m\]\u@\H\[\e[m\]:\[\e[0;34m\]\w\[\e[m\]\[\e[0;32m\]\$\[\e[m\] \[\e[0m\]'
+
+SHELL_NAME="bash"
+
+bind "set bell-style audible"
+
+set +e               # don't crash on shell errors
+set -u               # catch unset vars
+set -o pipefail      # catch pipeline failures
+
+# enable history and nice editing
+history -c ; history -w
+export PROMPT_COMMAND='history -w; history -r'
+shopt -s histappend cmdhist checkwinsize
+
+echo "Remote: ✅ interactive shell ready."
+[ ! -f ~/.bashrc ] || { . ~/.bashrc ; }
