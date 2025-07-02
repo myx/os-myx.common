@@ -213,7 +213,7 @@ RemoteContext(){
 	local templateRoot="${MYXROOT:-/usr/local/share/myx.common}/include/remote/"
 
 	if [ -n "$interactive" ] || [ -n "$requireBash" ] ; then
-		[ -z "$interactive" ] || echo 'stty -echo'
+		[ -z "$interactive" ] || echo '[ -t 0 ] && stty -echo'
 		{
 			cat "$templateRoot/step0-check-start-shell.sh.include"
 		} | RemoteContext --intern-one-liner-cat-for-script

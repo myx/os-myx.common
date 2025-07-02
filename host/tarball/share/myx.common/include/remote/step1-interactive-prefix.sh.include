@@ -1,6 +1,17 @@
 #!/bin/sh
 # must create temp directory and echo the path
 
+[ -t 0 ] || {
+	if ! [ -e /dev/tty ] >/dev/null 2>&1 ]; then
+		printf '\r\n%s\r\n' "⛔ ERROR: Remote: tty is required for interactive session" >&2; exit 1; 
+	fi
+	printf '\r\n%s\r\n' "🔗 Trying to re-attach terminal" >&2
+	if ! stty < /dev/tty >/dev/null 2>&1; then
+		printf '\r\n%s\r\n' "⛔ ERROR: Remote: 🚫 /dev/tty is not a working terminal" >&2 ; exit 1;
+	fi
+	printf '\r\n%s\r\n' "🔗 Reattached to /dev/tty" >&2
+}
+
 set -euo pipefail
 if ! stty -echo ; then
 	echo "⛔ ERROR: Remote: tty is required for interactive session" >&2; exit 1; 
