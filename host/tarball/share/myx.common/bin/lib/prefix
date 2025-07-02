@@ -36,7 +36,7 @@ Prefix(){
 	        -2) PREFTEXT="$( basename $3 )" ; shift ;;
 	        -3) PREFTEXT="$( basename $4 )" ; shift ;;
 	        -4) PREFTEXT="$( basename $5 )" ; shift ;;
-	        --) shift ; eval "PREFTEXT=\$$#" ;;
+	        --) shift ; eval ";PREFTEXT=\"\$$#\";" ;;
 	        *)  PREFTEXT="$1" ; shift ;;
 	esac
 	
