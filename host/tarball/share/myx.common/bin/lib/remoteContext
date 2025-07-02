@@ -176,10 +176,11 @@ RemoteContext(){
 		--myx.common)
 			shift
 			local srcBase="${MYXROOT:-/usr/local/share/myx.common}" ; srcBase="${srcBase%/share/myx.common}"
+			#	--insert-path "$srcBase/:bin/myx.common" \
+			#	--insert-path "$srcBase/:share/myx.common/" \
 			set -- \
-				--insert-path "$srcBase/:bin/myx.common" \
-				--insert-path "$srcBase/:share/myx.common/" \
-				--insert-script "$srcBase/share/myx.common/include/remote/myx.common-init-mixin.sh.include" \
+				--insert-path "$srcBase/:." \
+				--insert-script "$srcBase/share/myx.common/include/remote/myx.common-init-mixin.base.sh.include" \
 				"$@"
 		;;
 
@@ -317,10 +318,28 @@ RemoteContext(){
 	done
 
 	printf '%b' "$includeScripts" | awk '!seen[$0]++' | while IFS= read -r entry; do
+		[ -z "$verbose" ] || printf '%s\n' "Local: 📦 pack: embedding '$entry'" >&2
+
 		echo
-		[ -z "$verbose" ] || echo "Local: 📦 pack: embedding '$entry'" >&2
 		echo "echo '📦 Running: $( basename "$entry" )...' >&2"
 		cat "$entry"
+
+		# If this is a mixin.include, and $interactive is non-empty,
+		# look for the corresponding -interactive.mixin.sh.include file
+		case $entry in
+			*-mixin.base.sh.include)
+				if [ -n "$interactive" ]; then
+					entry="${entry%-mixin.base.sh.include}-mixin.interactive.sh.include"
+					[ -z "${verbose:1}" ] || printf '%s\n' "Local: 📦 pack: looking for interactive add-on at '$entry'" >&2
+					if [ -n "$interactive" ] && [ -f "$entry" ]; then
+						[ -z "$verbose" ] || printf '%s\n' "Local: 📦 pack: embedding interactive mixin '$entry'" >&2
+						echo "echo '📦 Running: $( basename "$entry" )...' >&2"
+						cat "$entry"
+					fi
+				fi
+			;;
+		esac
+
 		echo
 	done
 
