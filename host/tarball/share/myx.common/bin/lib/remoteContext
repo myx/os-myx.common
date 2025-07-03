@@ -283,7 +283,7 @@ RemoteContext(){
 		# encode on sender side
 		{ 
 			tar -cjf - \
-				--format=posix \
+				--format=ustar \
 				--exclude='.DS_Store' \
 				--exclude='.AppleDouble' \
 				--exclude='Icon?' \
