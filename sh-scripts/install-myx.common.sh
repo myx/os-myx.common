@@ -73,7 +73,7 @@ if test `id -u` = 0 ; then
 	FetchStdout https://github.com/myx/os-myx.common/archive/master.tar.gz | UPACK "$T_DIR"
 	FetchStdout "$FETCH" | UPACK "$T_DIR"
 	
-    if [ -n "$( which rsync )" ] && [ -d "/usr/local/share/myx.common/" ] ; then
+    if command -v rsync >/dev/null 2>&1 && [ -d "/usr/local/share/myx.common/" ] ; then
     	echo "Using: rsync"
     	rsync -rltOi --no-motd "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common" 2>&1 \
 		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || true)
