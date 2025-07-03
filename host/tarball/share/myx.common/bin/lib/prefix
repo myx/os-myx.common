@@ -34,14 +34,16 @@ Prefix(){
 	        -2) PREFTEXT="$( basename $3 )" ; shift ;;
 	        -3) PREFTEXT="$( basename $4 )" ; shift ;;
 	        -4) PREFTEXT="$( basename $5 )" ; shift ;;
-	        --) eval "$( printf 'PREFTEXT="$%s"' "$#" )"; shift ;;
+	        --) eval "$( 
+					printf 'PREFTEXT="${%s:?"⛔ ERROR: prefix: -- argument, count: %s!"}"\n' "$#" "$#"
+				)" ; shift ;;
 	        *)  PREFTEXT="$1" ; shift ;;
 	esac
 	
 	if [ -n "$prefixLimit" ] ; then
-		local PREFTEXT="$( printf '%.*s' "$prefixLimit" "$PREFTEXT" | tr '^' '-' | tr -d '\n' )"
+		PREFTEXT="$( printf '%.*s' "$prefixLimit" "$PREFTEXT" | tr '^' '-' | tr -d '\n' )"
 	else
-		local PREFTEXT="$( printf %s "$PREFTEXT" | tr '^' '-' | tr -d '\n' )"
+		PREFTEXT="$( printf %s "$PREFTEXT" | tr '^' '-' | tr -d '\n' )"
 	fi
 	
 	#!/usr/bin/env bash
