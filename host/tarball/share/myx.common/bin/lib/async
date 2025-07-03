@@ -7,7 +7,7 @@ type Prefix >/dev/null 2>&1 || \
 
 
 Async(){
-	( echo "" | Prefix "$@" ) & # parallel
+	Prefix "$@" </dev/null & # parallel
 }
 
 case "$0" in
