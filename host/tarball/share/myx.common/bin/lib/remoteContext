@@ -277,13 +277,12 @@ RemoteContext(){
 		echo '    { printf "begin-base64 644 packed.b64\\n"; cat; printf "\\n====\\nend\\n"; } | uudecode -p'
 		echo ' } } || \'
 		echo ' { echo "⛔ ERROR: can not detect base64 encoder on target machine, make sure: \"openssl\", \"base64\" or \"uuencode\" utility is available" >&2; exit 1; }'
-		echo "} | tar jxf - ; } <<'EOF_PROJECT_TAR_XXXXXXXX'"
+		echo "} | tar -xjf - ; } <<'EOF_PROJECT_TAR_XXXXXXXX'"
 
 		# watch out: $(echo intentionally splits into several arguments!
 		# encode on sender side
 		{ 
-			# tar -jcf - --format=ustar \
-			tar -jcf - \
+			tar -cjf - \
 				--format=posix \
 				--exclude='.DS_Store' \
 				--exclude='.AppleDouble' \

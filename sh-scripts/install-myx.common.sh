@@ -81,8 +81,7 @@ if test `id -u` = 0 ; then
 		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || true)
     else
     	echo "Using: tar-tar"
-	   	RSYNC(){ tar -cpf - -C "$1" $( ls "$1" ) | tar -xvpf - -C "/usr/local/" ; }
-		RSYNC "$T_DIR"
+	   	tar -cpf - -C "$T_DIR" $( ls "$T_DIR" ) | tar -xvpf - -C "/usr/local/"
     fi
 	
 	rm -rf "$T_DIR"
