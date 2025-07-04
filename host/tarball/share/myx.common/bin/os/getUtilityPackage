@@ -3,7 +3,7 @@
 ##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
 
 type ReplaceLine >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/replaceLine"
+	. "${MYXROOT:-/usr/local/share/myx.common}/myx.common/bin/lib/replaceLine"
 
 OsGetUtilityPackage(){
 	local UTIL_NAME
