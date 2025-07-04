@@ -9,9 +9,15 @@ fi
 CatMarkdown() {
 	set -e
 
-	[ "$1" != --strip-all ] || {
-		shift; local NO_COLOR=true
-	}
+	local doStripAll doForceTty doBasicSed
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--strip-all) shift ; doStripAll=yes ;;
+			--force-tty) shift ; doForceTty=yes ;;
+			--basic-sed) shift ; doBasicSed=yes ;;
+		esac
+		break;
+	done
 
 	local fromFile="$1"
 	if [ -n "$fromFile" ] ; then
@@ -20,30 +26,37 @@ CatMarkdown() {
 			set +e ; return 1
 		fi
 		shift
-		cat "$fromFile" | CatMarkdown
-		return 0
+		# cat "$fromFile" | CatMarkdown
+		# return 0
 	fi
 
+	local awkFile
+
 	# detect “real” TTY
-	if     [ -t 1 ] \
-		&& [ -z "${NO_COLOR-}" ] \
+	if [ -n "$doBasicSed" ]; then
+		awkFile=''
+	elif [ -n "$doForceTty" ]; then
+		awkFile="${MYXROOT:-/usr/local/share/myx.common}/include/data/catMarkdown.ANSI.awk"
+	elif
+	       [ -t 1 ] \
+		&& [ -z "$doStripAll" ] \
 		&& [ -n "${TERM-}" ] && [ "$TERM" != dumb ] \
 		&& tput colors >/dev/null 2>&1 \
 		&& [ "$(tput colors)" -ge 8 ] \
 	; then
-		# USE_COLOR=1
-
-		awk -f "${MYXROOT:-/usr/local/share/myx.common}/include/data/catMarkdown.ANSI.awk"
+		awkFile="${MYXROOT:-/usr/local/share/myx.common}/include/data/catMarkdown.ANSI.awk"
 	else
-		awk -f "${MYXROOT:-/usr/local/share/myx.common}/include/data/catMarkdown.TEXT.awk"
+		awkFile="${MYXROOT:-/usr/local/share/myx.common}/include/data/catMarkdown.TEXT.awk"
+	fi
+
+	if [ -f "$awkFile" ]; then
+		awk -f "$awkFile" "${fromFile:-'-'}"
+		return 0
 	fi
 	
-	return 0
-
-
 	local COLUMNSEP=$'\x1F'
 
-	if [ "${USE_COLOR-}" ]; then
+	if [ -z "$doStripAll" ]; then
 		# ANSI codes
 		esc=$(printf '\033')
 		reset="${esc}[0m"
@@ -68,7 +81,8 @@ CatMarkdown() {
 		-e "s/\*\*([^*]+)\*\*/${bold_on}\1${bold_off}/g" \
 		-e "s/_([^_]+)_/${ital_on}\1${ital_off}/g" \
 		-e "s/\`([^\`]+)\`/${code_on}\1${code_off}/g" \
-		-e '/^[[:space:]]*\|?[-:]+(\|[-:]+)+\|?[[:space:]]*$/d'
+		-e '/^[[:space:]]*\|?[-:]+(\|[-:]+)+\|?[[:space:]]*$/d' \
+		"${fromFile:-'-'}"
 	else
 		sed -E \
 		-e 's/^#{1,6} //g' \
@@ -78,7 +92,8 @@ CatMarkdown() {
 		-e 's/\*\*([^*]+)\*\*/\1/g' \
 		-e 's/_([^_]+)_/\1/g' \
 		-e 's/\`([^`]+)\`/\1/g' \
-		-e '/^[[:space:]]*\|?[-:]+(\|[-:]+)+\|?[[:space:]]*$/d'
+		-e '/^[[:space:]]*\|?[-:]+(\|[-:]+)+\|?[[:space:]]*$/d' \
+		"${fromFile:-'-'}"
 	fi \
 	| sed '$!N; /^\n$/!P; D' \
 	| sed 's/^$/__BLANK__/g' \

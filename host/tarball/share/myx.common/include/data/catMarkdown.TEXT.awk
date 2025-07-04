@@ -34,7 +34,7 @@ BEGIN {
 		indent2  = substr(content, 1, RLENGTH)
 		textPart = substr(content, RLENGTH+1)
 		underline = indent2
-		for (i = 1; i <= length(textPart); i++) underline = underline "="
+		for (i = 1; i <= length(textPart); i++) underline = underline "━" # "="
 		print underline
 		next
 	}
@@ -47,12 +47,25 @@ BEGIN {
 		indent2  = substr(content, 1, RLENGTH)
 		textPart = substr(content, RLENGTH+1)
 		underline = indent2
-		for (i = 1; i <= length(textPart); i++) underline = underline "-"
+		for (i = 1; i <= length(textPart); i++) underline = underline "─" #  "-"
 		print underline
 		next
 	}
 
-  if (sub(/^#{3,6}[ \t]/, "", line)) {
+	if (sub(/^###[ \t]/, "", line)) {
+		content = line
+		print content
+		# preserve leading spaces in content, underline only text
+		match(content, /^[ \t]*/)
+		indent2  = substr(content, 1, RLENGTH)
+		textPart = substr(content, RLENGTH+1)
+		underline = indent2
+		for (i = 1; i <= length(textPart); i++) underline = underline "┄" # "-"
+		print underline
+		next
+	}
+
+  if (sub(/^#{4,6}[ \t]/, "", line)) {
     print line
     next
   }
@@ -79,23 +92,23 @@ BEGIN {
     next
   }
 
-  # 7) Inline `code`, **bold**, _italic_
-  while (match(line, /`[^`]+`/)) {
-    span  = substr(line, RSTART, RLENGTH)
-    mid   = substr(span, 2, RLENGTH-2)
-    line  = substr(line,1,RSTART-1) mid substr(line,RSTART+RLENGTH)
-  }
-  while (match(line, /\*\*[^*]+\*\*/)) {
-    span  = substr(line, RSTART, RLENGTH)
-    mid   = substr(span, 3, RLENGTH-4)
-    line  = substr(line,1,RSTART-1) mid substr(line,RSTART+RLENGTH)
-  }
-  while (match(line, /_[^_]+_/)) {
-    span  = substr(line, RSTART, RLENGTH)
-    mid   = substr(span, 2, RLENGTH-2)
-    line  = substr(line,1,RSTART-1) mid substr(line,RSTART+RLENGTH)
-  }
+	# 7) Inline `code`, **bold**, _italic_
+	while (match(line, /`[^`]+`/)) {
+		span  = substr(line, RSTART, RLENGTH)
+		mid   = substr(span, 2, RLENGTH-2)
+		line  = substr(line,1,RSTART-1) mid substr(line,RSTART+RLENGTH)
+	}
+	while (match(line, /\*\*[^*]+\*\*/)) {
+		span  = substr(line, RSTART, RLENGTH)
+		mid   = substr(span, 3, RLENGTH-4)
+		line  = substr(line,1,RSTART-1) mid substr(line,RSTART+RLENGTH)
+	}
+	while (match(line, /_[^_]+_/)) {
+		span  = substr(line, RSTART, RLENGTH)
+		mid   = substr(span, 2, RLENGTH-2)
+		line  = substr(line,1,RSTART-1) mid substr(line,RSTART+RLENGTH)
+	}
 
-  # 8) Fallback
-  print line
+	# 8) Fallback
+	print line
 }

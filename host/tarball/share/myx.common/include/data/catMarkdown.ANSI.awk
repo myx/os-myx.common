@@ -55,6 +55,28 @@ BEGIN {
     seq     = substr(line, RSTART, RLENGTH)
     content = substr(line, RSTART + RLENGTH)
     sub(/^[ \t]+/, "", content)
+
+    # inline formatting inside list content
+    while (match(content, /`[^`]+`/)) {
+      span   = substr(content, RSTART, RLENGTH)
+      inner  = substr(span, 2, RLENGTH-2)
+      rep    = C_ON inner C_OFF
+      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+    }
+    while (match(content, /\*\*[^*]+\*\*/)) {
+      span   = substr(content, RSTART, RLENGTH)
+      inner  = substr(span, 3, RLENGTH-4)
+      rep    = B_ON inner B_OFF
+      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+    }
+    while (match(content, /_[^_]+_/)) {
+      span   = substr(content, RSTART, RLENGTH)
+      inner  = substr(span, 2, RLENGTH-2)
+      rep    = I_ON inner I_OFF
+      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+    }
+
+
     printf("%s%s%s %s\n", B_ON, seq, B_OFF, content)
     next
   }
@@ -62,6 +84,28 @@ BEGIN {
   # 5) Bullet lists (skip --flags)
   if (match(line, /^[ \t]*[-*+][ \t]+/) && line !~ /^[ \t]*--/) {
     content = substr(line, RSTART + RLENGTH)
+
+    # inline formatting inside list content
+    while (match(content, /`[^`]+`/)) {
+      span   = substr(content, RSTART, RLENGTH)
+      inner  = substr(span, 2, RLENGTH-2)
+      rep    = C_ON inner C_OFF
+      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+    }
+    while (match(content, /\*\*[^*]+\*\*/)) {
+      span   = substr(content, RSTART, RLENGTH)
+      inner  = substr(span, 3, RLENGTH-4)
+      rep    = B_ON inner B_OFF
+      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+    }
+    while (match(content, /_[^_]+_/)) {
+      span   = substr(content, RSTART, RLENGTH)
+      inner  = substr(span, 2, RLENGTH-2)
+      rep    = I_ON inner I_OFF
+      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+    }
+
+
     printf("%s•%s %s\n", BUL_ON, BUL_OFF, content)
     next
   }
