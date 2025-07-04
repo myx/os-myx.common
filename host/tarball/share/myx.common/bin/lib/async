@@ -2,9 +2,12 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
+if type Async >/dev/null 2>&1 ; then
+	return 0
+fi
+
 type Prefix >/dev/null 2>&1 || \
 	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/prefix"
-
 
 Async(){
 	Prefix "$@" </dev/null & # parallel

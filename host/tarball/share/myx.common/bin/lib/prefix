@@ -2,6 +2,10 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
+if type Prefix >/dev/null 2>&1 ; then
+	return 0
+fi
+
 [ -n "$SedLineReader" ] || \
 	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/sedLineReader"
 

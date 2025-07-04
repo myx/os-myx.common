@@ -2,6 +2,10 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
+if type RemoteContext >/dev/null 2>&1 ; then
+	return 0
+fi
+
 # type Unbuffer >/dev/null 2>&1 || \
 #	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/unbuffer"
 

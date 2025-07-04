@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+if type ReplaceLine >/dev/null 2>&1 ; then
+	return 0
+fi
 
 ReplaceLine(){
 	local DO_CREATE=""

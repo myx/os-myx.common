@@ -5,6 +5,10 @@
 
 ## NOTE: because of linux gnu 'script' is not like others
 
+if type Unbuffer >/dev/null 2>&1 ; then
+	return 0
+fi
+
 Unbuffer(){
 	command -v "$1" >/dev/null || { echo "⛔ Unbuffer: command not found: $1" >&2; exit 1; }
 
