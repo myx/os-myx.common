@@ -70,56 +70,64 @@ BEGIN {
     next
   }
 
-  # 4) Numbered lists
-  if (match(line, /^[ \t]*[0-9]+\.[ \t]+/)) {
-    seq     = substr(line, RSTART, RLENGTH)
-    content = substr(line, RSTART + RLENGTH)
-    sub(/^[ \t]+/, "", content)
+  # 4) Numbered lists – preserve indent
+  if (match(line, /^[ \t]*/)) {
+    indent = substr(line,1,RLENGTH)
+    rest   = substr(line,RLENGTH+1)
+    if (match(rest,/^[0-9]+\.[ \t]+/)) {
+      seq     = substr(rest, RSTART, RLENGTH)
+      content = substr(rest, RSTART+RLENGTH)
+      sub(/^[ \t]+/, "", content)
 
-    # apply code/bold/italic loops to list content
-    while (match(content, /`[^`]+`/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 2, RLENGTH-2)
-      content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
-    }
-    while (match(content, /\*\*[^*]+\*\*/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 3, RLENGTH-4)
-      content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
-    }
-    while (match(content, /_[^_]+_/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 2, RLENGTH-2)
-      content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
-    }
+      # inline code, bold, italic on content
+      while (match(content, /`[^`]+`/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 2, RLENGTH-2)
+        content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
+      }
+      while (match(content, /\*\*[^*]+\*\*/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 3, RLENGTH-4)
+        content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
+      }
+      while (match(content, /_[^_]+_/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 2, RLENGTH-2)
+        content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
+      }
 
-    print seq content
-    next
+      print indent seq content
+      next
+    }
   }
 
-  # 5) Bullet lists (skip --flags)
-  if (match(line, /^[ \t]*[-*+][ \t]+/) && line !~ /^[ \t]*--/) {
-    content = substr(line, RSTART + RLENGTH)
+  # 5) Bullet lists – preserve indent
+  if (match(line, /^[ \t]*/)) {
+    indent = substr(line,1,RLENGTH)
+    rest   = substr(line,RLENGTH+1)
+    if (match(rest,/^[-*+][ \t]+/) && rest !~ /^--/) {
+      content = substr(rest, RSTART+RLENGTH)
 
-    # apply code/bold/italic loops to list content
-    while (match(content, /`[^`]+`/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 2, RLENGTH-2)
-      content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
-    }
-    while (match(content, /\*\*[^*]+\*\*/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 3, RLENGTH-4)
-      content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
-    }
-    while (match(content, /_[^_]+_/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 2, RLENGTH-2)
-      content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
-    }
+      # inline code, bold, italic on content
+      while (match(content, /`[^`]+`/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 2, RLENGTH-2)
+        content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
+      }
+      while (match(content, /\*\*[^*]+\*\*/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 3, RLENGTH-4)
+        content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
+      }
+      while (match(content, /_[^_]+_/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 2, RLENGTH-2)
+        content = substr(content,1,RSTART-1) inner substr(content,RSTART+RLENGTH)
+      }
 
-    print "- " content
-    next
+      print indent "- " content
+      next
+    }
   }
 
   # 6) Blockquotes
