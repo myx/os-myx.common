@@ -91,7 +91,7 @@ CatMarkdown() {
 case "$0" in
 	*/myx.common/bin/lib/catMarkdown) 
 		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
-			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/catMarkdown.help.include" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/catMarkdown.help.include"
 			exit 1
 		fi
 		set -e
