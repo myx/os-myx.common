@@ -13,7 +13,7 @@ Cat(){
 	local COMMAND="$1" DIR CHECK
 	[ -n "$COMMAND" ] || { echo "⛔ ERROR: Cat: COMMAND argument is required!" >&2; exit 1; }
 	for DIR in bin include/os-$(uname)/bin include/obsolete/user/bin; do
-		CHECK="$MYXROOT/$DIR/$COMMAND" ; echo "$CHECK"
+		CHECK="$MYXROOT/$DIR/$COMMAND"
 		if [ -f "$CHECK" ]; then
 			eval $EXECUTE "$CHECK"
 			return 0
