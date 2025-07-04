@@ -44,6 +44,20 @@
 				Will try to install bash if --force is specified and we run under root, when --force &&
 				--interactive are used will try sudo if not root.
 
+	--use-bzip2, --bz2
+
+				Use `bzip2` compression. (Default is `gzip`; `bzip2` may not be available on pristine 
+				Linux systems.)
+
+	--use-xz, --xz
+
+				Use `xz` compression. (Default is `gzip`; `xz` may not be available on pristine MacOS, 
+				Linux or FreeBSD systems.)
+
+	--use-gzip, --gzip
+
+				Use `gzip` compression. (This is the default setting.)
+
 	--myx.common
 
 				Adds `myx.common` files and inserts commands to make sure it is found in 'PATH' variable.

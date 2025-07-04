@@ -65,7 +65,7 @@ RemoteContext(){
 		esac
 	done
 
-	local verbose='' interactive='' force='' clean='' requireBash=''
+	local verbose='' interactive='' force='' clean='' requireBash='' compress=z
 
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -74,6 +74,9 @@ RemoteContext(){
 			--force|-f) force=f ; shift ;;
 			--clean|-c) clean=c ; shift ;;
 			--require-bash) requireBash=bash; shift ;;
+			--use-gzip|--gzip) compress=z ; shift ;;
+			--use-bzip2|--bz2) compress=j ; shift ;;
+			--use-xz|--xz) compress=J ; shift ;;
 			--|--*) break ;;
 			-?)
 				echo "Local: ⛔ ERROR: RemoteContext: Unknown option: $1" >&2
@@ -291,15 +294,13 @@ RemoteContext(){
 		echo '    { printf "begin-base64 644 packed.b64\\n"; cat; printf "\\n====\\nend\\n"; } | uudecode -p'
 		echo ' } } || \'
 		echo ' { echo "⛔ ERROR: can not detect base64 encoder on target machine, make sure: \"openssl\", \"base64\" or \"uuencode\" utility is available" >&2; exit 1; }'
-		## | tar -xjf - ## for bzip2
-		echo "} | tar -xzf - --no-xattrs ; } <<'EOF_PROJECT_TAR_XXXXXXXX'" 
+		echo "} | tar -x${compress}f - --no-xattrs ; } <<'EOF_PROJECT_TAR_XXXXXXXX'" 
 
 		# watch out: $(echo intentionally splits into several arguments!
 		# encode on sender side
 		{ 
-			## tar -cjf - ## for bzip2
 			## --format=posix \ ## to loud on gzip and fresh linux
-			tar -czf - \
+			tar -c${compress}f - \
 				--format=ustar \
 				--no-xattrs \
 				$( if tar --version 2>/dev/null | grep -q GNU ; then
