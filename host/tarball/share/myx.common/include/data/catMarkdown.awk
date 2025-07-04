@@ -165,7 +165,7 @@ BEGIN {
 				content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
 			}
 
-			printf("%s%s•%s%s %s\n", indent BUL_ON, B_ON, B_OFF, BUL_OFF, content)
+			printf("%s%s➤%s%s %s\n", indent BUL_ON, B_ON, B_OFF, BUL_OFF, content)
 			next
 		}
 	}

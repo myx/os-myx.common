@@ -56,7 +56,10 @@ CatMarkdown() {
 	
 	local COLUMNSEP=$'\x1F'
 
-	if [ -n "$useAnsi" ]; then
+	sed \
+		-e 's|\t|    |g' \
+		"${fromFile:-'-'}" \
+	| if [ -n "$useAnsi" ]; then
 		# ANSI codes
 		esc=$(printf '\033')
 		reset="${esc}[0m"
@@ -76,13 +79,12 @@ CatMarkdown() {
 		-e "s/^## (.*)/${hdr3_on}\1${hdr_off}/" \
 		-e "s/^# (.*)/${hdr3_on}\1${hdr_off}/" \
 		-e "s/^([[:space:]]*)> +(.*)/\1${quote_on}> ${quote_off}\2/" \
-		-e "s/^([[:space:]]*)([0-9]+)\. +(.*)/\1${bullet_on}🔹○ ${bullet_off}\3/" \
-		-e "s/^([[:space:]]*)[-*] +(.*)/\1${bullet_on}• ${bullet_off}\2/" \
+		-e "s/^([[:space:]]*)([0-9]+)\. +(.*)/\1${bullet_on}👉 ${bullet_off}\3/" \
+		-e "s/^([[:space:]]*)[-*] +(.*)/\1${bullet_on}➤ ${bullet_off}\2/" \
 		-e "s/\*\*([^*]+)\*\*/${bold_on}\1${bold_off}/g" \
 		-e "s/_([^_]+)_/${ital_on}\1${ital_off}/g" \
-		-e "s/\`([^\`]+)\`/${code_on}\1${code_off}/g" \
-		-e '/^[[:space:]]*\|?[-:]+(\|[-:]+)+\|?[[:space:]]*$/d' \
-		"${fromFile:-'-'}"
+		-e "s/\`\`\`([^\`]+)\`\`\`/${code_on}\1${code_off}/g" \
+		-e "s/\`([^\`]+)\`/${code_on}\1${code_off}/g"
 	else
 		sed -E \
 		-e 's/^#{1,6} //g' \
@@ -91,16 +93,15 @@ CatMarkdown() {
 		-e 's/^([[:space:]]*)[-*] +(.*)/\1- \2/' \
 		-e 's/\*\*([^*]+)\*\*/\1/g' \
 		-e 's/_([^_]+)_/\1/g' \
-		-e 's/\`([^`]+)\`/\1/g' \
-		-e '/^[[:space:]]*\|?[-:]+(\|[-:]+)+\|?[[:space:]]*$/d' \
-		"${fromFile:-'-'}"
+		-e 's/\`\`\`([^`]+)\`\`\`/\1/g' \
+		-e 's/\`([^`]+)\`/\1/g'
 	fi \
-	| sed '$!N; /^\n$/!P; D' \
-	| sed 's/^$/__BLANK__/g' \
-	| sed 's/||/'"$COLUMNSEP"'/g' \
+	| sed \
+		-e '$!N; /^\n$/!P; D' \
+		-e '/^[[:space:]]*\|?[-:]+(\|[-:]+)+\|?[[:space:]]*$/d' \
+	| sed -e 's/^$/__BLANK__/g' -e 's/||/'"$COLUMNSEP"'/g' \
 	| column -s "$COLUMNSEP" -t \
-	| sed 's/'"$COLUMNSEP"'/||/g' \
-	| sed 's/^__BLANK__$//'
+	| sed -e 's/'"$COLUMNSEP"'/||/g' -e 's/^__BLANK__$//'
 }
 
 case "$0" in
