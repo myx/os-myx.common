@@ -3,7 +3,7 @@
 ##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
 type OsGetUserHome >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/os/getUserHome"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUserHome"
 
 OsGetRootHome(){
 	OsGetUserHome --user root

@@ -6,16 +6,16 @@
 set -e
 
 type UserRequireRoot >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/user/requireRoot"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot"
 
 type OsGetWheelGroupNames >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/os/getWheelGroupNames"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getWheelGroupNames"
 
 type InstallUser >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/installUser"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/installUser"
 
 type InstallUserGroupMembership >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/installUserGroupMembership"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/installUserGroupMembership"
 
 InstallWheelUser(){
 	UserRequireRoot "InstallWheelUser"

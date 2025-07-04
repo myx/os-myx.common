@@ -3,7 +3,7 @@
 ##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
 type UserRequireRoot >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/user/requireRoot"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot"
 
 InstallEnsureNativePackage(){
 	set -e

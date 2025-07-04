@@ -6,13 +6,13 @@
 set -e
 
 type UserRequireRoot >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/user/requireRoot"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot"
 
 type ReplaceLine >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/lib/replaceLine"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/replaceLine"
 
 type OsGetUserHome >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/os/getUserHome"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUserHome"
 
 InstallAuthorizedKey(){
 	local NAME="$1"

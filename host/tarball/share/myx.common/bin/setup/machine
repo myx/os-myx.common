@@ -1,7 +1,7 @@
 #!/bin/sh
 
 type UserRequireRoot >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/user/requireRoot"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot"
 
 SetupMachine(){
 	UserRequireRoot "SetupMachine"

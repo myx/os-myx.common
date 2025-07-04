@@ -3,7 +3,7 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 type OsGetUserHome >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/os/getUserHome"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUserHome"
 
 case "$0" in
 	*/bin/os/getBaseHomeDirectory) 

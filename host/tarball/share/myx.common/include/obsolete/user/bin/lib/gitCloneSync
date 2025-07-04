@@ -3,7 +3,7 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 type GitCloneSync >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/git/cloneSync"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/git/cloneSync"
 
 case "$0" in
 	*/bin/lib/gitCloneSync) 

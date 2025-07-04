@@ -4,7 +4,7 @@
 
 
 type OsGetWheelGroupNames >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/os/getWheelGroupNames"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getWheelGroupNames"
 
 OsGetWheelGroupName(){
 	if [ "$1" = "--print-first" ] ; then
