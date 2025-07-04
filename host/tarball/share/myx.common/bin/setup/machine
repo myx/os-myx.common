@@ -9,5 +9,14 @@ SetupMachine(){
 	myx.common setup/completion --host
 }
 
-set -e
-SetupMachine "$@"
+case "$0" in
+	*/bin/setup/machine) 
+		if [ -z "$1" -o "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/machine" >&2
+			exit 1
+		fi
+		set -e
+		SetupMachine "$@"
+	;;
+esac
+
