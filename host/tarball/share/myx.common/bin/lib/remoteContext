@@ -184,6 +184,20 @@ RemoteContext(){
 				"$@"
 		;;
 
+		--do-ssh|--do-ssh-once)
+			local sshOptions=
+			[ "$1" = --do-ssh ] || sshOptions="$sshOptions -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+			[ -z "$interactive" ] || sshOptions="$sshOptions -tt"
+			shift
+
+			local fifo=$(mktemp -u)
+			mkfifo "$fifo"
+			ssh $sshOptions "$@" < "$fifo" &
+			exec > "$fifo"
+			rm "$fifo"
+			break
+		;;
+
 		--help|--help-syntax)
 			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/remoteContext.help.include" >&2
 			return 0
@@ -277,19 +291,22 @@ RemoteContext(){
 		echo '    { printf "begin-base64 644 packed.b64\\n"; cat; printf "\\n====\\nend\\n"; } | uudecode -p'
 		echo ' } } || \'
 		echo ' { echo "⛔ ERROR: can not detect base64 encoder on target machine, make sure: \"openssl\", \"base64\" or \"uuencode\" utility is available" >&2; exit 1; }'
-		echo "} | tar -xjf - ; } <<'EOF_PROJECT_TAR_XXXXXXXX'"
+		## | tar -xjf - ## for bzip2
+		echo "} | tar -xzf - --no-xattrs ; } <<'EOF_PROJECT_TAR_XXXXXXXX'" 
 
 		# watch out: $(echo intentionally splits into several arguments!
 		# encode on sender side
 		{ 
-			tar -cjf - \
-				--format=posix \
+			## tar -cjf - ## for bzip2
+			## --format=posix \ ## to loud on gzip and fresh linux
+			tar -czf - \
+				--format=ustar \
 				--no-xattrs \
 				$( if tar --version 2>/dev/null | grep -q GNU ; then
 					echo --no-acls --no-selinux
 				fi ) \
 				$( if tar --version 2>/dev/null | grep -qi bsdtar ; then 
-					echo --no-xattrs --disable-copyfile $( [ "$(uname)" != FreeBSD ] || echo --no-mac-metadata )
+					echo --disable-copyfile $( [ "$(uname)" != FreeBSD ] || echo --no-mac-metadata )
 				fi ) \
 				--exclude='.DS_Store' \
 				--exclude='.AppleDouble' \
