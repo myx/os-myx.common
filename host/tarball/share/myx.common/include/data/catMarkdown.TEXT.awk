@@ -1,6 +1,4 @@
 #!/usr/bin/env awk
-#
-# md2txt-decorate.awk — plain-text export with H1/H2 underlines
 
 BEGIN {
   in_fence = 0

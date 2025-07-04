@@ -1,6 +1,4 @@
 #!/usr/bin/env awk
-#
-# md2ansi.awk — Markdown → ANSI-coloured terminal output
 
 BEGIN {
   esc      = sprintf("%c",27)
@@ -38,11 +36,27 @@ BEGIN {
   # 3) ATX headings: strip #… and exactly one following space/tab
 
   if (sub(/^#[ \t]/, "", line)) {
-    print H1_ON line R
+    print H1_ON line
+    content = line
+	# preserve leading spaces in content, underline only text
+    match(content, /^[ \t]*/)
+    indent2  = substr(content, 1, RLENGTH)
+    textPart = substr(content, RLENGTH+1)
+    underline = indent2
+    for (i = 1; i <= length(textPart); i++) underline = underline "━"
+    print underline R
     next
   }
   if (sub(/^##[ \t]/, "", line)) {
-    print H2_ON line R
+    print H2_ON line
+    content = line
+	# preserve leading spaces in content, underline only text
+    match(content, /^[ \t]*/)
+    indent2  = substr(content, 1, RLENGTH)
+    textPart = substr(content, RLENGTH+1)
+    underline = indent2
+    for (i = 1; i <= length(textPart); i++) underline = underline "─"
+    print underline R
     next
   }
   if (sub(/^#{3,6}[ \t]/, "", line)) {
@@ -50,64 +64,71 @@ BEGIN {
     next
   }
 
-  # 4) Numbered lists
-  if (match(line, /^[ \t]*[0-9]+\.[ \t]+/)) {
-    seq     = substr(line, RSTART, RLENGTH)
-    content = substr(line, RSTART + RLENGTH)
-    sub(/^[ \t]+/, "", content)
+  # 4) Numbered lists (1. …) – preserve indent
+  if (match(line, /^[ \t]*/)) {
+    indent = substr(line, 1, RLENGTH)
+    rest   = substr(line, RLENGTH+1)
+    if (match(rest, /^[0-9]+\.[ \t]+/)) {
+      seq     = substr(rest, RSTART, RLENGTH)
+      content = substr(rest, RSTART+RLENGTH)
+      sub(/^[ \t]+/, "", content)
 
-    # inline formatting inside list content
-    while (match(content, /`[^`]+`/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 2, RLENGTH-2)
-      rep    = C_ON inner C_OFF
-      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
-    }
-    while (match(content, /\*\*[^*]+\*\*/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 3, RLENGTH-4)
-      rep    = B_ON inner B_OFF
-      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
-    }
-    while (match(content, /_[^_]+_/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 2, RLENGTH-2)
-      rep    = I_ON inner I_OFF
-      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
-    }
+      # apply inline formatting on content
+      while (match(content, /`[^`]+`/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 2, RLENGTH-2)
+        rep    = C_ON inner C_OFF
+        content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+      }
+      while (match(content, /\*\*[^*]+\*\*/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 3, RLENGTH-4)
+        rep    = B_ON inner B_OFF
+        content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+      }
+      while (match(content, /_[^_]+_/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 2, RLENGTH-2)
+        rep    = I_ON inner I_OFF
+        content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+      }
 
-
-    printf("%s%s%s %s\n", B_ON, seq, B_OFF, content)
-    next
+      printf("%s%s%s%s%s%s\n", indent B_ON, BUL_ON, seq, BUL_OFF, B_OFF, content)
+      next
+    }
   }
 
-  # 5) Bullet lists (skip --flags)
-  if (match(line, /^[ \t]*[-*+][ \t]+/) && line !~ /^[ \t]*--/) {
-    content = substr(line, RSTART + RLENGTH)
 
-    # inline formatting inside list content
-    while (match(content, /`[^`]+`/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 2, RLENGTH-2)
-      rep    = C_ON inner C_OFF
-      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
-    }
-    while (match(content, /\*\*[^*]+\*\*/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 3, RLENGTH-4)
-      rep    = B_ON inner B_OFF
-      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
-    }
-    while (match(content, /_[^_]+_/)) {
-      span   = substr(content, RSTART, RLENGTH)
-      inner  = substr(span, 2, RLENGTH-2)
-      rep    = I_ON inner I_OFF
-      content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
-    }
+  # 5) Bullet lists (-,*,+), preserve indent
+  if (match(line, /^[ \t]*/)) {
+    indent = substr(line, 1, RLENGTH)
+    rest   = substr(line, RLENGTH+1)
+    if (match(rest, /^[-*+][ \t]+/) && rest !~ /^--/) {
+      content = substr(rest, RSTART+RLENGTH)
 
+      # apply inline formatting on content
+      while (match(content, /`[^`]+`/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 2, RLENGTH-2)
+        rep    = C_ON inner C_OFF
+        content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+      }
+      while (match(content, /\*\*[^*]+\*\*/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 3, RLENGTH-4)
+        rep    = B_ON inner B_OFF
+        content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+      }
+      while (match(content, /_[^_]+_/)) {
+        span   = substr(content, RSTART, RLENGTH)
+        inner  = substr(span, 2, RLENGTH-2)
+        rep    = I_ON inner I_OFF
+        content = substr(content,1,RSTART-1) rep substr(content,RSTART+RLENGTH)
+      }
 
-    printf("%s•%s %s\n", BUL_ON, BUL_OFF, content)
-    next
+      printf("%s%s•%s%s %s\n", indent BUL_ON, B_ON, B_OFF, BUL_OFF, content)
+      next
+    }
   }
 
   # 6) Blockquotes
