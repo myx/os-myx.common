@@ -6,13 +6,13 @@
 
 
 type UserRequireRoot >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/user/requireRoot"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot"
 
 type OsGetUtilityPackage >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/os/getUtilityPackage"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUtilityPackage"
 
 type InstallEnsureNativePackage >/dev/null 2>&1 || \
-	. "/usr/local/share/myx.common/bin/install/ensure/nativePackage"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/install/ensure/nativePackage"
 
 InstallEnsurePackage(){
 	set -e
