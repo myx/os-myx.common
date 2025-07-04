@@ -4,6 +4,12 @@
 
 Help(){
 	local MYXROOT="${MYXROOT:-/usr/local/share/myx.common}"
+	if [ -n "$1" ] && myx.common which "$1"; then
+		set -e
+		myx.common "$1" --help
+		return 0
+	fi
+
 	local FINDREZ="$( cd "$MYXROOT/bin" ; find . -type f | sed "s:^./::g" | sort )"
 
 	if [ "$1" = "--bare" ] ; then
