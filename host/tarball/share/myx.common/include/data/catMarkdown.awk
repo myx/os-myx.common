@@ -36,14 +36,29 @@ BEGIN {
 {
 	line = $0
 
-		# expand tabs to four spaces
-	gsub(/\t/, "    ", line)
+    # 0a) Single-line fenced code: ```foo bar``` → print "foo bar"
+    if (!in_fence && line ~ /^[ \t]*```[^`]*```[ \t]*$/) {
+        match(line, /^[ \t]*/)
+        indent = substr(line, 1, RLENGTH)
+        gsub(/\t/, "    ", indent)
+
+        content = line
+        sub(/^[ \t]*```/,    "", content)
+        sub(/```[ \t]*$/,    "", content)
+
+        print indent C_ON content C_OFF
+        next
+    }
 
 	# 1) Fenced code-blocks
-	if (line ~ /^```/) {
-		in_fence = !in_fence
+	if (sub(/^[ \t]{0,3}```.*$/, "", line)) {
+		in_fence = in_fence ? 0 : 1
 		next
 	}
+
+	# expand tabs to four spaces
+	gsub(/\t/, "    ", line)
+	
 	if (in_fence) {
 		print C_ON line C_OFF
 		next

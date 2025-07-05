@@ -84,7 +84,11 @@ CatMarkdown() {
 		-e "s/\*\*([^*]+)\*\*/${bold_on}\1${bold_off}/g" \
 		-e "s/_([^_]+)_/${ital_on}\1${ital_off}/g" \
 		-e "s/\`\`\`([^\`]+)\`\`\`/${code_on}\1${code_off}/g" \
-		-e "s/\`([^\`]+)\`/${code_on}\1${code_off}/g"
+		-e '/^[[:space:]]*```([^`[:space:]]+)?[[:space:]]*$/,/^[[:space:]]*```[[:space:]]*$/ {
+			/^[[:space:]]*```([^`[:space:]]+)?[[:space:]]*$/d
+			s/.*/'"${code_on}"'&'"${code_off}"'/
+		}' \
+  		-e "s/\`([^\`]+)\`/${code_on}\1${code_off}/g"
 	else
 		sed -E \
 		-e 's/^#{1,6} //g' \
