@@ -4,13 +4,9 @@
 set -euo pipefail
 
 [ -n "${IMAGE_UNPACK_DIR-}" ] || {
-	IMAGE_UNPACK_DIR=$(
-		mktemp -d "${TMPDIR:-/tmp}/myx-remote.XXXXXX"
-	) || { 
-		echo "⛔ ERROR: Remote: can't create temp directory" >&2; exit 1; 
-	}
-	export IMAGE_UNPACK_DIR
+	IMAGE_UNPACK_DIR=$( mktemp -d "${TMPDIR:-/tmp}/myx-remote.XXXXXX" ) || { echo "⛔ ERROR: Remote: can't create temp directory" >&2; exit 1; }
 }
+export IMAGE_UNPACK_DIR
 
 
 MDSC_DETAIL=true

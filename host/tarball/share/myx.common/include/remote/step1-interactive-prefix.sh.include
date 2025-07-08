@@ -16,14 +16,15 @@ set -euo pipefail
 if ! stty -echo ; then
 	echo "⛔ ERROR: Remote: tty is required for interactive session" >&2; exit 1; 
 fi
-IMAGE_UNPACK_DIR=$(
-  mktemp -d "${TMPDIR:-/tmp}/myx-remote.XXXXXX"
-) || { 
+
+# IMAGE_UNPACK_DIR=$( mktemp -d "${TMPDIR:-/tmp}/myx-remote.XXXXXX" ) || { 
+# non-random tempdir, for interactive mode
+mkdir -p "${IMAGE_UNPACK_DIR:="${TMPDIR:-/tmp}/myx-remote.interactive.$(id -un)"}" || {
 	echo "⛔ ERROR: Remote: can't create temp directory" >&2; exit 1; 
 }
 
 export PS1=
 set +o history
-export IMAGE_UNPACK_DIR
 cd "$IMAGE_UNPACK_DIR"
+export IMAGE_UNPACK_DIR="$(pwd)"
 printf "Remote: 📡 transferring to $(pwd)..." >&2

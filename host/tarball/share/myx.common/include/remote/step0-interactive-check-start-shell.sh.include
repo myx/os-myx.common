@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if command -v bash >/dev/null; then
+	PS1="\rRemote: ⎆ spawn bash;  " exec bash --noprofile --norc -e -i
+elif command -v sh >/dev/null; then
+	PS1="\rRemote: ⎆ spawn sh;  " exec sh -e -i
+else
+	printf '❌ No POSIX shell found!\n' >&2
+	exit 1
+fi
