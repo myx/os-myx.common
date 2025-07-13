@@ -1,17 +1,23 @@
-printf "myx.common: bash-login\033]0;$(hostname)\a\n" >&2
+#!/bin/sh
+# ^^^ for syntax highlight 
 
-source /usr/local/share/myx.common/include/console/bash/common
-export INPUTRC=/usr/local/share/myx.common/include/console/etc/inputrc
+if [ -t 0 ]; then
+	printf "myx.common: bash-login\033]0;$(hostname)\a\n" >&2
+fi
+
+source ${MYXROOT:-/usr/local/share/myx.common}/include/console/bash/common
+export INPUTRC=${MYXROOT:-/usr/local/share/myx.common}/include/console/etc/inputrc
 export PROMPT_COMMAND='history -w; history -r'
 export PS1='\[\e]0;\u@\h: \w\a\]\[\e[0;32m\]\u@\H\[\e[m\]:\[\e[0;34m\]\w\[\e[m\]\[\e[0;32m\]\$\[\e[m\] \[\e[0m\]'
+
 if [ "$TERM" != screen ] && [ -n "$SSH_CONNECTION" ] && [ -x "$(which screen)" ] && [ -x "$(which bash)" ] ; then
-	if [ -n "$SSH_AUTH_SOCK" ] && [ -e "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "$(ls ~/.ssh/ssh_auth_sock 2>/dev/null)" ] ; then
+	if [ -n "${SSH_AUTH_SOCK-}" ] && [ -e "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "$(ls ~/.ssh/ssh_auth_sock 2>/dev/null)" ] ; then
 		ln -sf "$SSH_AUTH_SOCK" ~/.ssh/ssh_auth_sock
 		export SSH_AUTH_SOCK="~/.ssh/ssh_auth_sock"
 		printf "myx.common: ssh-agent socket available\n" >&2
 	fi
-	$(which screen) -s $(which bash) -q -O -U -D -R
+	screen -s bash -q -O -U -D -R
 fi
 
 SHELL_NAME="bash"
-source /usr/local/share/myx.common/include/console/etc/fzf-load
+source ${MYXROOT:-/usr/local/share/myx.common}/include/console/etc/fzf-load
