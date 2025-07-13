@@ -1,3 +1,4 @@
 echo "🔸 Base Directory: $PWD" >&2
 echo "🔸 Uname: $( uname -a )" >&2
+export MYXROOT="$PWD/share/myx.common"
 export PATH="$PWD/bin:$PATH"

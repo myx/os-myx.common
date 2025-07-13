@@ -1,11 +1,13 @@
 echo "🔸 myx.common interactive mode" >&2
 
-if [ -z "${INPUTRC-}" ]; then
-	[ -z "MDSC_DETAIL" ] || echo "    🛠 myx.common: setting INPUTRC" >&2
-	export INPUTRC=$(pwd)/share/myx.common/include/console/etc/inputrc
-fi
+. "$PWD/share/myx.common/include/console/bash/bash-interactive"
+# ^^^ does it.
+#if [ -z "${INPUTRC-}" ]; then
+#	[ -z "MDSC_DETAIL" ] || echo "📝 myx.common: setting INPUTRC" >&2
+#	export INPUTRC="$PWD/share/myx.common/include/console/etc/inputrc"
+#fi
 
 if [ -n "${BASH_VERSION-}" ]; then
-	[ -z "MDSC_DETAIL" ] || echo "    🛠 myx.common: setting library completion" >&2
+	[ -z "MDSC_DETAIL" ] || echo "📝 myx.common: setting completion" >&2
 	complete -W '$(myx.common help --bare)' myx.common  ### myx.common completion ###
 fi

@@ -12,10 +12,19 @@
 	printf '\r\n%s\r\n' "🔗 Reattached to /dev/tty" >&2
 }
 
-set -euo pipefail
-if ! stty -echo ; then
-	echo "⛔ ERROR: Remote: tty is required for interactive session" >&2; exit 1; 
+if ! stty -echo -ixon -ixoff rows "$LINES" cols "$COLUMNS" ; then
+  echo "⛔ ERROR: Remote: tty is required for interactive session" >&2
+  exit 1
 fi
+
+set -euo pipefail
+
+# 2) Point stdin at the real pty, save the original pipe on fd 3
+exec 3<&0
+exec 0</dev/tty
+
+shopt -u checkwinsize 2>/dev/null || :
+trap '' SIGWINCH
 
 # IMAGE_UNPACK_DIR=$( mktemp -d "${TMPDIR:-/tmp}/myx-remote.XXXXXX" ) || { 
 # non-random tempdir, for interactive mode

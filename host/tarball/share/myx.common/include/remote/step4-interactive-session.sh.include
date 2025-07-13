@@ -1,0 +1,6 @@
+#!/bin/sh
+
+
+echo "Remote: 🎬 interactive shell session starting..."
+[ ! -f ~/.bashrc ] || { . ~/.bashrc ; }
+
