@@ -4,14 +4,14 @@
 
 umask 002
 export EDITOR='nano'
-export HISTCONTROL=erasedups
-export HISTCONTROL=ignoredups
+export HISTCONTROL=ignoredups:erasedups
 export HISTSIZE=999
 export HISTFILESIZE=99999
 export CLICOLOR='YES'
 export LSCOLORS='ExGxFxdxCxDxDxhbadExEx'
-export GREP_COLOR='00;38;5;157'
+export GREP_COLORS='00;38;5;157'
 export LOCALE=en_US.UTF-8
 export LANG=en_US.UTF-8
 
+shopt -s histappend 2>/dev/null || :
 alias ll='ls -laFo'
