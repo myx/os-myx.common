@@ -16,7 +16,7 @@ Async(){
 case "$0" in
 	*/myx.common/bin/lib/async.Common) 
 		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
-			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/async.help.include" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/async.help.include" >&2
 			exit 1
 		fi
 		set -e

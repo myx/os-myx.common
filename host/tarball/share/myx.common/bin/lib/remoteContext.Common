@@ -231,7 +231,7 @@ RemoteContext(){
 		;;
 
 		--help|--help-syntax)
-			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/remoteContext.help.include" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/remoteContext.help.include" >&2
 			return 0
 		;;
 

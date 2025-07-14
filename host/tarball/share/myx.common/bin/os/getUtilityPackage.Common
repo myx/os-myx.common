@@ -11,14 +11,14 @@ OsGetUtilityPackage(){
 	if [ "$1" = "--list-basic-utilities" ] ; then
 		while read -r UTIL_NAME PKG_NAME; do 
 			echo "$UTIL_NAME"
-		done < "${MYXROOT:-/usr/local/share/myx.common}/include/data/package-name-map.txt"
+		done < "${MYXROOT:-/usr/local/share/myx.common}/include/data/package-name-map.${MYXUNIX:-$(uname -s)}.txt"
 		return 0
 	fi
 
 	if [ "$1" = "--list-basic-packages" ] ; then
 		while read -r UTIL_NAME PKG_NAME; do 
 			echo "$PKG_NAME"
-		done < "${MYXROOT:-/usr/local/share/myx.common}/include/data/package-name-map.txt"
+		done < "${MYXROOT:-/usr/local/share/myx.common}/include/data/package-name-map.${MYXUNIX:-$(uname -s)}.txt"
 		return 0
 	fi
 
@@ -38,7 +38,7 @@ OsGetUtilityPackage(){
 			echo "$PKG_NAME"
 			return 0
 		fi
-	done < "${MYXROOT:-/usr/local/share/myx.common}/include/data/package-name-map.txt"
+	done < "${MYXROOT:-/usr/local/share/myx.common}/include/data/package-name-map.${MYXUNIX:-$(uname -s)}.txt"
 
 	if [ "$NO_DEFAULT" = "true" ] ; then
 		return 1

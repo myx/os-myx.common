@@ -1,0 +1,6 @@
+bash	bash
+java	openjdk
+git		git		
+go		golang
+nano	nano
+rsync	rsync
