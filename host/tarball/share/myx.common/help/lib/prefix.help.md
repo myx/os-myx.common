@@ -29,6 +29,13 @@
 
                 Adds elapsed time '00000.000' to each prefixed line.
 
+	-a
+    --async
+
+                Starts process in backgroud allowing to start multiple prefixed processed
+				and so something or `wait` until all finish. Equivalent to adding code
+				` </dev/null &` to myx.common lib/prefix command.
+
 	-l <number>
     --prefix-limit <number>
 

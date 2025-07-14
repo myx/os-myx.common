@@ -20,6 +20,6 @@ case "$0" in
 			exit 1
 		fi
 		set -e
-		Async "$@"
+		Prefix "$@" </dev/null & # parallel
 	;;
 esac

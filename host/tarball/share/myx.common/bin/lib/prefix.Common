@@ -14,11 +14,12 @@ fi
 
 
 Prefix(){
-	local verbose prefixLimit prefixElapsed
+	local verbose prefixLimit prefixElapsed doAsync
 	while [ $# -gt 0 ]; do
 		case "$1" in
-			--verbose|-v) verbose="$1" ; shift ;;
-			--elapsed|-e) prefixElapsed="$1" ; shift ;;
+			--verbose|-v) verbose="$1"; shift ;;
+			--elapsed|-e) prefixElapsed="$1"; shift ;;
+			--async|-a) doAsync=" </dev/null & # parallel"; shift ;;
 			--prefix-limit|-l)
 				: "${2:?"⛔ ERROR: $1 <number> - numeric argument is expected!"}"
 				case "$2" in
@@ -34,10 +35,10 @@ Prefix(){
 
 	case "$1" in
 			"") echo "⛔ ERROR: prefix: prefix text argument is required!" >&2 ; exit 1 ;;
-	        -1) PREFTEXT="$( basename $2 )" ; shift ;;
-	        -2) PREFTEXT="$( basename $3 )" ; shift ;;
-	        -3) PREFTEXT="$( basename $4 )" ; shift ;;
-	        -4) PREFTEXT="$( basename $5 )" ; shift ;;
+	        -1) PREFTEXT="$( basename "$2" )" ; shift ;;
+	        -2) PREFTEXT="$( basename "$3" )" ; shift ;;
+	        -3) PREFTEXT="$( basename "$4" )" ; shift ;;
+	        -4) PREFTEXT="$( basename "$5" )" ; shift ;;
 	        --) eval "$( 
 					printf 'PREFTEXT="${%s:?"⛔ ERROR: prefix: -- argument, count: %s!"}"\n' "$#" "$#"
 				)" ; shift ;;
@@ -53,19 +54,15 @@ Prefix(){
 	#!/usr/bin/env bash
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 
-	set -e
+	set -ex
 
     [ -z "$verbose" ] || echo "$PREFTEXT: starting..."
-    (	"$@" 2>&1 \
-	    	&& { [ -z "$verbose" ] || echo "." ; } \
+	local evalCmd='(
+		"$@" 2>&1 && { [ -z "$verbose" ] || echo "." ; } \
     		|| { EXITCODE=$? ; set +x ; echo "⛔ ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ; } \
-   	) | $SedLineReader -e 's^\^^'"$PREFTEXT"': ^' 1>&2 
-   	
-#	(	( echo "" | Unbuffer "$@" 2>&1 ) \
-#	    	&& echo "finished." \
-#    		|| echo "⛔ ERROR: exited with error status." \
-#	) | $SedLineReader -e 's^\^^'"$PREFTEXT"': ^'
-
+   		) | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2 
+	'
+	eval "{ $evalCmd } $doAsync" 
 }
 
 case "$0" in
