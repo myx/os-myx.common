@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+
+# this one: https://github.com/elfmz/far2l
+
+set -e
+
+if which -s brew ; then
+	brew update
+else
+	ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+fi
+
+brew install glib gawk cmake pkg-config # wget
+
+MakeWxWidgets(){
+	local tempFolder="$( mktemp -t "myx-install-far-XXXXXXXX" -d )"
+	
+	myx.common lib/fetchStdout https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2 | tar -xjvf - -C "$tempFolder" 
+
+	cd "$tempFolder/wxWidgets-3.1.1"	
+	
+	set -x
+
+	./configure --disable-shared --disable-debug CC=clang CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=c++11" OBJCXXFLAGS="-stdlib=libc++ -std=c++11" LDFLAGS=-stdlib=libc++ --enable-monolithic --enable-wchar_t --enable-unicode
+	
+	make -j4
+	make install
+
+	cd ..
+	
+	git clone https://github.com/elfmz/far2l
+	cd far2l
+	cmake -G "Unix Makefiles"
+	make -j4
+	
+	install/far2l
+	
+	# rm -rf "$tempFolder"
+
+	return
+	
+	wget https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2
+	bunzip2 wxWidgets-3.1.1.tar.bz2
+	tar xvf wxWidgets-3.1.1.tar
+	cd wxWidgets-3.1.1
+	./configure --disable-shared --disable-debug CC=clang CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=c++11" OBJCXXFLAGS="-stdlib=libc++ -std=c++11" LDFLAGS=-stdlib=libc++ --enable-monolithic --enable-unicode
+	make -j4
+	make install
+}
+
+MakeWxWidgets

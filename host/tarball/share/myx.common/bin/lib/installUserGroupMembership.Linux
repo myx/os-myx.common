@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -e
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+InstallUserGroupMembership(){
+	UserRequireRoot "InstallUserGroupMembership"
+
+	local NAME="$1"; shift;
+	local GRPS="$@"
+
+	test -n "$NAME" || ( echo "⛔ ERROR: InstallUserGroupMembership: username is required!" >&2 ; exit 1 )
+	if test -z "$GRPS" ; then
+		echo "🙋 WARNING: InstallUserGroupMembership: groupname is taken from username ($NAME)!" >&2
+		local GRPS="$NAME"
+	fi
+	
+	
+	for GRP in $GRPS ; do
+		getent group "$GRP" || groupadd --system "$GRP"
+		# adduser "$NAME" "$GRP"
+		usermod -a -G "$GRP" "$NAME"
+	done
+}
+
+case "$0" in
+	*/myx.common/bin/lib/installUserGroupMembership.*) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/installUserGroupMembership username [group1 [group2...]]" >&2
+			exit 1
+		fi
+		set -e
+		InstallUserGroupMembership "$@"
+	;;
+esac

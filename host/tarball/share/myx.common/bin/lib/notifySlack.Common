@@ -1,0 +1,121 @@
+#!/bin/sh
+
+NotifySlack(){
+
+	set -e
+
+	local eventType="unset" eventText="" eventUser="${eventUser:-$(hostname)}" eventEmoji=""
+	local doLogger="" slackBearer="${slackBearer:-$SLACK_TOKEN}" slackChannel="${slackChannel:-$SLACK_TOPIC}"
+
+	while [ "$1" != "" ] ; do
+		case "$1" in
+			--text)
+				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+				local eventText="$2" ; shift 2
+			;;
+			--bearer)
+				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+				local slackBearer="$2" ; shift 2
+			;;
+			--channel)
+				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+				local slackChannel="$2" ; shift 2
+			;;
+			--user)
+				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+				local eventUser="$2" ; shift 2
+			;;
+			--emoji)
+				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+				local eventEmoji="$2" ; shift 2
+			;;
+			--logger)
+				local doLogger="TRUE" ; shift
+			;;
+			--alert|--audit|--track|--debug)
+				local eventType="${1##--}" ; shift
+			;;
+			*)
+				echo "NotifySlack: invalid option: $1" >&2
+				return 1
+			;;
+		esac
+	done
+
+	if [ -z "$eventText" ] ; then
+		echo "NotifySlack: slack text message is required!" >&2
+		return 1
+	fi
+
+	if [ -z "$slackBearer" ] ; then
+		echo "NotifySlack: slack bearer token is required!" >&2
+		return 1
+	fi
+
+	case "$eventType" in
+		alert)
+			local slackChannel="${SLACK_ALERT:-$SLACK_TOPIC}"
+		;;
+		audit)
+			local slackChannel="${SLACK_AUDIT:-$SLACK_TOPIC}"
+		;;
+		track)
+			local slackChannel="${SLACK_TRACK:-$SLACK_TOPIC}"
+		;;
+		debug)
+			local slackChannel="${SLACK_DEBUG:-$SLACK_TOPIC}"
+		;;
+		unset)
+		;;
+		*)
+			echo "NotifySlack: invalid event type: $eventType" >&2
+			return 1
+		;;
+	esac
+
+
+	if [ -z "$slackChannel" ] ; then
+		echo "NotifySlack: slack channel name is required!" >&2
+		return 1
+	fi
+
+	if [ "TRUE" = "$doLogger" ] ; then
+		logger -s -t "$slackChannel" "@${eventUser:-"unknown"}: $eventText"
+	fi
+
+	(	\
+		curl 'https://slack.com/api/chat.postMessage' \
+			--insecure \
+			--silent \
+			--show-error \
+			--data-binary "@/dev/stdin" \
+			-H "Content-Type: application/json; charset=utf-8" \
+			-H "Authorization: Bearer ${slackBearer}" \
+			2>&1 >> /dev/null \
+		|| true \
+	) <<- RESTJSON
+		{
+			"text": "$( echo -n "$eventText" | sed -e 's/\"/\\\"/g;s/\r/\\\r/g;s/\n/\\\n/g' )", 
+			"channel": "$slackChannel", 
+			"username": "$eventUser", 
+			"icon_emoji": "$eventEmoji"
+		}	
+	RESTJSON
+
+	return 0
+}
+
+
+case "$0" in
+	*/myx.common/bin/lib/notifySlack.Common) 
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common lib/notifySlack --text <text> [--logger] [--bearer <token-bearer>] [--channel <channel>|--alert|--audit|--track|--debug] [--user <user-name>] [--emoji <emoji>]" >&2
+			echo "Note:" >&2
+			echo "	When ommited, bearer, channel and user are taken from SLACK_TOKEN, SLACK_TOPIC and HOST env variables respectively." >&2
+			echo "	When channel selected using --alert, --audit, --track or --debug option, command will override channel selection using SLACK_{ALERT|AUDIT|TRACK|DEBUG} (defaulting to SLACK_TOPIC) env varisable respectively." >&2
+			echo "  When --logger option is set, message will be duplicated to system logger facility and stderr standard output stream." >&2
+			exit 1
+		fi
+		NotifySlack "$@"
+	;;
+esac

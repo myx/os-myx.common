@@ -1,0 +1,22 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+type OsGetUserHome >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUserHome.Common"
+
+OsGetRootHome(){
+	OsGetUserHome --user root
+}
+
+
+case "$0" in
+	*/myx.common/bin/os/getRootHome.Common) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common os/getRootHome" >&2
+			exit 1
+		fi
+		set -e
+		OsGetUserHome --user root
+	;;
+esac

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+if [ -x "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/installEnsurePackage.${MYXUNIX:-$( uname -s )}" ]; then
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/installEnsurePackage.${MYXUNIX:-$( uname -s )}"
+	set +e ; return 0 2>/dev/null || exit 0
+fi
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+type OsGetUtilityPackage >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUtilityPackage.Common"
+
+type InstallEnsureNativePackage >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/install/ensure/nativePackage.Common"
+
+InstallEnsurePackage(){
+	set -e
+	
+	UserRequireRoot "InstallEnsurePackage"
+
+	local NAME="$1"
+	[ -z "$NAME" ] && echo "⛔ ERROR: The utility name is required!" >&2 && return 1
+
+	local LIST=""
+
+	for NAME in $@ ; do
+		if command -v $NAME >/dev/null 2>&1 ; then
+			echo "ensure: $NAME already present, skip" >&2
+			continue
+		fi
+		LIST="$LIST $( OsGetUtilityPackage "$NAME" )"
+	done
+
+	if [ -z "$LIST" ] ; then
+		echo "ensure: all requested packages already installed." >&2
+		return 0
+	fi
+
+	InstallEnsureNativePackage $LIST
+}
+
+case "$0" in
+	*/myx.common/bin/lib/installEnsurePackage.Common) 
+		if [ -z "$1" -o "$1" = "--help" ] ; then
+			echo "Syntax: myx.common lib/installEnsurePackage utility_name [utility_name2 [...]]" >&2
+			echo "  supported utility names:" >&2
+			echo "       `myx.common os/getUtilityPackage --list-basic-utilities`" >&2
+			exit 1
+		fi
+		set -e
+		InstallEnsurePackage "$@"
+	;;
+esac

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+##############################################################################
+#
+# this script overrides the default implementation in order to try to install
+# all packages required using single 'pkg' utility call (batch) 
+#
+##############################################################################
+
+set -e
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+UserRequireRoot 
+
+myx.common lib/installEnsurePackage "nginx" "isc-dhcp44-server" "bind914" "postfix" "tinc" "$@"

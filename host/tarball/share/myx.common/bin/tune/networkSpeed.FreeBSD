@@ -1,0 +1,94 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+UserRequireRoot "TuneNetworkSpeed"
+
+type SetSysctlConf >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/setSysctlConf.FreeBSD"
+
+TuneNetworkSpeed(){
+	set -e
+	
+	SetSysctlConf kern.maxfiles --grow 999999 || true
+
+	SetSysctlConf kern.ipc.soacceptqueue --grow 1024 || true
+	SetSysctlConf kern.ipc.somaxconn --grow 1024 || true
+	SetSysctlConf kern.ipc.maxsockets --grow 888888 || true
+
+	SetSysctlConf net.inet.tcp.maxtcptw --shrink 8192 || true
+	SetSysctlConf net.inet.tcp.maxtcptw --shrink 4096 || true
+
+	SetSysctlConf net.inet.tcp.msl --shrink 10000 || true
+	SetSysctlConf net.inet.tcp.msl --shrink 5000 || true
+
+	SetSysctlConf net.inet.tcp.nolocaltimewait 1 || true
+	
+	SetSysctlConf net.inet.tcp.icmp_may_rst 0 || true
+	
+	SetSysctlConf net.inet.tcp.keepidle --shrink 150000 || true
+	SetSysctlConf net.inet.tcp.keepidle --shrink 35000 || true
+
+	SetSysctlConf net.inet.tcp.keepinit --shrink 10000 || true
+	SetSysctlConf net.inet.tcp.keepinit --shrink 5000 || true
+
+	SetSysctlConf net.inet.tcp.keepcnt --shrink 2 || true
+	SetSysctlConf net.inet.tcp.keepcnt --shrink 1 || true
+
+	SetSysctlConf net.inet.tcp.keepintvl --shrink 5000 || true
+	
+	SetSysctlConf net.inet.ip.portrange.first --shrink 1024 || true
+	SetSysctlConf net.inet.ip.portrange.last --grow 65535 || true
+	SetSysctlConf net.inet.tcp.fast_finwait2_recycle 1 || true
+	SetSysctlConf net.inet.tcp.finwait2_timeout --shrink 1000 || true
+	
+	SetSysctlConf net.bpf.optimize_writers 1 || true
+	
+	SetSysctlConf net.inet.tcp.blackhole 2 || true
+	SetSysctlConf net.inet.udp.blackhole 1 || true
+	SetSysctlConf net.inet.ip.redirect 0 || true
+	SetSysctlConf net.inet6.ip6.redirect 0 || true
+
+	SetSysctlConf net.inet.icmp.drop_redirect 1 || true
+
+	SetSysctlConf net.inet.tcp.syncache.rexmtlimit 0 || true
+	SetSysctlConf net.inet.tcp.always_keepalive 0 || true
+	SetSysctlConf net.inet.tcp.drop_synfin 1 || true
+
+	SetSysctlConf net.inet.ip.rtexpire 10 || true
+	SetSysctlConf net.inet.ip.rtminexpire 10 || true
+
+	myx.common lib/setLoaderConf cc_htcp_load '"YES"'
+	myx.common lib/setLoaderConf cc_cubic_load '"YES"'
+
+	# kldload -n cc_htcp > /dev/null 2>&1 || true
+	# myx.common lib/setSysctlConf net.inet.tcp.cc.algorithm htcp
+
+	# kldload -n cc_cubic > /dev/null 2>&1 || true
+	# myx.common lib/setSysctlConf net.inet.tcp.cc.algorithm cubic
+
+	if [ "`sysctl -n kern.vm_guest`" = "kvm" ] ; then
+		## KVMCLOCK (needed only on FreeBSD below 14.0p6)
+		if pkg info | grep -q -F kvmclock-kmod || pkg search kvmclock-kmod ; then
+			pkg info | grep -q -F kvmclock-kmod || pkg install -y kvmclock-kmod
+			sysrc -f /boot/loader.conf kvmclock_load="YES"
+			kldload -n kvmclock	|| true
+		fi
+	fi
+
+}
+
+
+case "$0" in
+	*/myx.common/bin/tune/networkSpeed.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common tune/networkSpeed" >&2
+			exit 1
+		fi
+		set -e
+		TuneNetworkSpeed "$@"
+	;;
+esac

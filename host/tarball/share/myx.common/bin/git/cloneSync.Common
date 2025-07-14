@@ -1,0 +1,92 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+GitCloneSync(){
+	set -e
+
+	if [ "$1" = "--no-write" ] ; then
+		local noWrite=true
+		shift
+	fi
+	if [ "$1" = "--no-push" ] ; then
+		local noWrite=true
+		local noPush=true
+		shift
+	fi
+
+	: "${1:?⛔ ERROR: GitCloneSync: tgtPath is required!}"
+	: "${2:?⛔ ERROR: GitCloneSync: repoUrl is required!}"
+	local tgtPath="$1" repoUrl="$2"
+
+	local specificBranch="$3"
+	
+	local currentPath="`pwd`"
+	
+	if [ -d "$tgtPath" ] && [ -d "$tgtPath/.git" ] ; then
+		cd "$tgtPath"
+		if [ "$noPush" != "true" ] && [ ! -d ".git" ] && [ "0" = "`git ls-remote --exit-code -h "$repoUrl" ; echo $? | tr '2' '0'`" ] ; then
+			echo "GitCloneSync: Initializing git repository..." >&2
+			git init
+			git remote add origin "$repoUrl"
+			git add .
+			git commit -m "GitCloneSync: Initial commit"
+			git push -u origin master
+		fi
+		if git rev-parse --abbrev-ref HEAD > /dev/null ; then
+			local clonedBranch="`git rev-parse --abbrev-ref HEAD`"
+			if [ "$clonedBranch" != "${specificBranch:-master}" ] && [ "$clonedBranch" != "${specificBranch:-main}" ] ; then
+				echo "GitCloneSync: Switch branches: $clonedBranch -> ${specificBranch:-master}..." >&2
+				cd "$tgtPath/.."
+				rm -rf "$tgtPath"
+			fi
+		fi
+		cd "$currentPath"
+	fi
+	if [ ! -d "$tgtPath" ] || [ ! -d "$tgtPath/.git" ] ; then
+	    echo "GitCloneSync: $tgtPath: creating..." >&2
+	    mkdir -p "$tgtPath"
+		if [ -n "$specificBranch" ] ; then
+			local GIT_BRANCH_OPT="--branch $specificBranch"
+		fi
+		if ! git clone $GIT_BRANCH_OPT "$repoUrl" "$tgtPath" ; then
+		    rm -rf "$tgtPath"
+		    return 1
+		fi
+	fi
+    if [ "$noWrite" != "true" ] && [ ! -f "$tgtPath/README.md" -a ! -f "$tgtPath/README.MD" ] ; then
+        cd "$tgtPath"
+        touch README.md
+        git add README.md
+        git commit -m "add/touch README"
+        git push -u
+		cd "$currentPath"
+    fi
+	if [ -d "$tgtPath" ] ; then
+	    cd "$tgtPath"
+	    echo "GitCloneSync: $tgtPath: updating..." >&2
+	    git remote set-url origin "$repoUrl"
+	    if [ -n "$specificBranch" ] ; then
+	    	git checkout $specificBranch
+	    fi
+	    git pull
+	    if [ "$noPush" != "true" ] && ! git diff --quiet "@{push}" HEAD ; then
+	    	git push
+	    fi
+		cd "$currentPath"
+	    echo "GitCloneSync: $tgtPath: finished." >&2
+	fi
+}
+
+case "$0" in
+	*/myx.common/bin/git/cloneSync.Common) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common git/cloneSync [--no-write/--no-push] dst_path repo_url [branch]" >&2
+			echo "    If 'branch' argument is not set, 'master' will be used as default." >&2
+			echo "    '--no-push' implies '--no-write' and is equivalent to: 'myx.common git/clonePull'." >&2
+			exit 1
+		fi
+		set -e
+		GitCloneSync "$@"
+	;;
+esac

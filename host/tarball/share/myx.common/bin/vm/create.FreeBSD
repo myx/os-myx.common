@@ -1,0 +1,259 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+VmCreate(){
+    local VMTYPE="$1" ; shift
+    local VMNAME="$1" ; shift
+    local VMCPUS="$1" ; shift
+    local VMRAM="$1"  ; shift
+    local VMHDD="$1"  ; shift
+    	
+    if [ -z "$VMTYPE" -o -z "$VMNAME" -o -z "$VMCPUS" -o -z "$VMRAM" -o -z "$VMHDD" ] ; then
+		echo "⛔ ERROR: Syntax error: vm/create: check arguments." >&2
+		return 1
+    fi
+    
+	local VMHDD="`echo "$VMHDD" | sed 's/[ ]*//g;s/[bB]$//;s/^.*[^0-9gkmt].*$//i;s/t$/Xg/i;s/g$/Xm/i;s/m$/Xk/i;s/k$/X/i;s/X/*1024/g' | bc`"
+
+	if [ -z "$VMHDD" ] ; then
+		echo "⛔ ERROR: Syntax error: vm/create: check arguments: disk size is invalid!" >&2
+		return 1
+	fi
+
+    local VMLAN0=""
+    local VMMAC0=""
+    local VMLAN1=""
+    local VMMAC1=""
+    local VMLAN2=""
+    local VMMAC2=""
+    local VMLAN3=""
+    local VMMAC3=""
+
+	local SHRINK=""
+
+	if [ "$1" == "--shrink-disk" ] ; then
+		shift;
+		SHRINK="true"
+	fi
+    
+    if [ "$1" == "--net" ] ; then
+    	shift;
+    	VMLAN0="$1" ; shift
+    	VMMAC0="$1" ; shift
+	    if [ -z "$VMLAN0" -o -z "$VMMAC0" ] ; then
+			echo "⛔ ERROR: Syntax error: vm/create: network #1: invalid arguments" >&2
+			return 1
+	    fi
+    fi
+    
+    if [ "$1" == "--net" ] ; then
+    	shift;
+    	VMLAN1="$1" ; shift
+    	VMMAC1="$1" ; shift
+	    if [ -z "$VMLAN1" -o -z "$VMMAC1" ] ; then
+			echo "⛔ ERROR: Syntax error: vm/create: network #2: invalid arguments" >&2
+			return 1
+	    fi
+    fi
+    
+    if [ "$1" == "--net" ] ; then
+    	shift;
+    	VMLAN2="$1" ; shift
+    	VMMAC2="$1" ; shift
+	    if [ -z "$VMLAN2" -o -z "$VMMAC2" ] ; then
+			echo "⛔ ERROR: Syntax error: vm/create: network #3: invalid arguments" >&2
+			return 1
+	    fi
+    fi
+    
+    if [ "$1" == "--net" ] ; then
+    	shift;
+    	VMLAN3="$1" ; shift
+    	VMMAC3="$1" ; shift
+	    if [ -z "$VMLAN3" -o -z "$VMMAC3" ] ; then
+			echo "⛔ ERROR: Syntax error: vm/create: network #4: invalid arguments" >&2
+			return 1
+	    fi
+    fi
+
+    if [ "$1" == "--net" ] ; then
+		echo "⛔ ERROR: Only up to 4 network interfaces supported" >&2
+		return 1
+	fi
+
+    local VMISO="$1" ; shift
+    if [ -z "$VMISO" ] ; then
+		echo "⛔ ERROR: Syntax error: vm/create: iso image: invalid arguments" >&2
+		return 1
+    fi
+    	
+    if [ -z "$( vm list | egrep "^$VMNAME\W" )" ] ; then
+
+		case "$VMTYPE" in
+			--freebsd)
+				sed -e 's/^[ \t]*//' > "/vms/.templates/$VMNAME.conf" <<- EOF;
+				    loader="bhyveload"
+				    disk0_name="disk0"
+				    disk0_dev="sparse-zvol"
+				EOF
+				;;
+			--linux)
+				sed -e 's/^[ \t]*//' > "/vms/.templates/$VMNAME.conf" <<- EOF;
+				    loader="grub"
+				    disk0_name="disk0.img"
+				EOF
+				;;
+			--ubuntu-lvm)
+				sed -e 's/^[ \t]*//' > "/vms/.templates/$VMNAME.conf" <<- EOF;
+				    loader="grub"
+				    disk0_name="disk0.img"
+				    grub_run_partition="2"
+				    grub_run0="set root=(lvm/ubuntu--vg-ubuntu--lv)"
+				    grub_run1="configfile (hd0,gpt2)/grub/grub.cfg"
+				EOF
+				;;
+			--uefi)
+				sed -e 's/^[ \t]*//' > "/vms/.templates/$VMNAME.conf" <<- EOF;
+				    loader="uefi"
+				    graphics="yes"
+				    graphics_res="1280x720"
+				    graphics_listen="127.0.0.1"
+				    disk0_name="disk0"
+				    disk0_dev="sparse-zvol"
+				EOF
+				;;
+				
+			*)
+				echo "⛔ ERROR: vm/create: Unknown vm type: $VMTYPE" >&2
+			    return 1
+			    ;;
+				
+		esac
+    	
+		sysrc -f "/vms/.templates/$VMNAME.conf"	\
+			disk0_type="virtio-blk"				\
+		;
+		
+		if [ -n "$VMLAN0" ] ; then
+			sysrc -f "/vms/.templates/$VMNAME.conf"	\
+			    network0_type="virtio-net"			\
+				network0_switch="$VMLAN0"			\
+				network0_mac="$VMMAC0"				\
+			;
+		fi
+		
+		if [ -n "$VMLAN1" ] ; then
+			sysrc -f "/vms/.templates/$VMNAME.conf"	\
+			    network1_type="virtio-net"			\
+				network1_switch="$VMLAN1"			\
+				network1_mac="$VMMAC1"				\
+			;
+		fi
+		
+		if [ -n "$VMLAN2" ] ; then
+			sysrc -f "/vms/.templates/$VMNAME.conf"	\
+			    network2_type="virtio-net"			\
+				network2_switch="$VMLAN2"			\
+				network2_mac="$VMMAC2"				\
+			;
+		fi
+		
+		if [ -n "$VMLAN3" ] ; then
+			sysrc -f "/vms/.templates/$VMNAME.conf"	\
+			    network3_type="virtio-net"			\
+				network3_switch="$VMLAN3"			\
+				network3_mac="$VMMAC3"				\
+			;
+		fi
+		
+        vm create -t "$VMNAME" -c "$VMCPUS" -m "$VMRAM" -s "$VMHDD" "$VMNAME"
+		[ -n "$VMMAC0" ] && sysrc -f "/vms/$VMNAME/$VMNAME.conf" network0_mac="$VMMAC0"
+		[ -n "$VMMAC1" ] && sysrc -f "/vms/$VMNAME/$VMNAME.conf" network0_mac="$VMMAC1"
+	    sysrc vm_list+="$VMNAME" 
+        vm install "$VMNAME" "$VMISO"
+        echo "VM created, to continue installation, run: vm console $VMNAME" >&2
+        
+    elif [ -f "/vms/$VMNAME/$VMNAME.conf" ] ; then
+
+		sysrc -f "/vms/$VMNAME/$VMNAME.conf"	\
+			cpu="$VMCPUS"						\
+			memory="$VMRAM"						\
+		;
+
+		if [ -n "$VMLAN0" ] ; then
+			sysrc -f "/vms/$VMNAME/$VMNAME.conf"	\
+			    network0_type="virtio-net"			\
+				network0_switch="$VMLAN0"			\
+				network0_mac="$VMMAC0"				\
+			;
+		fi
+		
+		if [ -n "$VMLAN1" ] ; then
+			sysrc -f "/vms/$VMNAME/$VMNAME.conf"	\
+			    network1_type="virtio-net"			\
+				network1_switch="$VMLAN1"			\
+				network1_mac="$VMMAC1"				\
+			;
+		fi
+		
+		if [ -n "$VMLAN2" ] ; then
+			sysrc -f "/vms/$VMNAME/$VMNAME.conf"	\
+			    network2_type="virtio-net"			\
+				network2_switch="$VMLAN2"			\
+				network2_mac="$VMMAC2"				\
+			;
+		fi
+		
+		if [ -n "$VMLAN3" ] ; then
+			sysrc -f "/vms/$VMNAME/$VMNAME.conf"	\
+			    network3_type="virtio-net"			\
+				network3_switch="$VMLAN3"			\
+				network3_mac="$VMMAC3"				\
+			;
+		fi
+		
+		if [ -n "$VMHDD" ] ; then
+			if [ -f "/vms/$VMNAME/disk0.img" ] ; then
+		        echo "Disk type: file image: /vms/$VMNAME/disk0.img" >&2
+				if [ -z "$SHRINK" -a "$VMHDD" -lt "$(sh -c "eval '`stat -s /vms/$VMNAME/disk0.img` printenv st_size'")" ] ; then
+					echo "🙋 WARNING: Image shrink is not allowed, use --shrink-disk option, skipped... ($VMNAME)" >&2
+				else
+					truncate -c -s "$VMHDD" "/vms/$VMNAME/disk0.img"
+				fi
+			elif [ -n "$( zfs list | grep -e "^zroot/vms/$VMNAME/disk0\s" )" ] ; then
+		        echo "Disk type: zfs volume: zroot/vms/$VMNAME/disk0" >&2
+				if [ -z "$SHRINK" -a "$VMHDD" -lt "$(zfs get -H -p -o value volsize zroot/vms/$VMNAME/disk0)" ] ; then
+					echo "🙋 WARNING: ZFS shrink is not allowed, use --shrink-disk option, skipped... ($VMNAME)" >&2
+				else
+					zfs set "volsize=$VMHDD" "zroot/vms/$VMNAME/disk0"
+				fi
+			else
+		        echo "Disk type ($VMNAME): not supported / cannot detect" >&2
+		        echo "🙋 WARNING: Cannot check/modifiy disk image size, skipped... ($VMNAME)" >&2
+			fi
+		fi
+
+	    sysrc vm_list+="$VMNAME"                # add/update anyway 
+        echo "VM configuration updated, to see settings, run: vm configure $VMNAME" >&2
+
+    fi
+}
+
+case "$0" in
+	*/myx.common/bin/vm/create.*) 
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
+			echo "Syntax:" >&2
+			echo "  myx.common vm/create --linux/--freebsd/--ubuntu-lvm <name> <cores> <ram> <disk> [--shrink-disk] [--net <lan-name> <mac-address>...] <iso>" >&2
+			if [ "$1" = "--help" ] ; then
+				echo "Examples:" >&2
+				echo "	myx.common vm/create --linux      bb1-h1  8  8192M 120G --net lan22 52:54:20:25:20:28 ubuntu-20.04.3-live-server-amd64.iso" >&2
+				echo "	myx.common vm/create --freebsd    dss-h3  8  8192M 120G --net lan22 52:54:20:22:20:32 FreeBSD-13.1-RELEASE-amd64-disc1.iso" >&2
+				echo "	myx.common vm/create --ubuntu-lvm bb1-h3  8  8192M 120G --net lan22 52:54:20:25:20:30 ubuntu-20.04.3-live-server-amd64.iso" >&2
+			fi
+			exit 1
+		fi
+		set -e
+		VmCreate "$@"
+	;;
+esac

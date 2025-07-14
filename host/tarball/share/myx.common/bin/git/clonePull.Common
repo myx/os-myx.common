@@ -1,0 +1,70 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+GitClonePull(){
+	set -e
+
+	: "${1:?⛔ ERROR: GitClonePull: tgtPath is required!}"
+	: "${2:?⛔ ERROR: GitClonePull: repoUrl is required!}"
+	local tgtPath="$1" repoUrl="$2"
+
+	local specificBranch="$3"
+	
+	local currentPath="$PWD"
+	
+	if [ -d "$tgtPath" ] && [ -d "$tgtPath/.git" ] ; then
+		cd "$tgtPath"
+		if git rev-parse --abbrev-ref HEAD > /dev/null ; then
+			local clonedBranch="`git rev-parse --abbrev-ref HEAD`"
+			if [ "$clonedBranch" != "${specificBranch:-master}" ] && [ "$clonedBranch" != "${specificBranch:-main}" ] ; then
+				echo "GitClonePull: Switch branches: $clonedBranch -> ${specificBranch:-master}..." >&2
+				cd "$tgtPath/.."
+				rm -rf "$tgtPath"
+			fi
+		fi
+		cd "$currentPath"
+	fi
+	if [ ! -d "$tgtPath" ] || [ ! -d "$tgtPath/.git" ] ; then
+	    echo "GitClonePull: $tgtPath: creating..." >&2
+	    mkdir -p "$tgtPath"
+		local GIT_BRANCH_OPT=""
+		if [ -n "$specificBranch" ] ; then
+			local GIT_BRANCH_OPT="--single-branch --branch $specificBranch"
+		fi
+		if ! git clone $GIT_BRANCH_OPT "$repoUrl" "$tgtPath" ; then
+		    rm -rf "$tgtPath"
+		    return 1
+		fi
+		cd "$currentPath"
+	else
+		if [ -d "$tgtPath" ] ; then
+			cd "$tgtPath"
+			echo "GitClonePull: $tgtPath: updating..." >&2
+			git remote set-url origin "$repoUrl"
+			if [ -n "$specificBranch" ] ; then
+				git checkout $specificBranch
+			fi
+			git pull --ff-only
+			cd "$currentPath"
+		fi
+	fi
+	if [ ! -d "$tgtPath" ] || [ ! -d "$tgtPath/.git" ] ; then
+		echo "⛔ ERROR: GitClonePull: error checking out!" >&2 && return 1
+	fi
+
+	echo "GitClonePull: $tgtPath: finished." >&2
+}
+
+case "$0" in
+	*/myx.common/bin/git/clonePull.Common) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common git/clonePull [--no-write] dst_path repo_url [branch]" >&2
+			echo "    If 'branch' argument is not set, 'master' will be used." >&2
+			echo "    Should be equivalent to: 'myx.common git/cloneSync --no-push'." >&2
+			exit 1
+		fi
+		set -e
+		GitClonePull "$@"
+	;;
+esac

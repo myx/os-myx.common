@@ -1,0 +1,37 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+#####  for OS that doesn't provide '-l' sed argument for line buffer.        #####
+
+## NOTE: because of ubuntu not supporting the '-l' option
+
+LinesToArguments(){
+	while true ; do
+		case "$1" in
+			--act)
+				shift
+				local actCommand="$1" ; shift
+				set -e
+				$actCommand | sed -e 's| |\\ |g' -l "$@" | tr '\n' '\ '
+				# $actCommand | sed -e 's:^:":' -e 's: *$:":' -l "$@" | tr '\n' '\ '
+				return 0
+			;;
+			*)
+				break
+			;;
+		esac
+	done
+	sed -e 's| |\\ |g' -l "$@" | tr '\n' '\ '
+	# sed -e 's:^:":' -e 's: *$:":' -l "$@" | tr '\n' '\ '
+}
+
+case "$0" in
+	*/myx.common/bin/lib/linesToArguments.Common) 
+		if [ "--help" = "$1" ] ; then
+			echo "Syntax: myx.common lib/linesToArguments [--act 'command'] ['sed' arguments, see 'man sed'...]" >&2
+			exit 1
+		fi
+		set -e
+		LinesToArguments "$@"
+	;;
+esac

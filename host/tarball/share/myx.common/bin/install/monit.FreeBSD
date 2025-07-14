@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -e
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+UserRequireRoot "install/monit"
+
+type InstallEnsurePackage >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/installEnsurePackage.Common"
+
+InstallEnsurePackage monit
+
+cat > /usr/local/etc/monitrc <<- "EOF"
+  set daemon  15
+    with start delay 60
+
+  set logfile /var/log/monit.log
+
+  include   /usr/local/etc/monitrc-*.conf
+EOF
+
+chmod 700 /usr/local/etc/monitrc
+
+touch /usr/local/etc/monitrc-custom.conf
+chmod 700 /usr/local/etc/monitrc-custom.conf
+
+sysrc monit_enable=YES

@@ -1,0 +1,20 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+OsGetWheelGroupNames(){
+	echo "wheel"
+}
+
+
+case "$0" in
+	*/myx.common/bin/os/getWheelGroupNames.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common os/getWheelGroupNames" >&2
+			exit 1
+		fi
+		# set -e
+		# OsGetWheelGroupNames "$@"
+		echo "wheel"
+	;;
+esac

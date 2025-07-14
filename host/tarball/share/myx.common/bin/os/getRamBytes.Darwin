@@ -1,0 +1,19 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+OsGetRamBytes(){
+	sysctl -n hw.memsize
+}
+
+
+case "$0" in
+	*/myx.common/bin/os/getRamBytes.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common os/getRamBytes" >&2
+			exit 1
+		fi
+		set -e
+		OsGetRamBytes "$@"
+	;;
+esac

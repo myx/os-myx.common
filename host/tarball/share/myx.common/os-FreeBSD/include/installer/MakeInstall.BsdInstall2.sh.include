@@ -1,0 +1,88 @@
+#!/bin/sh
+# ^^^  for syntax, this file is sourced from installer function
+
+
+# 	Generation of "$WORKDIR/cfg/etc/mcb-install-config"
+#	bsdinstall 14.3+
+
+set -e
+
+echo "Generating mcb-install-stage2..." >&2
+
+
+# 3) Root credentials
+ROOT_PASS_HASH=""
+if [ -r /etc/shadow ] && grep -q '^root:' /etc/shadow; then
+  ROOT_PASS_HASH=$(awk -F: '/^root:/ {print $2}' /etc/shadow)
+elif [ -r /etc/master.passwd ] && grep -q '^root:' /etc/master.passwd; then
+  ROOT_PASS_HASH=$(awk -F: '/^root:/ {print $2}' /etc/master.passwd)
+fi
+case "$ROOT_PASS_HASH" in ""|\*|\!) ROOT_PASS_HASH="" ;; esac
+
+SSH_KEY="$(sed -n '1p' /root/.ssh/authorized_keys 2>/dev/null || :)"
+
+# 4) Network mode
+if [ -n "$doAllowDhcp" ] && ( ip -4 -o addr show dev "$IFACE" | grep -qw dynamic ); then
+  NET_MODE=dhcp
+else
+  NET_MODE=static
+fi
+
+echo '#!/bin/sh'
+echo 'set -eux'
+echo '# Setup script: runs inside the new system'
+echo
+
+# Root credentials inside target
+echo "# --- root credentials ---"
+if [ -n "$SSH_KEY" ]; then
+  echo 'install -d -o root -g wheel -m 700 /root/.ssh'
+  echo "cat << 'KEY' > /root/.ssh/authorized_keys"
+  echo "$SSH_KEY"
+  echo "KEY"
+  echo "chmod 600 /root/.ssh/authorized_keys"
+elif [ -n "$ROOT_PASS_HASH" ]; then
+  echo "echo 'root:$ROOT_PASS_HASH' | /usr/sbin/pw usermod root -h 0"
+else
+  echo "# ⚠️ no SSH key or password—root will be locked"
+fi
+echo
+
+# Networking
+echo "# --- network setup ---"
+echo "mkdir -p /etc"
+echo 'sysrc -f /etc/rc.conf ifconfig_ix0_name="net"  ifconfig_em0_name="net" ifconfig_re0_name="net" ifconfig_igb0_name="net" ifconfig_bge0_name="net" ifconfig_vtnet0_name="net"'
+if [ "$NET_MODE" = "static" ]; then
+  echo "# static IP for (host) $IFACE"
+  echo "sysrc -f /etc/rc.conf ifconfig_net=\"inet $IP_CIDR\""
+  echo 'sysrc ifconfig_net_ipv6="inet6 accept_rtadv"'
+  echo "sysrc -f /etc/rc.conf defaultrouter=\"$GATEWAY\""
+else
+  echo "# DHCP on (host) $IFACE"
+  echo "sysrc -f /etc/rc.conf ifconfig_net=\"DHCP\""
+fi
+echo "echo \"nameserver ${DNS:-8.8.8.8}\" >> /etc/resolv.conf"
+echo
+
+# Services & packages
+echo '# --- services & packages ---'
+echo 'export PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin/"'
+echo 'sysrc sendmail_enable="NONE"'
+echo 'sysrc sshd_enable=YES'
+echo 'sysrc ntpd_enable=YES'
+echo 'pkg bootstrap -f'
+echo 'pkg install -y indexinfo'
+echo 'pkg install -y bash nano'
+echo
+echo 'echo "PermitRootLogin prohibit-password" >> /etc/ssh/sshd_config'
+echo
+
+# Hooks
+echo '/tmp/mcb-postinstall.sh'
+
+echo 'service sshd start'
+
+echo
+
+echo "echo 'Generated mcb-install-stage2 done.' >&2"
+echo 'exec rm -f /tmp/mcb-*'

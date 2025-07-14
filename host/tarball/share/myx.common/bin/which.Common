@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# This script is universal for FreeBSD, Darwin, Ubuntu.
+
+Which(){
+	local MYXROOT="${MYXROOT:-/usr/local/share/myx.common}" UNAME=$MYXUNIX
+
+	while [ $# -gt 0 ]; do case "$1" in
+		--uname) UNAME=$2 ; shift 2 ;;
+		*) break ;;
+	esac done
+
+	[ -n "$1" ] || { echo "⛔ ERROR: Which: COMMAND argument is required!" >&2; exit 1; }
+	[ -n "$UNAME" ] || UNAME=$(uname -s)
+	local COMMAND="$( ls -1d "$MYXROOT/bin/$1.$UNAME" "$MYXROOT/bin/$1.Common" "$MYXROOT/include/obsolete/user/bin/$1" 2>/dev/null | head -n1 || : )"
+	if [ -f "$COMMAND" ]; then
+		echo "$COMMAND"
+		return 0
+	fi
+	return 1
+}
+
+case "$0" in
+	*/myx.common/bin/which.Common) 
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common which [--uname {Darwin|FreeBSD|Linux}] <command>" >&2
+			echo "    for given 'myx.common' command, outputs a full path to stdout or dies with error exit code." >&2
+			echo "  NOTE: use --uname when requesting source code location for specific target OS." >&2
+			exit 1
+		fi
+		set -e
+		Which "$@"
+	;;
+esac

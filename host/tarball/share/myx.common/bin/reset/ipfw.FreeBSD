@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+UserRequireRoot "reset/ipfw"
+
+ResetIpfw(){
+	ipfw delete 1 || true
+	ipfw add 1 set 31 allow tcp from any to me dst-port 22,53,80,443,5027
+	ipfw add 1 set 31 allow udp from any to me dst-port 53
+	ipfw add 65021 allow ip from any to any
+}
+
+
+case "$0" in
+	*/myx.common/bin/reset/ipfw.FreeBSD) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common reset/ipfw" >&2
+			exit 1
+		fi
+		ResetIpfw "$@"
+	;;
+esac
+

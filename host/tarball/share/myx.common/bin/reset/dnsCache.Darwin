@@ -1,0 +1,23 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+ResetDnsCache(){
+	if [ `id -u` = 0 ] ; then
+		killall -HUP mDNSResponder
+		killall mDNSResponderHelper
+	fi
+	
+	dscacheutil -flushcache
+}
+
+case "$0" in
+	*/myx.common/bin/reset/dnsCache.Darwin) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common reset/dnsCache" >&2
+			exit 1
+		fi
+		set -e
+		ResetDnsCache "$@"
+	;;
+esac

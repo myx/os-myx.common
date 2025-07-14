@@ -1,0 +1,61 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+#####                          (it depends on OS-dependent include) #####
+
+set -e
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/replaceLine.Common"
+
+type OsGetUserHome >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUserHome.Common"
+
+type OsGetWheelGroupName >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getWheelGroupName"
+
+InstallRootAuthorizedKey(){
+
+	set -e
+
+	UserRequireRoot "InstallRootAuthorizedKey"
+
+	local KEY="$1"
+
+	test -n "$KEY" || ( echo "InstallRootAuthorizedKey: key is required!" ; exit 2 )
+
+	local HOME="`OsGetUserHome --user root`"
+
+	test -n "$HOME" || ( echo "InstallAuthorizedKey: no home for $NAME!" >&2 ; return 3 )
+	test -d "$HOME" || ( echo "InstallAuthorizedKey: home directory $HOME is missing for $NAME!" >&2 ; return 4 )
+
+	local KEYS="$HOME/.ssh/authorized_keys"
+	
+	mkdir -p "$HOME/.ssh"
+	chmod 700 "$HOME/.ssh"
+	
+	touch "$KEYS"
+	
+	if [ "$2" = "--remove" ] ; then
+		ReplaceLine "$KEYS" "$KEY" ""
+	else
+		ReplaceLine "$KEYS" "$KEY" "$KEY"
+	fi
+	
+	chown root:`OsGetWheelGroupName` "$KEYS"
+	chmod 600 "$KEYS"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/installRootAuthorizedKey.Common) 
+		if [ -z "$1" -o "$1" = "--help" ] ; then
+			echo "Syntax: myx.common lib/installRootAuthorizedKey <ssh-key> [--remove]" >&2
+			exit 1
+		fi
+		set -e
+		InstallRootAuthorizedKey "$@"
+	;;
+esac

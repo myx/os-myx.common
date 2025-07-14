@@ -1,0 +1,80 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+if type Prefix >/dev/null 2>&1 ; then
+	return 0
+fi
+
+[ -n "$SedLineReader" ] || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/sedLineReader.${MYXUNIX:-$( uname -s )}"
+
+# type Unbuffer >/dev/null 2>&1 || \
+#	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/unbuffer.Common"
+
+
+Prefix(){
+	local verbose prefixLimit prefixElapsed
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--verbose|-v) verbose="$1" ; shift ;;
+			--elapsed|-e) prefixElapsed="$1" ; shift ;;
+			--prefix-limit|-l)
+				: "${2:?"⛔ ERROR: $1 <number> - numeric argument is expected!"}"
+				case "$2" in
+					''|*[!0-9]*) echo "⛔ ERROR: $1 expects a numeric value, but got '$2'" >&2 ; exit 1 ;;
+				esac				
+				prefixLimit="$2"; shift 2
+			;;
+			*) break ;;
+		esac
+	done
+
+	local PREFTEXT
+
+	case "$1" in
+			"") echo "⛔ ERROR: prefix: prefix text argument is required!" >&2 ; exit 1 ;;
+	        -1) PREFTEXT="$( basename $2 )" ; shift ;;
+	        -2) PREFTEXT="$( basename $3 )" ; shift ;;
+	        -3) PREFTEXT="$( basename $4 )" ; shift ;;
+	        -4) PREFTEXT="$( basename $5 )" ; shift ;;
+	        --) eval "$( 
+					printf 'PREFTEXT="${%s:?"⛔ ERROR: prefix: -- argument, count: %s!"}"\n' "$#" "$#"
+				)" ; shift ;;
+	        *)  PREFTEXT="$1" ; shift ;;
+	esac
+	
+	if [ -n "$prefixLimit" ] ; then
+		PREFTEXT="$( printf '%.*s' "$prefixLimit" "$PREFTEXT" | tr '^' '-' | tr -d '\n' )"
+	else
+		PREFTEXT="$( printf %s "$PREFTEXT" | tr '^' '-' | tr -d '\n' )"
+	fi
+	
+	#!/usr/bin/env bash
+	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
+
+	set -e
+
+    [ -z "$verbose" ] || echo "$PREFTEXT: starting..."
+    (	"$@" 2>&1 \
+	    	&& { [ -z "$verbose" ] || echo "." ; } \
+    		|| { EXITCODE=$? ; set +x ; echo "⛔ ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ; } \
+   	) | $SedLineReader -e 's^\^^'"$PREFTEXT"': ^' 1>&2 
+   	
+#	(	( echo "" | Unbuffer "$@" 2>&1 ) \
+#	    	&& echo "finished." \
+#    		|| echo "⛔ ERROR: exited with error status." \
+#	) | $SedLineReader -e 's^\^^'"$PREFTEXT"': ^'
+
+}
+
+case "$0" in
+	*/myx.common/bin/lib/prefix.Common) 
+		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/prefix.help.include" >&2
+			exit 1
+		fi
+		set -e
+		Prefix "$@"
+	;;
+esac

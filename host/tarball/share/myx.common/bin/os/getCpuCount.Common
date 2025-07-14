@@ -1,0 +1,20 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+OsGetCpuCount(){
+	echo "⛔ ERROR: OsGetCpuCount must be re-implemented" >&2
+	exit 1
+}
+
+
+case "$0" in
+	*/myx.common/bin/os/getCpuCount.Common) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common os/getCpuCount" >&2
+			exit 1
+		fi
+		set -e
+		OsGetCpuCount "$@"
+	;;
+esac

@@ -13,7 +13,7 @@ if test `id -u` != 0 ; then
 	exec sudo "$0" "$@"
 fi 
 
-ACTION="${MDLT_ORIGIN:-$MMDAPP/.local}/myx/myx.common/os-myx.common/host/tarball/share/myx.common/bin/install/myx.common-reinstall"
+ACTION="${MDLT_ORIGIN:-$MMDAPP/.local}/myx/myx.common/os-myx.common/host/tarball/share/myx.common/bin/install/myx.common-reinstall.Common"
 [ -f "$ACTION" ] || ( echo "⛔ ERROR: expecting 'action' script." >&2 && exit 1 )
 
 . "$ACTION"

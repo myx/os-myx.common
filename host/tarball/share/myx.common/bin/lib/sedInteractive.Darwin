@@ -1,0 +1,21 @@
+#!/bin/sh
+
+## NOTE: because of macosx not supporting the '-u' option
+
+export SedInteractive='sed'
+alias SedInteractive='sed'
+
+# SedInteractive(){
+# 	sed "$@"
+# }
+
+case "$0" in
+	*/myx.common/bin/lib/sedInteractive.*) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/sedInteractive ['sed' arguments, see 'man sed'...]" >&2
+			exit 1
+		fi
+		set -e
+		$SedInteractive "$@"
+	;;
+esac

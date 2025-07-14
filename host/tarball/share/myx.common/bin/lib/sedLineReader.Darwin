@@ -1,0 +1,21 @@
+#!/bin/sh
+
+## NOTE: because of ubuntu not supporting the '-l' option
+
+export SedLineReader='sed -l'
+alias SedLineReader='sed -l'
+
+# SedLineReader(){
+# 	sed -l "$@"
+# }
+
+case "$0" in
+	*/myx.common/bin/lib/sedLineReader.*) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/sedLineReader ['sed' arguments, see 'man sed'...]" >&2
+			exit 1
+		fi
+		set -e
+		$SedLineReader "$@"
+	;;
+esac

@@ -1,0 +1,71 @@
+#!/bin/sh
+
+set -e
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+UserRequireRoot "setup/bhyve"
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/replaceLine.Common"
+
+
+SetupBhyve(){
+
+	if [ "`zfs list| grep -ic -e /`" -eq 0 ]; then
+		echo "⛔ ERROR: setup/bhyve: ZFS file-system required!" >&2
+	    return 1
+	fi
+	
+	myx.common setup/server
+
+	# pkg install -y uefi-edk2-bhyve
+	pkg install -y vm-bhyve grub2-bhyve tmux bhyve-firmware qemu-tools
+	kldload if_bridge if_tap nmdm vmm bridgestp || true
+	ReplaceLine /boot/loader.conf '^if_bridge_load=*' 'if_bridge_load="YES"'
+	ReplaceLine /boot/loader.conf '^bridgestp_load=*' 'bridgestp_load="YES"'
+	ReplaceLine /boot/loader.conf '^if_tap_load=*' 'if_tap_load="YES"'
+	ReplaceLine /boot/loader.conf '^nmdm_load=*' 'nmdm_load="YES"'
+	ReplaceLine /boot/loader.conf '^vmm_load=*' 'vmm_load="YES"'
+	
+	sysrc vm_enable="YES"
+	sysrc vm_dir="zfs:zroot/vms"
+	sysrc vm_list+=""
+	sysrc vm_delay="5"
+	
+	if [ -z "`zfs list | grep /vms`" ]; then
+	    zfs create -o mountpoint=/vms zroot/vms
+	fi
+	
+	vm init
+	cp /usr/local/share/examples/vm-bhyve/* /vms/.templates/
+	
+	
+	#### https://www.ateamsystems.com/tech-blog/howto-windows-10-bhyve-w-freebsd-11/
+	
+	# for windows licensing:
+	# myx.common lib/replaceLine /boot/loader.conf '^hw.vmm.topology.cores_per_package=*' 'hw.vmm.topology.cores_per_package=4'
+	
+	#### https://github.com/churchers/vm-bhyve/wiki/UEFI-Graphics-(VNC)
+	
+	
+	####
+	
+	ReplaceLine /vms/.config/system.conf '^console=*' 'console="tmux"'
+	ReplaceLine /vms/.config/system.conf '^ignore_bad_msr=*' ''
+	ReplaceLine /vms/.config/system.conf '^console=*' ''
+
+}
+
+
+case "$0" in
+	*/myx.common/bin/setup/bhyve.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/bhyve" >&2
+			exit 1
+		fi
+		set -e
+		SetupBhyve "$@"
+	;;
+esac

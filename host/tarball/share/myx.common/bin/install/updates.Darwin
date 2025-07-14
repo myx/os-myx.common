@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+#
+# this is a very OS/Distribution specific script 8)
+#
+
+TryFetchStdout(){
+	local URL="$1"
+	[ -n "$URL" ] || (echo "TryFetchStdout: The URL is required!" ; return 0)
+    command -v curl  >/dev/null 2>&1 && { curl --silent -L "$URL"; return 0; }
+    command -v fetch >/dev/null 2>&1 && { fetch -o - "$URL"; return 0; }
+    command -v wget  >/dev/null 2>&1 && { wget --quiet -O - "$URL"; return 0; }
+	echo "⛔ ERROR: curl, fetch, or wget were not found, do not know how to download!" >&2
+    exit 1
+}
+
+InstallUpdates(){
+	# It is better to be autonomous in this command, so instead of:
+	#   UserRequireRoot
+	# we do:
+	test `id -u` = 0 || { echo "⛔ ERROR: $0: Must be run under root user!" >&2 ; exit 1 ; }
+	
+	TryFetchStdout https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e
+
+	/usr/sbin/softwareupdate --background --force
+	/usr/sbin/softwareupdate --install --all
+
+	which -s brew && brew update
+	
+	open "/Applications/App Store.app"	 
+}
+
+
+case "$0" in
+	*/myx.common/bin/install/updates.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common install/updates" >&2
+			exit 1
+		fi
+		set -e
+		InstallUpdates "$@"
+	;;
+esac

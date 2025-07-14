@@ -1,0 +1,10 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+if [ -x "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUserHome.${MYXUNIX:-$( uname -s )}" ]; then
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUserHome.${MYXUNIX:-$( uname -s )}"
+	set +e ; return 0 2>/dev/null || exit 0
+fi
+
+echo "⛔️ ERROR: myx.common os/getUserHome: abstract method, uname: $( uname -s )" >&2
+return 1 

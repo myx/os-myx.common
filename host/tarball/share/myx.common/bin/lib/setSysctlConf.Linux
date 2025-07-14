@@ -1,0 +1,59 @@
+#!/bin/sh
+
+set -e
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/replaceLine.Common"
+
+SetSysctlConf(){
+	local PARAM="$1"
+	
+	if [ "$2" = "--grow" ] ; then
+		local GROW="TRUE"
+		shift
+	fi
+	if [ "$2" = "--shrink" ] ; then
+		local SHRINK="TRUE"
+		shift
+	fi
+	
+	local VALUE="$2"
+	
+	if sysctl -n "$PARAM" > /dev/null 2>&1 ; then
+	
+		local CURRENT="$(sysctl -n "$PARAM")"
+	
+		if [ "$GROW" = "TRUE" ] ; then
+			if [ "$VALUE" -gt "$CURRENT" ] ; then 
+				sysctl "$PARAM=$VALUE" && ReplaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE" || true
+			fi
+			return 0
+		fi
+		if [ "$SHRINK" = "TRUE" ] ; then
+			if [ "$VALUE" -lt "$CURRENT" ] ; then 
+				sysctl "$PARAM=$VALUE" && ReplaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE" || true
+			fi
+			return 0
+		fi
+	
+		if [ "$VALUE" != "$CURRENT" ] ; then 
+			sysctl "$PARAM=$VALUE" && ReplaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE" || true
+		fi
+	else
+	
+		echo "sysctl oid $PARAM in not supported!" >&2
+	
+	fi
+}
+
+
+case "$0" in
+	*/myx.common/bin/lib/setSysctlConf.*) 
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common lib/setSysctlConf parameter [--grow/--shrink] value" >&2
+			exit 1
+		fi
+		set -e
+		SetSysctlConf "$@"
+	;;
+esac

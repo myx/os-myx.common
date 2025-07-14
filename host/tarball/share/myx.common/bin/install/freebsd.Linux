@@ -1,0 +1,737 @@
+#!/usr/bin/env bash
+
+#
+# this is a very OS/Distribution specific script 8)
+#
+
+InstallFreebsd(){
+
+	set -e
+
+	local doClean= doUnattended=yes doDryRun=echo doAllowDhcp=
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--clean) shift ; doClean=yes ;;
+			--interactive) shift ; doUnattended= ;;
+			--unattended) shift ; doUnattended=yes ;;
+			--apply) shift ; doDryRun= ;;
+			--dry-run) shift ; doDryRun=echo ;;
+			--dhcp) shift ; doAllowDhcp=yes ;;
+			--no-dhcp) shift ; doAllowDhcp= ;;
+		esac
+		break;
+	done
+
+# sanity-check: user is root
+[ `id -u` = 0 ] || { echo "⛔ ERROR: $0: Must be run under root user!" >&2 ; exit 1 ; }
+# sanity-check: apt-get is here
+command -v apt-get >/dev/null || { echo "⛔ ERROR: $0: apt-get is required!" >&2 ; exit 1 ; }
+
+customAptInstall(){
+
+	local pkgs="$*"
+
+	apt-get update -q && apt-get install \
+		--no-install-recommends \
+		-o APT::Install-Suggests=false \
+		-o Dpkg::Options::="--path-exclude=/usr/share/doc/*" \
+		-o Dpkg::Options::="--path-exclude=/usr/share/man/*" \
+		-o Dpkg::Options::="--path-exclude=/usr/share/info/*" \
+		-y --no-install-recommends $pkgs
+		
+}
+
+customAptRemove2(){
+
+	local pkgs="$*"
+	local orphans
+
+	# 1) Remove exactly what you asked for (and nothing else)
+	DEBIAN_FRONTEND=noninteractive \
+		apt-get remove -y --no-install-recommends $pkgs \
+		|| { echo "⛔ ERROR: failed to remove $pkgs"; return 1; }
+
+	# 2) Loop: look for sim-only auto-removals, then purge them
+	while true; do
+		# simulate and extract the packages apt *would* remove as orphans
+		orphans=$(apt-get -s autoremove \
+		| awk '/^Remv/{print $2}')
+		[ -n "$orphans" ] || break
+
+		DEBIAN_FRONTEND=noninteractive \
+		apt-get remove -y --no-install-recommends $orphans \
+			|| { echo "⚠️ WARNING: could not purge orphans: $orphans"; break; }
+	done
+}
+
+
+
+customAptRemove(){
+		
+	local pkgs="$*"
+	local before_orphans after_orphans new_orphans
+
+	# 1) record which packages are already orphaned
+	before_orphans=$(
+		apt-get -s autoremove \
+		| awk '/^Remv[[:space:]]/{print $2}' \
+		| sort
+	)
+
+	# 2) remove only the pkgs you asked for
+	DEBIAN_FRONTEND=noninteractive \
+		apt-get remove -y --no-install-recommends $pkgs \
+		|| { echo "⛔ ERROR: failed to remove $pkgs"; return 1; }
+
+	# 3) now loop, cleaning up only the deps that just became orphaned
+	while :; do
+		after_orphans=$(
+		apt-get -s autoremove \
+			| awk '/^Remv[[:space:]]/{print $2}' \
+			| sort
+		)
+
+		# compute “new_orphans” = after_orphans – before_orphans
+		new_orphans=$(
+		comm -23 \
+			<(echo "$after_orphans") \
+			<(echo "$before_orphans")
+		)
+
+		[ -n "$new_orphans" ] || break
+
+		# purge only those newly orphaned dependencies
+		DEBIAN_FRONTEND=noninteractive \
+		apt-get remove -y --no-install-recommends $new_orphans \
+			|| { echo "⚠️ WARNING: could not purge: $new_orphans"; break; }
+
+		# update the baseline for the next iteration
+		before_orphans="$after_orphans"
+	done
+}
+
+
+local ISO_TOOL WEB_TOOL PACKAGES=''
+
+# sanity-check and tool-select: we can make isofs
+if   command -v xorriso >/dev/null; then ISO_TOOL="xorriso -as mkisofs"
+elif command -v mkisofs >/dev/null; then ISO_TOOL="mkisofs -no-pad -graft-points"
+elif command -v genisoimage >/dev/null; then ISO_TOOL=genisoimage
+else 
+	ISO_TOOL=mkisofs
+	PACKAGES="$PACKAGES genisoimage"
+	# echo "⛔ ERROR: $0: Missing tools: mkisofs, genisoimage or xorriso - at least one is required"; exit 1; 
+fi
+
+
+# later moved to context
+local SPACE_CONSTRAINS
+{
+	# grab MB values from meminfo
+	local total avail half
+	total=$(awk '/^MemTotal:/  {print int($2/1024)}' /proc/meminfo)
+	avail=$(awk '/^MemAvailable:/{print int($2/1024)}' /proc/meminfo)
+
+	# space constraints
+	if [ "$avail" -lt 3096 ]; then
+		SPACE_CONSTRAINS=${SPACE_CONSTRAINS:-tiny}
+	else
+		SPACE_CONSTRAINS=${SPACE_CONSTRAINS:-}
+	fi
+	echo "📝  Total system memory: ${total} MiB"
+	echo "📝  Memory available: ${avail} MiB"
+	echo "👝  Space constraints: ${SPACE_CONSTRAINS:-"<none>"}"
+}
+
+# start
+set -euo pipefail
+
+
+preserveOrphans() {
+  # simulate and grab the list of packages apt would remove
+  local orphans
+  orphans=$(apt-get -s autoremove \
+    | awk '/^Remv /{print $2}')
+
+  # if any orphans exist, mark them manual so they stay
+  if [ -n "$orphans" ]; then
+    echo "⚠️ WARNING: Preserving orphaned pkgs: " $orphans
+    apt-mark manual $orphans >/dev/null
+  fi
+}
+
+# In your script, before any install/remove:
+preserveOrphans
+
+
+
+local BOOT_IMG_URL WORKDIR IFACE IP_CIDR GATEWAY DNS HOSTNAME 
+
+local QEMU_DISK_ARGS=() QEMU_DISK_LIST=() QEMU_DISK_SERIALS=()
+
+if [ -z "$doUnattended" ]; then
+	# Scan all host disks and build QEMU args
+	local dev name
+	for dev in /dev/sd? /dev/vd? /dev/hd? /dev/nvme?n? /dev/xd?; do
+		[[ -b $dev ]] || continue
+		QEMU_DISK_LIST+=( $dev )
+		name=$(basename "$dev")
+		# ID must be unique and source of drive ID
+		QEMU_DISK_ARGS+=( \
+			-drive if=none,id=$name,file=$dev,format=raw \
+			-device virtio-blk-pci,drive=$name \
+		)
+	done
+
+	printf "💾 Selected disks for interactive install:\n  %s\n" "${QEMU_DISK_LIST[@]}" >&2
+else
+	# 1) Scan whole‐disk devices, collect sizes
+	local count_by_size=() devs_by_size=() size dev
+
+	for dev in /dev/sd? /dev/vd? /dev/hd? /dev/nvme?n? /dev/xd?; do
+		[[ -b $dev ]] || continue # must be block device
+
+		# get size in bytes
+		size=$(blockdev --getsize64 "$dev" 2>/dev/null) || continue
+
+		# increment count and record device
+		count_by_size[$size]=$(( count_by_size[$size] + 1 ))
+		devs_by_size[$size]="${devs_by_size[$size]:-} $dev"
+	done
+
+	# 2) Pick the size group with the highest member count;
+	#    tie-breaker: larger size
+	local cnt best_size=0 best_count=0
+	for size in "${!count_by_size[@]}"; do
+		cnt=${count_by_size[$size]}
+		if (( cnt > best_count )) || (( cnt == best_count && size > best_size )); then
+			best_count=$cnt
+			best_size=$size
+		fi
+	done
+
+	# 3) Populate QEMU_DISK_LIST from the selected size group
+	read -r -a QEMU_DISK_LIST <<< "${devs_by_size[$best_size]}"
+
+	# 4) Build QEMU_DISK_ARGS for each selected disk
+	local dev name serial
+	for dev in "${QEMU_DISK_LIST[@]}"; do
+		name=$(basename "$dev")
+
+		# 1) Try the short serial
+		serial=$( udevadm info --query=property --name="$dev" | awk -F= '$1=="ID_SERIAL_SHORT"{print $2; exit}' )
+
+		# 2) Fallback to the full serial if needed
+		if [ -z "$serial" ]; then
+			serial=$( udevadm info --query=property --name="$dev" | awk -F= '$1=="ID_SERIAL"{print $2; exit}' )
+		fi
+
+		# 3) Fallback to block-device size in bytes
+		if [ -z "$serial" ] && command -v blockdev >/dev/null 2>&1; then
+			serial=$( blockdev --getsize64 "$dev" 2>/dev/null )
+		fi
+
+		# 4) Final fallback to the basename of the device
+		if [ -z "$serial" ]; then
+			serial=${dev#/dev/}
+		fi
+
+		# Check we got *something*
+		if [ -z "$serial" ]; then
+			echo "⛔ ERROR: cannot derive any ID for $dev" >&2
+			exit 1
+		fi
+
+		QEMU_DISK_SERIALS+=("$serial")
+
+		QEMU_DISK_ARGS+=( \
+			-drive if=none,id=$name,file=$dev,format=raw,cache=none \
+			-device virtio-blk-pci,drive=$name,serial=$serial \
+		)
+	done
+
+	echo "💾 Selected disks for unattended install (${best_count}× $(numfmt --to=iec $best_size) each):"
+	printf "  %s\n" "${QEMU_DISK_LIST[@]}"
+fi
+
+
+# 0) “Don’t blow away the host’s live root disk”
+(
+	# findmnt might say “rootfs” or “overlay” in an initramfs/live CD
+	rootpart=$(findmnt -n -o SOURCE / 2>/dev/null || :)
+
+	# only try disk-check if rootpart really lives under /dev
+	if [[ "$rootpart" == /dev/* ]]; then
+		# lsblk’s PKNAME is the parent disk (e.g. “sda” for “sda1”)
+		parent=$(lsblk -n -o PKNAME "$rootpart" 2>/dev/null || :)
+		if [[ -n "$parent" ]]; then
+			rootdisk="/dev/$parent"
+			if printf '%s\n' "${QEMU_DISK_LIST[@]}" | grep -qx "$rootdisk"; then
+				echo "⛔ ERROR: Refusing to wipe running root disk $rootdisk" >&2
+				exit 1
+			fi
+
+			# unmount any mounted children of that disk
+			for part in $(lsblk -ln -o NAME "/dev/$parent" | tail -n +2); do
+			dev="/dev/$part"
+			if mountpoint -q "$dev"; then
+				echo "⏳ Unmounting $dev…" 
+				umount "$dev" || {
+				echo "⚠️  Could not unmount $dev" >&2
+				exit 1
+				}
+			fi
+			done
+		else
+			echo "⚠️  Could not determine parent disk for $rootpart, skipping safety check"
+		fi
+	else
+		echo "ℹ️  Root FS is '$rootpart' (not a /dev device), skipping disk-safety check"
+	fi
+
+	#──────────────────────────────────────────────────────────────────
+)
+
+for disk in "${QEMU_DISK_LIST[@]}"; do
+	# e.g. /dev/sdb -> sdb1, sdb2, …
+	for part in $(lsblk -ln -o NAME "$disk" | tail -n +2); do
+		dev="/dev/$part"
+		if mountpoint -q "$dev"; then
+			echo "⏳ Unmounting $dev on host…"
+			umount "$dev" || {
+				echo "⚠️  Could not unmount $dev" >&2
+				exit 1
+			}
+		fi
+	done
+done
+
+# Detect host architecture (normalized to FreeBSD-style arch names)
+case "$(uname -m)" in
+  x86_64)
+    HOST_ARCH="amd64"
+	BOOT_IMG_URL="https://download.freebsd.org/releases/amd64/amd64/ISO-IMAGES/14.3/FreeBSD-14.3-RELEASE-amd64-mini-memstick.img"
+    ;;
+  i[3456]86)
+    HOST_ARCH="i386"
+	BOOT_IMG_URL="https://download.freebsd.org/releases/i386/i386/ISO-IMAGES/14.3/FreeBSD-14.3-RELEASE-i386-mini-memstick.img"
+    ;;
+  aarch64 | arm64)
+    HOST_ARCH="arm64"
+	BOOT_IMG_URL="https://download.freebsd.org/releases/arm64/aarch64/ISO-IMAGES/14.3/FreeBSD-14.3-RELEASE-arm64-aarch64-mini-memstick.img"
+    ;;
+  *)
+	echo "⛔ ERROR: UEFI firmware OVMF_CODE not found"  >&2;
+	exit 1
+    ;;
+esac
+
+if [ -e /dev/kvm ] && [ "$(id -u)" = 0 ]; then
+  echo "⚡ Using KVM acceleration"
+  QEMU_FW_ARGS=( -enable-kvm )
+else
+  echo "🐢 No KVM support or not root—falling back to software emulation"
+  QEMU_FW_ARGS=()
+fi
+
+# Detect host firmware mode
+local HOST_FIRMWARE USB_BUS
+if [ -d /sys/firmware/efi ]; then
+	echo "🖥️  Host is running in UEFI mode"
+	HOST_FIRMWARE="UEFI"
+	# Use OVMF + xHCI (UEFI mode)
+	USB_BUS="virtio-blk-pci"
+else
+	echo "🖥️  Host is running in Legacy BIOS mode"
+	HOST_FIRMWARE="BIOS"
+	USB_BUS="usb-storage,bus=xhci.0"
+	USB_BUS="virtio-blk-pci"
+	# Use SeaBIOS (Legacy BIOS)
+	QEMU_FW_ARGS+=(
+		-machine pc,accel=kvm
+		-bios /usr/share/seabios/bios.bin
+		-boot order=c,once=c
+		-usb
+	)
+fi
+
+WORKDIR="/tmp/freebsd-install"
+
+[ -z "$doClean" ] || {
+	rm -rf "$WORKDIR"
+}
+
+
+cleanup() {
+	set +e
+	if mountpoint -q "${WORKDIR-}/mnt"; then
+		umount "$WORKDIR/mnt"
+	fi
+
+	if [ -n "${loop-}" ] && losetup --list | grep -q "^$loop"; then
+		losetup -d "$loop"
+	fi
+
+	if [ "$SPACE_CONSTRAINS" = "tiny" ] && [ -d "$WORKDIR/iso" ]; then
+		rm -rf "$WORKDIR/iso"
+	fi
+
+	if mountpoint -q "${WORKDIR-}"; then
+		umount "$WORKDIR"
+	fi
+
+	if [ -n "${LOOPDEV-}" ] && losetup --list | grep -q "^$LOOPDEV"; then
+		losetup -d "$LOOPDEV"
+	fi
+
+	if mountpoint -q "${TEMPDIR-}"; then
+		umount "$TEMPDIR"
+	fi
+
+	rmdir "${WORKDIR-}" "${TEMPDIR-}" 2>/dev/null || true
+}
+
+# Trap EXIT so cleanup always runs
+trap cleanup EXIT
+
+
+if [ "$SPACE_CONSTRAINS" = "tiny" ]; then
+	TEMPDIR=/tmp/freebsd-install-ramfs
+
+	umount "$WORKDIR" 2>/dev/null || true
+
+	mkdir -p "$TEMPDIR" "$WORKDIR"
+
+	if ! mount -t tmpfs -o size=1G,compress=zstd tmpfs "$TEMPDIR" 2>/dev/null; then
+		echo "⚠️ compressed tmpfs unavailable - trying btrfs for temp"
+
+		mount -t ramfs ramfs "$TEMPDIR"
+
+		modprobe btrfs 2>/dev/null || true
+		truncate -s 1G "$TEMPDIR/container.img"
+
+		# ← NEW: clear any stale loop mounts so mkfs won’t refuse “device is mounted”
+		for ld in $(losetup --all | cut -d: -f1); do
+			umount "$ld" 2>/dev/null || true
+			losetup -d "$ld" 2>/dev/null || true
+		done
+
+		LOOPDEV=$(losetup --find --show "$TEMPDIR/container.img")
+		mkfs.btrfs -f "$LOOPDEV"
+		mount -t btrfs -o compress=zstd "$LOOPDEV" "$WORKDIR"
+		set +x
+	fi
+fi
+
+
+# Assemble config ISO tree
+mkdir -p "$WORKDIR"/{cfg/{boot,etc/rc.d,conf},iso,mnt}
+
+customAptInstall curl $PACKAGES
+
+# detect UEFI firmware blobs in common pkg paths
+if [ "$HOST_FIRMWARE" = "UEFI" ]; then
+	customAptInstall ovmf
+
+	local OVMF_CODE=""
+	for f in /usr/share/OVMF/OVMF_CODE_*.fd /usr/share/ovmf/*/OVMF_CODE.fd /usr/share/ovmf/OVMF_CODE.fd; do
+	[[ -f $f ]] && { OVMF_CODE=$f; break; }
+	done
+	[ -n "$OVMF_CODE" ] || { echo "⛔ ERROR: UEFI firmware OVMF_CODE not found"  >&2; exit 1; }
+
+	local OVMF_VARS=""
+	for f in /usr/share/OVMF/OVMF_VARS_*.fd /usr/share/ovmf/*/OVMF_VARS.fd /usr/share/ovmf/OVMF_VARS.fd; do
+	[[ -f $f ]] && { OVMF_VARS=$f; break; }
+	done
+	[ -n "$OVMF_VARS" ] || { echo "⛔ ERROR: UEFI firmware OVMF_VARS not found"  >&2; exit 1; }
+
+	cp "$OVMF_VARS" "$WORKDIR/OVMF_VARS.fd"
+	OVMF_VARS="$WORKDIR/OVMF_VARS.fd"
+
+	# now we only need the firmware blobs in $WORKDIR
+	if [ "$SPACE_CONSTRAINS" = "tiny" ]; then
+		cp "$OVMF_CODE" "$WORKDIR/OVMF_CODE.fd"
+		OVMF_CODE="$WORKDIR/OVMF_CODE.fd"
+		customAptRemove ovmf 
+	fi
+
+	QEMU_FW_ARGS+=(
+		-machine q35,accel=kvm
+		-drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE"
+		-drive if=pflash,format=raw,file="$OVMF_VARS"
+		-device qemu-xhci,id=xhci
+		-boot order=c,once=c
+	)
+fi
+
+# download bootable image
+{
+	local timeCondition=
+	if [ -f "$WORKDIR/iso/memstick.img" ]; then
+		timeCondition="--time-cond $WORKDIR/iso/memstick.img"
+	fi
+	curl -L $timeCondition --progress-bar -o "$WORKDIR/iso/memstick.img" "$BOOT_IMG_URL"
+}
+
+rm -f "$WORKDIR/iso/memstick-patched.img"
+
+if [ -n "$doUnattended" ]; then
+
+	# Capture host network + hostname
+	IFACE=$(ip route show default | awk '/default/ {print $5}')
+	IP_CIDR=$(ip -4 -o addr show dev $IFACE | awk '{print $4}')
+	GATEWAY=$(ip route show default | awk '/default/ {print $3}')
+	DNS=$(grep nameserver /etc/resolv.conf | head -n1 | awk '{print $2}')
+	HOSTNAME=$(cat /etc/hostname | tr -d '[:space:]')
+
+	# if host is using the local stub, override to a public resolver
+	if echo "$DNS" | grep -qE '^127\.'; then
+		DNS=8.8.8.8
+	fi
+
+	sgdisk -p "$WORKDIR/iso/memstick.img"  > "$WORKDIR/gpt-before.txt"
+
+	if [ "$SPACE_CONSTRAINS" = "tiny" ]; then
+		mv "$WORKDIR/iso/memstick.img" "$WORKDIR/iso/memstick-patched.img"
+	else
+		cp "$WORKDIR/iso/memstick.img" "$WORKDIR/iso/memstick-patched.img"
+	fi
+
+	echo "Install.FreeBSD: =============================================" >&2
+	#echo "Install.FreeBSD: $WORKDIR/iso/memstick-patched.img partitions:" >&2
+	#fdisk -l "$WORKDIR/iso/memstick.img"
+	echo "Install.FreeBSD: $WORKDIR/iso/memstick-patched.img partitions:" >&2
+	parted -m "$WORKDIR/iso/memstick-patched.img" unit MiB print >&2
+	echo "Install.FreeBSD: =============================================" >&2
+
+
+	local loop=$( losetup -fP --show "$WORKDIR/iso/memstick-patched.img" )
+
+	echo "Install.FreeBSD: checking to patch boot image, loop is: $loop" >&2
+
+	local loopPart
+	for loopPart in ${loop}* quit; do
+		if [ "$loopPart" = "quit" ]; then
+			losetup -d "$loop"
+			echo "ERROR: Install.FreeBSD: can't find the installer's FAT slice" >&2
+			exit 1
+		fi
+
+		echo "Install.FreeBSD: checking $loopPart device" >&2
+		if [ ! -e "$loopPart" ]; then
+			continue
+		fi
+
+		echo "Install.FreeBSD: checking $loopPart for FAT or UFS slice" >&2
+		
+		if ! mount -t vfat "$loopPart" "$WORKDIR/mnt" 2>/dev/null && ! mount -t ufs -o ufstype=ufs2,rw "$loopPart" "$WORKDIR/mnt" 2>/dev/null; then
+			continue
+		fi
+
+		if [ ! -f "$WORKDIR/mnt/boot/loader.efi" ]; then
+			umount "$WORKDIR/mnt"
+			continue
+		fi
+
+		break
+	done
+
+
+	local DID_FUSE_UFS=
+
+	#if [ "$block_fs_type" = ufs ] && [ "$block_is_readonly" = yes ]; then
+	if ! ( touch "$WORKDIR/mnt/write-test" && rm "$WORKDIR/mnt/write-test" ) 2>/dev/null; then
+		echo "Install.FreeBSD: kernel UFS driver is Read-Only, will build fuse driver." >&2
+
+		# undo the ro UFS mount
+		umount "$WORKDIR/mnt" 2>/dev/null
+		# prepare a build area
+		block_fuse_build_dir="$WORKDIR/ufs_fuse_build"
+		mkdir -p "$block_fuse_build_dir/fuse-ufs2-master/"{sys,fuse-ufs}
+
+		curl -sfL -o "$block_fuse_build_dir/fuse-ufs2.tar.gz" \
+			https://github.com/mkatiyar/fuse-ufs2/archive/refs/heads/master.tar.gz \
+			|| { echo "ERROR: cannot fetch fuse-ufs2 tarball" >&2; return 1; }
+		tar -xzf "$block_fuse_build_dir/fuse-ufs2.tar.gz" -C "$block_fuse_build_dir"
+
+		# touch "$block_fuse_build_dir/fuse-ufs2-master/sys/cdefs.h"
+
+		customAptInstall gcc libfuse-dev libfuse3-dev pkg-config e2fslibs-dev # <- older name for: libext2fs-dev
+		( 
+			set -ex
+			cd "$block_fuse_build_dir/fuse-ufs2-master/"
+
+			printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n" \
+				'#ifndef CONFIG_H' \
+					'#define CONFIG_H' \
+					'#define PACKAGE "ufs-fuse"' \
+					'#define VERSION "1.0"' \
+					'#include <stdio.h>' \
+					"#define ERROR(fmt, ...) do{ fprintf(stderr, fmt, ##__VA_ARGS__); fputc('\\n', stderr); }while(0)" \
+				'#endif /* CONFIG_H */' \
+			> fuse-ufs/config.h
+
+			# 1) drop the macOS-only file that pulls in CoreFoundation
+			rm -f fuse-ufs/fuse-ufs.{wait,probe}.c			
+
+			gcc -w -O2 -std=gnu17 \
+				$(pkg-config --cflags fuse ext2fs) \
+				-o "$block_fuse_build_dir/ufs-fuse" \
+				-DFUSE_USE_VERSION=26 \
+				-D_GNU_SOURCE \
+				-include fuse-ufs/config.h \
+				-include sys/sysmacros.h \
+  				-I. -I./fuse-ufs -I./libufs \
+				fuse-ufs/*.c \
+				libufs/*.c \
+				$(pkg-config --libs fuse ext2fs) \
+				-lext2fs -lcom_err -pthread
+
+		)
+
+		chmod +x "$block_fuse_build_dir/ufs-fuse"
+		modprobe fuse
+		mkdir -p "$WORKDIR/mnt"
+		"$block_fuse_build_dir/ufs-fuse" -o rw "$loopPart" "$WORKDIR/mnt"
+		
+		customAptRemove pkg-config gcc
+		DID_FUSE_UFS=yes
+	fi
+
+
+
+
+	VMIMAGE="$WORKDIR/mnt"
+
+	mkdir -p "$VMIMAGE/"{"etc/rc.d","conf"}
+
+	# append
+	cat "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/LocalInstall.boot.loader.conf" >> "$VMIMAGE/boot/loader.conf"
+	cat "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/LocalInstall.etc.rc.conf" >> "$VMIMAGE/etc/rc.conf"
+
+
+	# overwrite
+	rm -f "$VMIMAGE/etc/resolv.conf" ; echo "nameserver $DNS" > "$VMIMAGE/etc/resolv.conf"
+	cat "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/LocalInstall.conf.preinstall.sh.script" > "$VMIMAGE/conf/mcb-preinstall.sh"
+	{ . "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/MakeInstall.BsdInstall1.sh.include"; } > "$VMIMAGE/etc/mcb-install-stage1"
+	{ . "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/MakeInstall.BsdInstall2.sh.include"; } > "$VMIMAGE/etc/mcb-install-stage2"
+	cat "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/LocalInstall.conf.postinstall.sh.script" > "$VMIMAGE/conf/mcb-postinstall.sh"
+	cat "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/LocalInstall.etc.ttys.config" > "$VMIMAGE/etc/ttys"
+
+	cat "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/LocalInstall.etc.rc.d.installerenv.sh.script" > "$VMIMAGE/etc/rc.d/installerenv"
+
+	# executable
+	chmod +x "$VMIMAGE/etc/"mcb-* "$VMIMAGE/conf/"mcb-*.sh "$VMIMAGE/etc/rc.d/installerenv"
+
+	if [ -n "$DID_FUSE_UFS" ]; then
+		if command -v fusermount >/dev/null; then
+			fusermount -u "$WORKDIR/mnt"
+		else
+			umount "$WORKDIR/mnt"
+		fi
+		losetup -d "$loop"
+		customAptRemove libfuse-dev libfuse3-dev e2fslibs-dev
+		rm -rf "$block_fuse_build_dir"
+	else
+		umount "$WORKDIR/mnt"
+		losetup -d "$loop"
+	fi
+	sgdisk -p "$WORKDIR/iso/memstick-patched.img" > "$WORKDIR/gpt-after.txt"
+else
+	ln -sf "$WORKDIR/iso/memstick.img" "$WORKDIR/iso/memstick-patched.img"
+fi
+
+
+customAptInstall qemu-kvm qemu-utils qemu-system-x86
+
+if [ "$SPACE_CONSTRAINS" = "tiny" ]; then
+	rm -rf /var/lib/apt/lists/*
+fi
+
+# later moved to context
+local GUEST_RAM
+{
+	# grab MB values from meminfo
+	local total avail half
+	total=$(awk '/^MemTotal:/  {print int($2/1024)}' /proc/meminfo)
+	avail=$(awk '/^MemAvailable:/{print int($2/1024)}' /proc/meminfo)
+
+	# half of available, clamped to [640…16384]
+	half=$((avail*3/4))
+	[ "$half" -lt 512 ] && half=512
+	[ "$half" -gt 16384 ] && half=16384
+
+	GUEST_RAM=${GUEST_RAM:-${half}M}
+	echo "📝  Memory  available: ${avail} MiB"
+	echo "🐏  Guest planned RAM: ${GUEST_RAM:-"N/A"} MiB"
+}
+
+
+
+if [ -z "$doDryRun" ] && [ -n "$doUnattended" ]; then
+# Final warning
+cat <<MSG
+
+🛑🛑🛑🛑🛑     WIPING  DISK(S)    🛑🛑🛑🛑🛑
+⏩⏩  Booting FreeBSD Host Installer.
+⏩⏩  Installer will run completely
+⏩⏩  unattended.                  
+⏩⏩  
+⏩⏩   🚨 Will affect:
+⏩⏩  	${QEMU_DISK_LIST[@]}
+
+>>>    CTRL+C    CTRL+C    CTRL+C    <<<
+
+MSG
+
+sleep 3
+
+fi
+
+echo "Starting VM..." 
+
+# 7) QEMU launch
+# boot from CD-ROM first
+# — primary installer CD on ide0.0 —
+# — secondary config CD on ide1.0 —
+
+if [ -z "$doUnattended" ] ; then
+	QEMU_FW_ARGS+=(
+		-display curses -vga std -usb -k en-us
+	)
+else
+	QEMU_FW_ARGS+=(
+		-nographic -serial mon:stdio
+	)
+fi
+
+set -x
+exec $doDryRun qemu-system-x86_64 \
+	"${QEMU_FW_ARGS[@]}" \
+	-m "$GUEST_RAM" \
+	-smp "$(nproc)" \
+	-cpu host \
+	\
+	-drive id=installer,if=none,media=disk,file="$WORKDIR/iso/memstick-patched.img",format=raw \
+	-device ${USB_BUS},drive=installer,bootindex=1 \
+	\
+	${QEMU_DISK_ARGS[@]} \
+	\
+	-netdev user,id=net0,hostfwd=tcp::1022-:22 \
+	-device virtio-net-pci,netdev=net0 \
+	-no-reboot -boot menu=on
+
+
+}
+
+
+case "$0" in
+	*/myx.common/bin/install/freebsd.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common install/freebsd" >&2
+			exit 1
+		fi
+		set -e
+		InstallFreebsd "$@"
+	;;
+esac

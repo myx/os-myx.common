@@ -1,0 +1,38 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+UserRequireRoot "TuneNetworkProtect"
+
+type SetSysctlConf >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/setSysctlConf.Linux"
+
+TuneNetworkProtect(){
+	set -e
+	
+	# https://easyengine.io/tutorials/linux/sysctl-conf/
+	
+	SetSysctlConf net.ipv4.tcp_synack_retries 2 || true
+	SetSysctlConf net.ipv4.tcp_rfc1337 1 || true
+	
+	SetSysctlConf net.ipv4.tcp_keepalive_time --shrink 300 || true
+	SetSysctlConf net.ipv4.tcp_keepalive_probes --shrink 5 || true
+	SetSysctlConf net.ipv4.tcp_keepalive_intvl --shrink 15 || true
+
+	SetSysctlConf net.ipv4.tcp_tw_reuse 1 || true
+}
+
+
+case "$0" in
+	*/myx.common/bin/tune/networkProtect.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common tune/networkProtect" >&2
+			exit 1
+		fi
+		set -e
+		TuneNetworkProtect "$@"
+	;;
+esac

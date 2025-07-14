@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+#
+# this is a very OS/Distribution specific script 8)
+#
+
+
+TryFetchStdout(){
+	local URL="$1"
+	[ -n "$URL" ] || (echo "TryFetchStdout: The URL is required!" ; return 0)
+    if command -v curl  >/dev/null 2>&1; then curl --silent -L "$URL"; return 0; fi
+    if command -v wget  >/dev/null 2>&1; then wget --quiet -O - "$URL"; return 0; fi
+	echo "⛔ ERROR: curl, fetch, or wget were not found, do not know how to download!" >&2
+    exit 1
+}
+
+InstallUpdates(){
+	# It is better to be autonomous in this command, so instead of:
+	#   UserRequireRoot
+	# we do:
+	[ `id -u` = 0 ] || { echo "⛔ ERROR: $0: Must be run under root user!" >&2 ; exit 1 ; }
+	command -v apt-get >/dev/null 2>&1 || { echo "⛔ ERROR: $0: apt-get is required!" >&2 ; exit 1 ; }
+	
+	TryFetchStdout https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh | sh -e
+	 
+	apt-get autoremove -y
+	apt-get update -y
+	# Dpkg options - to suppress config overwrite dialogs
+	# noninteractive - to suppress Ubuntu 22+ needrestart dialogs
+	DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+	# apt-get autoremove -y
+	
+	if [ -n "`which grub-install || true`" ] ; then
+		echo "'grub-install' present, updating grub config..."
+		update-grub2
+		echo "'grub-install' present, checking disks..."
+		for DNAME in "sda" "sdb" "sdc" "sdd" "vda" "vdb" ; do
+			if [ -e "/dev/${DNAME}1" ] ; then
+				echo "'grub-install' trying disk: /dev/$DNAME"
+				grub-install "/dev/$DNAME"
+			fi
+		done
+		echo "'grub-install' done."
+	fi
+}
+
+
+case "$0" in
+	*/myx.common/bin/install/updates.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common install/updates" >&2
+			exit 1
+		fi
+		set -e
+		InstallUpdates "$@"
+	;;
+esac

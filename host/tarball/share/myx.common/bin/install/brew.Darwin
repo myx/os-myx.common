@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -e
+
+if which -s brew ; then
+	brew update
+else
+	xcode-select -p 1>/dev/null || xcode-select --install || true
+	bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+fi

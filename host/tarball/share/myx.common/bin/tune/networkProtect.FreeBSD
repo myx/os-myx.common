@@ -1,0 +1,41 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+UserRequireRoot "TuneNetworkProtect"
+
+type SetSysctlConf >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/setSysctlConf.FreeBSD"
+
+TuneNetworkProtect(){
+	set -e
+	
+	SetSysctlConf net.inet.tcp.blackhole 2 || true
+	SetSysctlConf net.inet.udp.blackhole 1 || true
+	SetSysctlConf net.inet.ip.redirect 0 || true
+	SetSysctlConf net.inet6.ip6.redirect 0 || true
+
+	SetSysctlConf net.inet.icmp.drop_redirect 1 || true
+
+	SetSysctlConf net.inet.tcp.syncache.rexmtlimit 1 || true
+	SetSysctlConf net.inet.tcp.always_keepalive 0 || true
+	SetSysctlConf net.inet.tcp.drop_synfin 1 || true
+
+	SetSysctlConf net.inet.ip.rtexpire 10 || true
+	SetSysctlConf net.inet.ip.rtminexpire 10 || true
+}
+
+
+case "$0" in
+	*/myx.common/bin/tune/networkProtect.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common tune/networkProtect" >&2
+			exit 1
+		fi
+		set -e
+		TuneNetworkProtect "$@"
+	;;
+esac

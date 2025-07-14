@@ -1,0 +1,40 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT SHOULD BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+#####  for OS that does/*n't*/ provide '-c' screen's argument for command.  #####
+
+## NOTE: because of linux gnu 'script' is not like others
+
+if type Unbuffer >/dev/null 2>&1 ; then
+	return 0
+fi
+
+Unbuffer(){
+	command -v "$1" >/dev/null || { echo "⛔ Unbuffer: command not found: $1" >&2; exit 1; }
+
+	# macosx?
+	export NSUnbufferedIO=YES
+	set -e
+
+	if command -v script >/dev/null; then
+		script -q /dev/null "$@"
+		return 0
+	fi
+	if command -v stdbuf >/dev/null; then
+		stdbuf -i0 -o0 -e0 "$@"
+		return 0
+	fi
+
+	"$@"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/unbuffer.Common) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/unbuffer  command [... arguments]" >&2
+			exit 1
+		fi
+		set -e
+		Unbuffer "$@"
+	;;
+esac

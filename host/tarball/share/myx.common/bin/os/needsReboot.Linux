@@ -1,0 +1,57 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+OsNeedsReboot(){
+	local doReboot=""
+	local doPrint="TRUE"
+
+	while true; do
+		case "$1" in
+			'')
+				break
+			;;
+			--silent)
+				doPrint=""
+				shift
+			;;
+			--print)
+				doPrint="TRUE"
+				shift
+			;;
+			--reboot)
+				doReboot="TRUE"
+				shift
+			;;
+			--no-reboot)
+				doReboot=""
+				shift
+			;;
+			*)
+				echo "OsNeedsReboot: Invalid arguments: $@" >&2
+				exit 2
+			;;
+		esac
+	done
+
+	if [ -f /var/run/reboot-required ] ; then
+		[ -z "$doPrint" ] || echo 'Reboot' >&2
+		[ -z "$doReboot" ] || reboot
+		exit 0
+	fi
+
+	[ -z "$doPrint" ] || echo 'Latest' >&2
+	exit 1
+}
+
+
+case "$0" in
+	*/myx.common/bin/os/needsReboot.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common os/needsReboot [--silent|--reboot]" >&2
+			exit 1
+		fi
+		set -e
+		OsNeedsReboot "$@"
+	;;
+esac

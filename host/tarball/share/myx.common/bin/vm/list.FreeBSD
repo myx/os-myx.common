@@ -1,0 +1,18 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+VmList(){
+	vm list
+}
+
+case "$0" in
+	*/myx.common/bin/vm/list.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common vm/list" >&2
+			exit 1
+		fi
+		set -e
+		VmList "$@"
+	;;
+esac

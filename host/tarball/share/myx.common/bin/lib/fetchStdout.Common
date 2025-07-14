@@ -1,0 +1,121 @@
+#!/bin/sh
+
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+##### !!! THIS SCRIPT MAY BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+FetchStdout(){
+	# declare all locals up front
+	local CACHE_ROOT CACHE_WRITE URL CACHE_KEY cmd
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--do-cache) shift; CACHE_WRITE=yes ;;
+  			--local-cache=*) CACHE_ROOT="${1#*=}"; shift ;;
+  			--local-cache) 
+				[ -n "$2" ] || { 
+					echo "⛔ ERROR: FetchStdout: $1: The CACHE_ROOT is required!" >&2; exit 1; 
+				}
+				CACHE_ROOT=$2
+				shift 2
+			;;
+			*) break ;;
+		esac
+	done
+
+	# require URL
+	[ -n "$1" ] || { printf '⛔ ERROR: FetchStdout: The URL is required!\n' >&2; exit 1; }
+	URL=$1
+	set -e
+
+	case "$URL" in
+	https://*|sftp://*|ssh://)
+		: ${CACHE_ROOT:=${ENV_FETCH_LOCAL_CACHE-}}
+		if [ -n "$CACHE_ROOT" ]; then
+			# try local cache
+			CACHE_KEY="${URL#*://}"
+			if [ -f "$CACHE_ROOT/$CACHE_KEY" ]; then
+				printf 'FetchStdout: using local cache: %s\n' "$CACHE_KEY" >&2
+				cat "$CACHE_ROOT/$CACHE_KEY"
+				return 0
+			fi
+	        [ -z "$CACHE_WRITE" ] || mkdir -p "$(dirname "$CACHE_ROOT/$CACHE_KEY")"
+		fi
+		;;
+	*)
+		# unsupported for cache; still let fetch proceed, but disable caching
+		CACHE_WRITE=
+		CACHE_ROOT=
+		;;
+	esac
+
+	# no caching: just stream to stdout
+	if [ -z "$CACHE_WRITE" ]; then
+	case "$URL" in
+		http://*|https://*)
+			if   command -v curl >/dev/null 2>&1; then curl -fsSL -- "$URL"
+			elif command -v wget >/dev/null 2>&1; then wget -qO- -- "$URL"
+			elif command -v fetch >/dev/null 2>&1; then fetch -q -o - -- "$URL"
+			else printf '⛔ ERROR: no HTTP fetcher for %s\n' "$URL" >&2; exit 1
+			fi
+		;;
+		sftp://*)
+			hostpath=${URL#sftp://}
+			host=${hostpath%%/*}
+			remote=${hostpath#*/}
+			echo "get \"/$remote\" -" | sftp -q "$host"
+		;;
+		ssh://*)
+			hostpath=${URL#ssh://}
+			host=${hostpath%%/*}
+			remote=${hostpath#*/}
+			ssh -q "$host" cat "$remote"
+		;;
+		*)
+			printf '⛔ ERROR: unsupported URL scheme: %s\n' "$URL" >&2
+			exit 1
+		;;
+	esac
+	return 0
+	fi
+
+	# caching enabled: write to cache then output
+	case "$URL" in
+		http://*|https://*)
+			if   command -v curl >/dev/null 2>&1; then curl -fsSL -- "$URL" -o "$CACHE_ROOT/$CACHE_KEY"
+			elif command -v wget >/dev/null 2>&1; then wget -qO "$CACHE_ROOT/$CACHE_KEY" -- "$URL"
+			elif command -v fetch >/dev/null 2>&1; then fetch -q -o "$CACHE_ROOT/$CACHE_KEY" -- "$URL"
+			else printf '⛔ ERROR: no HTTP fetcher for %s\n' "$URL" >&2; exit 1
+			fi
+			cat "$CACHE_ROOT/$CACHE_KEY"
+		;;
+		sftp://*)
+			hostpath=${URL#sftp://}
+			host=${hostpath%%/*}
+			remote=${hostpath#*/}
+			echo "get \"/$remote\" \"$CACHE_ROOT/$CACHE_KEY\"" | sftp -q "$host"
+			cat "$CACHE_ROOT/$CACHE_KEY"
+		;;
+		ssh://*)
+			hostpath=${URL#ssh://}
+			host=${hostpath%%/*}
+			remote=${hostpath#*/}
+			ssh -q "$host" "cat '$remote' > '$CACHE_ROOT/$CACHE_KEY'"
+			cat "$CACHE_ROOT/$CACHE_KEY"
+		;;
+		*)
+			printf '⛔ ERROR: unsupported URL scheme: %s\n' "$URL" >&2
+			exit 1
+		;;
+	esac
+}
+
+case "$0" in
+	*/myx.common/bin/lib/fetchStdout.Common) 
+		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/fetchStdout.help.include" >&2
+			exit 1
+		fi
+		set -e
+		FetchStdout "$@"
+	;;
+esac

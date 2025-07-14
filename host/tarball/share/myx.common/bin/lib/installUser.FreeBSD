@@ -1,0 +1,54 @@
+#!/bin/sh
+
+set -e
+#set -x
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+InstallUser(){
+	UserRequireRoot "lib/installUser"
+
+	local NAME="$1" TITLE="$2" 
+	local UGID="$3" UHOME="${4:-/home/$NAME}"
+	
+	[ -z "$NAME" ] && echo "⛔ ERROR: InstallUser: username is required!" >&2 && exit 1
+	[ -z "$TITLE" ] && echo "🙋 WARNING: InstallUser: usertitle is taken from name ($NAME)!" >&2 && TITLE="$NAME"
+
+	pwd_mkdb /etc/master.passwd
+
+	if ! pw groupshow "$NAME" >/dev/null 2>&1; then \
+		echo "Creating group '$NAME'."
+		pw groupadd -n "$NAME" $(if ! [ -z "$UGID" ] ; then echo "-g $UGID" ; fi)
+		pwd_mkdb /etc/master.passwd
+	 else \
+	 	echo "Using existing group '$NAME'."
+	fi
+
+	mkdir -p "$UHOME"
+	if ! [ -z "$UGID" ] ; then install -d -g $UGID -o $UGID "$UHOME" ; fi
+
+	if pw usershow "$NAME" > /dev/null 2>&1; then
+		echo "Using existing user '$NAME'."
+		pw usermod "$NAME" -g "$NAME" -c "$TITLE" -d "$UHOME" -s /bin/sh
+	else 
+		echo "Creating user '$NAME'."
+		pw useradd "$NAME" -g "$NAME" $(if ! [ -z "$UGID" ] ; then echo "-u $UGID" ; fi) -c "$TITLE" -d "$UHOME" -s /bin/sh
+	fi
+	
+	pw groupmod "$NAME" -m "$NAME"
+	pwd_mkdb /etc/master.passwd
+	
+	chown $NAME:$NAME "$UHOME/"
+	chmod 700 "$UHOME/"
+
+	mkdir -p "$UHOME/.ssh"
+	chown $NAME:$NAME "$UHOME/.ssh"
+	chmod 700 "$UHOME/.ssh"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/installUser.*) 
+		InstallUser "$@"
+	;;
+esac

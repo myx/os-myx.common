@@ -1,0 +1,28 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+
+type OsGetWheelGroupNames >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getWheelGroupNames.${MYXUNIX:-$( uname -s )}"
+
+OsGetWheelGroupName(){
+	if [ "$1" = "--print-first" ] ; then
+		echo "$2"
+		exit 0
+	fi
+	OsGetWheelGroupName --print-first `OsGetWheelGroupNames`
+}
+
+
+case "$0" in
+	*/myx.common/bin/os/getWheelGroupName.Common) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common os/getWheelGroupName" >&2
+			echo "Returns: array of os-dependent wheel/admin/sudo user group (first group of os/getWheelGroupNames)" >&2
+			exit 1
+		fi
+		set -e
+		OsGetWheelGroupName --print-first `OsGetWheelGroupNames`
+	;;
+esac

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+## NOTE: because of linux gnu 'script' is not like others (but seems useful here)
+
+Unbuffer(){
+	script -q -c "$*"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/unbuffer.*) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/unbuffer  command [... arguments]" >&2
+			exit 1
+		fi
+		set -e
+		Unbuffer "$@"
+	;;
+esac

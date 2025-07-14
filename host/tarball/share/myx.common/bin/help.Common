@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+# This script is universal for FreeBSD, Darwin, Ubuntu.
+
+Help(){
+	local MYXROOT="${MYXROOT:-/usr/local/share/myx.common}" UNAME=
+
+	while [ $# -gt 0 ]; do case "$1" in
+		--uname) UNAME=$2 ; shift 2 ;;
+		*) break ;;
+	esac done
+
+	[ -n "$UNAME" ] || UNAME=${MYXUNIX:-$(uname -s)}
+
+	if [ "$1" = "--bare" ] ; then
+		[ -z "$2" ] || { echo "⛔ ERROR: Help: No arguments allowed after $1 option" >&2; exit 1; }
+		(
+			cd "$MYXROOT/bin"
+			find . -type f \( -name "*.Common" -o -name "*.$UNAME" \) \
+			| sed "s:^./::g;s:.Common\$::g;s:.$UNAME\$::g" \
+			| sort -u
+		)
+		return 0 
+	fi
+	
+	if [ -n "$1" ] && myx.common which --uname "$UNAME" "$1" >/dev/null; then
+		set -e
+		myx.common "$1" --help
+		return 0
+	fi
+
+	# list all available commands
+
+	local FINDREZ="$( 
+		cd "$MYXROOT/bin"
+		find . -type f \( -name "*.Common" -o -name "*.$UNAME" \) \
+		| sed -e "s:^./::g;s:.Common\$::g;s:.$UNAME\$::g;" -e '/\//!s/^/ /'\
+		| sort -u
+
+	)"
+
+	echo "'myx.common' script commands:" >&2
+	for ITEM in $FINDREZ ; do 
+		if [ -x "$MYXROOT/bin/$ITEM.$UNAME" ]; then
+			echo "${ITEM%.*}" "$UNAME-specific"
+		else
+			echo "${ITEM%.*}" "common"
+		fi
+	done \
+	| column -t \
+	| sed 's/^/    /'
+}
+
+case "$0" in
+	*/myx.common/bin/help.Common) 
+		# if [ -z "$1" ] || [ "$1" = "--help" ] ; then -- not this one, show list by default
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common help" >&2
+			echo "Syntax: myx.common help <command>" >&2
+			echo "Syntax: myx.common help [--bare] [--uname {Darwin|FreeBSD|Linux}]" >&2
+			echo "Syntax: myx.common help [--uname {Darwin|FreeBSD|Linux}] [<command>]" >&2
+			echo "    for given 'myx.common' command, outputs a full path to stdout or dies with error exit code." >&2
+			echo "  NOTE: use --bare (with no <command>) to get the unformatted list of available command names." >&2
+			echo "  NOTE: use --uname when requesting help for specific target OS." >&2
+			exit 1
+		fi
+		set -e
+		Help "$@"
+	;;
+esac

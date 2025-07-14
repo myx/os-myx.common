@@ -1,0 +1,48 @@
+#!/usr/bin/env sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+if type ReplaceLine >/dev/null 2>&1 ; then
+	return 0
+fi
+
+ReplaceLine(){
+	local DO_CREATE=""
+	if [ "$1" = "--create" ] ; then
+		local DO_CREATE=true ; shift
+	fi
+	local fileName="$1" textSearch="$2" lineReplace="$3"
+	[ -n "$fileName" ] || { echo "⛔ ERROR: ReplaceLine: fileName argument is required!" >&2 ; return 1 ; }
+	if [ ! -f "$fileName" ] && [ -n "$DO_CREATE" ] ; then
+		mkdir -p "$(dirname "$fileName")" || { echo "⛔ ERROR: ReplaceLine: can't create directory: $(dirname "$fileName")" >&2 ; return 1 ; }
+		touch "$fileName" || { echo "⛔ ERROR: ReplaceLine: can't create file $fileName" >&2 ; return 1 ; }
+	fi
+	[ -f "$fileName" ] || { echo "⛔ ERROR: ReplaceLine: $fileName file is expected!" >&2 ; return 1 ; }
+	[ -r "$fileName" ] || { echo "⛔ ERROR: ReplaceLine: $fileName file is not readable!" >&2 ; return 1 ; }
+	[ -w "$fileName" ] || { echo "⛔ ERROR: ReplaceLine: $fileName file is not writable!" >&2 ; return 1 ; }
+	[ -w "$(dirname "$fileName")" ] || { echo "⛔ ERROR: ReplaceLine: $fileName parent directory is not writable!" >&2 ; return 1 ; }
+
+	set -e
+		
+	if grep -q "$textSearch" "$fileName" ; then
+		cp -pf "$fileName" "$fileName.bak" && \
+		chmod 664 "$fileName.bak" && \
+		grep -v "$textSearch" "$fileName.bak" > "$fileName" && \
+		rm "$fileName.bak"
+	fi
+
+	grep -q -x -F "$lineReplace" "$fileName" || \
+		echo "$lineReplace" >> "$fileName"
+		
+	return 0
+}
+
+case "$0" in
+	*/myx.common/bin/lib/replaceLine.Common) 
+		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/include/help/lib/replaceLine.help.include" >&2
+			exit 1
+		fi
+		set -e
+		ReplaceLine "$@"
+	;;
+esac

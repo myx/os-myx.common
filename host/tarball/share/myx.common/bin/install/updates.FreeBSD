@@ -1,0 +1,18 @@
+#!/bin/sh
+
+#
+# this is a very OS/Distribution specific script 8)
+#
+
+set -e
+
+# It is better to be autonomous in this command, so instead of:
+#   UserRequireRoot
+# we do:
+test `id -u` = 0 || { echo "⛔ ERROR: $0: Must be run under root user!" >&2 ; exit 1 ; }
+
+fetch https://raw.githubusercontent.com/myx/os-myx.common/master/sh-scripts/install-myx.common.sh -o - | sh -e
+ 
+pkg autoremove -y || true
+PAGER=cat freebsd-update --not-running-from-cron fetch install || PAGER=cat freebsd-update install || true
+pkg upgrade -y || true

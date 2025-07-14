@@ -1,0 +1,128 @@
+#!/bin/sh
+# ^^^  for syntax, this file is sourced from installer function
+
+
+# 	Generation of "$WORKDIR/cfg/etc/mcb-install-config"
+#	bsdinstall 14.3+
+
+set -e
+
+echo "Generating mcb-install-stage1..." >&2
+
+# 1) Choose partition scheme
+if [ "$HOST_FIRMWARE" = "UEFI" ]; then
+  PART_SCHEME=GPT
+else
+  PART_SCHEME=MBR
+fi
+
+# 2) Collect disks (basename only)
+read -r -a DISKS <<< "${QEMU_DISK_LIST[@]##*/}"
+
+echo '#!/bin/sh'
+echo 'set -eux'
+echo "echo 'Generated mcb-install-stage1 start.' >&2"
+
+echo 'export TMPDIR=${TMPDIR:-/tmp}'
+echo 'export DISTRIBUTIONS="kernel.txz base.txz"'
+
+echo 'export BSDINSTALL_DISTDIR="/mnt/usr/freebsd-dist"'
+echo 'export BSDINSTALL_DISTSITE="https://download.freebsd.org/ftp/releases/$( uname -m )/$( freebsd-version | cut -d'-' -f1 )-RELEASE"'
+
+echo 'export BSDINSTALL_CHROOT="/mnt"'
+echo 'export BSDINSTALL_LOG="$TMPDIR/install.log"'
+
+echo
+# Partitioning
+echo "# --- disk detect/setup ---"
+echo "install_disk_serials='${QEMU_DISK_SERIALS[@]}'"
+
+echo "pattern=\$(printf '%s' \"\$install_disk_serials\" | sed 's/  */\\|/g')"
+
+# list all real disks, one per line, then pick those whose serial matches
+echo 'export install_disk_list=$('
+echo "  sysctl -n kern.disks | tr ' ' '\n' | grep -E '^(ada|da|vtbd|nvd)' | while read d; do"
+echo '      diskinfo -s /dev/$d | grep -qxE "$pattern" && echo $d'
+echo '    done'
+echo ')'
+echo 'install_disk_count=$( printf "%s\n" "$install_disk_list" | wc -l )'
+
+if [ "${#DISKS[@]}" -eq 2 ]; then
+
+	echo '[ "$install_disk_count" -eq 2 ] || { echo "Invalid disk count: expect 2, have $install_disk_count, list: $( echo $install_disk_list )"; exit 1; }'
+	echo 'echo "# ZFS root on ${install_disk_list}" >&2'
+	echo 'export ZFSBOOT_DISKS="$disk_list"'
+	echo 'export ZFSBOOT_VDEV_TYPE="mirror"'
+	echo 'bsdinstall zfsboot'
+
+elif [ "${#DISKS[@]}" -eq 1 ]; then
+
+	echo '[ "$install_disk_count" -eq 1 ] || { echo "Invalid disk count: expect 1, have $install_disk_count, list: $( echo $install_disk_list )"; exit 1; }'
+	echo 'echo "# UFS root on ${install_disk_list}" >&2'
+	echo "export PARTITIONS=\"\${install_disk_list} $PART_SCHEME {auto freebsd-ufs /}\""
+	echo 'bsdinstall scriptedpart "$PARTITIONS"'
+
+else
+	echo "⛔ ERROR: Make.InstallerConfig: unexpected disk count: ${#DISKS[@]}" >&2
+	exit 1
+fi
+echo
+
+if [ "${#DISKS[@]}" -eq 2 ]; then
+	echo 'zpool set bootfs=zroot/ROOT/default zroot'
+fi
+if [ "${#DISKS[@]}" -eq 1 ]; then
+	echo 'tunefs -L rootfs "/dev/${install_disk_list}$(if [ -e /dev/${install_disk_list}p1 ]; then echo p; else echo s; fi '\
+	')$( gpart show "${install_disk_list}" | awk '\''$0 ~ /freebsd(-ufs(2)?)?/ { print $3; exit }'\'' '\
+	')$( if [ -e /dev/${install_disk_list}$( if [ -e /dev/${install_disk_list}p1 ]; then echo p; else echo s; fi '\
+	')$( gpart show "${install_disk_list}" | awk '\''$0 ~ /freebsd(-ufs(2)?)?/ { print $3; exit }'\'' )a ]; then echo a; fi )"' 
+fi
+
+echo 'bsdinstall mount'
+
+echo 'mkdir -p /mnt/usr/freebsd-dist /mnt/tmp /mnt/boot /mnt/etc'
+
+echo 'fetch "${BSDINSTALL_DISTSITE}/MANIFEST" -o /mnt/usr/freebsd-dist/DIST-MANIFEST'
+
+echo 'if [ -x /conf/mcb-preinstall.sh ]; then'
+	echo 'echo "InstallerEnv: preinstall run..." >&2'
+	echo '. /conf/mcb-preinstall.sh'
+echo 'fi'
+
+echo 'if [ -x /conf/mcb-postinstall.sh ]; then'
+	echo 'cp /conf/mcb-postinstall.sh /mnt/tmp/'
+echo 'fi'
+
+echo 'cp /etc/mcb-install-stage2 /mnt/tmp/'
+
+echo 'bsdinstall distfetch'
+echo 'bsdinstall checksum'
+echo 'bsdinstall distextract'
+echo 'bsdinstall firmware'
+echo 'bsdinstall entropy'
+echo 'bsdinstall config'
+
+if [ "$HOST_FIRMWARE" = "UEFI" ] && [ -d "/mnt/boot/efi" ] ; then
+	echo 'echo "InstallerEnv: installing EFI files..." >&2'
+	echo 'install -d -o root -g wheel -m 755 /mnt/boot/efi/EFI/BOOT'
+	echo 'install -o root -g wheel -m 555 /mnt/boot/loader.efi /mnt/boot/efi/EFI/BOOT/BOOTX64.EFI'
+	echo 'install -o root -g wheel -m 444 /mnt/boot/defaults/loader.conf /mnt/boot/efi/EFI/BOOT/loader.conf'
+fi
+#echo "esp_part=\$( gpart show -p \"\${install_disk_list}\" | awk '\$4~/^(efi|fat16)$/{print \$3;exit;} /freebsd-boot/{print \$3;exit;}' )"
+# esp_part=$(mount -t msdosfs | awk '$3 ~ /boot\/efi$/ { print $3 }')
+#echo 'mkdir -p /tmp/esp ; mount_msdosfs "/dev/${esp_part}" /tmp/esp'
+#echo 'umount /tmp/esp'
+
+if [ "${#DISKS[@]}" -eq 2 ]; then
+	echo 'echo "vfs.root.mountfrom=\"zfs:zroot/ROOT/default\"" >> /mnt/boot/loader.conf'
+	echo 'touch /mnt/etc/fstab'
+fi
+if [ "${#DISKS[@]}" -eq 1 ]; then
+	echo "grep -Eq '^/dev/[^[:space:]]+[[:space:]]+/[[:space:]]+ufs([[:space:]]|\$)' /mnt/etc/fstab \\"
+  	echo '|| { echo "ERROR: fstab must have \"/\" mountpoint and \"ufs\" FSType" >&2; exit 1; }'
+	echo "sed -i '' 's|^/dev/[^[:space:]]\\{1,\\}[[:space:]]\\{1,\\}/[[:space:]]\\{1,\\}ufs|/dev/ufs/rootfs  /  ufs|' /mnt/etc/fstab"
+
+	echo 'echo "vfs.root.mountfrom=\"ufs:/dev/ufs/rootfs\"" >> /mnt/boot/loader.conf'
+fi
+
+echo "echo 'Generated mcb-install-stage1 done.' >&2"

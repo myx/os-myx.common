@@ -96,7 +96,7 @@ if test `id -u` = 0 ; then
 	chown -R $CHOWN "/usr/local/share/myx.common/include/obsolete/user/bin"
 	chmod -R 755 "/usr/local/share/myx.common/include/obsolete/user/bin"
 	
-	# exec "/usr/local/share/myx.common/bin/reinstall"
+	# exec "/usr/local/share/myx.common/bin/install/myx.common-reinstall.Common"
 
 	if [ -n "$OS_PACKAGES" ] ; then
 		set -e

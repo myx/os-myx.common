@@ -1,0 +1,5 @@
+#!/bin/sh
+set -x
+
+echo "⏳ Post-Install script"
+sleep 1

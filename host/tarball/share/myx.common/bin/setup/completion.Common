@@ -1,0 +1,91 @@
+#!/bin/sh
+
+###
+###   myx.common lib/setupShellCompletion "myx.common" --command "myx.common help --bare"
+###   myx.common lib/setupShellCompletion "myx.common" --remove
+###
+
+
+
+#
+#type SetupShellCompletion >/dev/null 2>&1 || \
+#	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/setupShellCompletion"
+#
+#
+#
+#SetupShellCompletion "$@"
+#
+#exit 0
+#
+
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/replaceLine.Common"
+
+SetupHostCompletion(){
+	UserRequireRoot "SetupHostCompletion"
+
+	echo "Setting up completion for host" >&2
+	
+	
+	if command -v bash >/dev/null 2>&1 && [ -f "/etc/bashrc" ] ; then
+		ReplaceLine "/etc/bashrc" " ### myx.common completion ###$" \
+			"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+	fi
+	
+	if command -v csh >/dev/null 2>&1 ; then
+		ReplaceLine "/etc/csh.login" " ### myx.common completion ###$" \
+			"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
+	fi
+}
+
+SetupUserCompletion(){
+	echo "Setting up completion for: $HOME" >&2
+	
+	if command -v bash >/dev/null 2>&1 ; then
+
+		touch "$HOME/.bash_profile"
+		ReplaceLine "$HOME/.bash_profile" " ### myx.common completion ###$" \
+			"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+
+		touch "$HOME/.bashrc"
+		ReplaceLine "$HOME/.bashrc" " ### myx.common completion ###$" \
+			"complete -W '\`myx.common help --bare\`' myx.common  ### myx.common completion ###"
+
+	fi
+	
+	if command -v csh >/dev/null 2>&1 ; then
+	
+		touch "$HOME/.cshrc"
+		ReplaceLine "$HOME/.cshrc" " ### myx.common completion ###$" \
+			"complete myx.common 'p/*/\`myx.common help --bare\`/' ### myx.common completion ###"
+			
+	fi
+
+	if command -v zsh >/dev/null 2>&1 ; then
+
+		touch "$HOME/.zshrc"
+		ReplaceLine "$HOME/.zshrc" " ### myx.common completion ###$" \
+			"complete -W \"\$(myx.common help --bare)\" myx.common  ### myx.common completion ###"
+
+	fi
+}
+
+case "$0" in
+	*/myx.common/bin/setup/completion.Common) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/completion [--host]" >&2
+			exit 1
+		fi
+		set -e
+
+		if [ "$1" = "--host" ] ; then
+			SetupHostCompletion
+		else
+			SetupUserCompletion
+		fi
+	;;
+esac

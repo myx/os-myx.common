@@ -1,0 +1,18 @@
+#!/bin/sh
+
+test `id -u` = 0 || { echo '⛔ ERROR: Must be root!' >&2 ; exit 1 ; }
+
+
+case "$0" in
+	*/bin/remove/myx.common-uninstall.Common) 
+		if [ -z "$1" ] || [ "--yes" != "$1" ] ; then
+			echo "Syntax: myx.common remove/myx.common-uninstall --yes" >&2
+			exit 1
+		fi
+
+		set -e
+		rm /usr/local/bin/myx.common
+		rm -rf /usr/local/share/myx.common
+	;;
+esac
+

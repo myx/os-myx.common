@@ -10,45 +10,22 @@ if [ -z "$MYXROOT" ]; then
 	*/bin/myx.common) MYXROOT="${0%/bin/myx.common}/share/myx.common" ;;
 	*) MYXROOT="/usr/local/share/myx.common" ;;
 	esac
-	export MYXROOT
+	export MYXROOT MYXUNIX=${MYXUNIX:-$(uname -s)}
 fi
 
-PrintDefault(){
-	printf 'myx.common script\n\t  Try running "myx.common help".\n' >&2
-}
-
 # require at least one arg
-[ $# -gt 0 ] || {
-	PrintDefault
+[ $# -gt 0 ] && [ -n "$1" ] || {
+	printf 'myx.common - cross-platform devops utilities\n\t  Try running "myx.common help".\n' >&2
 	exit 1
 }
 
-COMMAND="$1"
-
-if [ -x "$MYXROOT/bin/$COMMAND" ]; then
-	shift
-	set -e
-	"$MYXROOT/bin/$COMMAND" "$@"
-	exit 0
+set -e
+COMMAND="$( ls -1d "$MYXROOT/bin/$1.$(uname -s)" "$MYXROOT/bin/$1.Common" "$MYXROOT/include/obsolete/user/bin/$1" 2>/dev/null | head -n1 || : )"
+if [ -x "$COMMAND" ]; then
+	shift ; set -e
+	exec "$COMMAND" "$@"
+	# exit 1 # <- never gets here
 fi
 
-if [ -x "$MYXROOT/include/obsolete/user/bin/$COMMAND" ]; then
-	shift
-	set -e
-	"$MYXROOT/include/obsolete/user/bin/$COMMAND" "$@"
-	exit 0
-fi
-
-# Get into bash
-if [ -z "$BASH_VERSION" ] ; then
-	if [ -x "/usr/local/bin/bash" ] ; then
-		exec /usr/local/bin/bash --noprofile --norc -e "$0" "$@"
-	fi
-	if [ -x "/bin/bash" ] ; then
-		exec /bin/bash --noprofile --norc -e "$0" "$@"
-	fi
-	exec bash --noprofile --norc -e "$0" "$@"
-fi
-
-echo "⛔ ERROR: myx.common: Unknown command: '$COMMAND'" >&2
+echo "⛔ ERROR: myx.common: Unknown command: '$1'" >&2
 exit 1

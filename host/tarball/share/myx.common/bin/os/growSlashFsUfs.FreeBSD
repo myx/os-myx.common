@@ -1,0 +1,124 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+OsGrowSlashFsUfsUsedSize(){
+	local PART="$1"
+	gpart show $PART | grep 'freebsd-ufs' | awk '{print $5}' | grep G | sed 's/[^0-9\.]*//g'
+}
+
+OsGrowSlashFsUfsFreeSize(){
+	local PART="$1"
+	echo `gpart show $PART | grep ' free -' | awk '{print $6}' | grep G | sed 's/[^0-9\.]*//g'` 0 | awk '{print $1}'
+}
+
+OsGrowSlashFsUfs(){
+	local DISK="$1"
+	local PART="$2"
+	local INDX="$3"
+	local SWAP="$4"
+
+	set -e
+
+	if [ "$DISK" = "" ] || [ "$PART" = "" ] ; then
+		local DISKS="$DISK vtbd0 da0"
+		for DSK in $DISKS ; do
+			if [ "`geom disk status -s $DSK`" != "" ] ; then
+				local PARTS="${DSK}s1 $DSK"
+				for PRT in $PARTS ; do
+					if [ "`gpart status -s $PRT`" != "" ] && [ "`gpart show $PRT | grep freebsd-ufs`" != "" ] ; then
+						OsGrowSlashFsUfs $DSK $PRT
+						return 0;
+					fi
+				done
+			fi
+		done
+		
+		echo "⛔ ERROR: Failed: can't detect device and partition (yet)" >&2
+		return 1;
+	fi
+
+	if [ "`geom disk status -s $DISK`" = "" ] ; then
+		echo "⛔ ERROR: Failed: specified disk is invalid: $DISK" >&2
+		return 1;
+	fi
+
+	if [ "`gpart status -s $PART`" = "" ] || [ "`gpart show $PART | grep freebsd-ufs`" = "" ] ; then
+		echo "⛔ ERROR: Failed: specified part is invalid (or does't contain UFS filesystem): $PART" >&2
+		return 1;
+	fi
+	
+	if [ "$INDX" = "" ] ; then
+		INDX="`gpart show $PART | grep freebsd-ufs | awk '{print $3}'`"
+	fi
+	
+	if [ "$SWAP" = "" ] ; then
+		SWAP="`gpart show $PART | grep freebsd-swap | awk '{print $3}'`"
+	fi
+
+
+	echo "Grow: disk: $DISK, part: $PART, indx: $INDX, swap: $SWAP" >&2
+
+	if [ "$INDX" = "" ] ; then
+		echo "⛔ ERROR: Failed: can't detect partition index (yet?)" >&2
+		return 1;
+	fi
+	
+	sysctl -w kern.geom.debugflags=16
+	sysctl -w kern.geom.part.auto_resize=1
+	camcontrol rescan all
+	devctl rescan pci0
+
+	gpart recover $DISK
+	gpart resize -i $INDX $DISK
+	gpart resize -i $INDX $PART
+
+	local SIZE_NOW="`OsGrowSlashFsUfsUsedSize $PART`"
+	echo "Current size: ${SIZE_NOW}G" >&2
+
+	if [ "$SWAP" != "" ] ; then
+		swapoff -a || true
+		gpart delete -i $SWAP $PART
+		
+		## TODO: calculate new size and check that it is bigger than current
+		local SIZE_AVL="`OsGrowSlashFsUfsFreeSize $PART`"
+		echo "Free size: ${SIZE_AVL}G" >&2
+
+		local SIZE_NEW="`echo "x = $SIZE_NOW + $SIZE_AVL - 1; scale=0; x/1" | bc`"
+		
+		echo "New size: ${SIZE_NEW}G" >&2
+		
+		gpart resize -i $INDX -s ${SIZE_NEW}G $PART || true
+		 
+		gpart add -t freebsd-swap -a 4k $PART
+		swapon -a
+	fi
+	if [ "$SWAP" = "" ] ; then
+		gpart resize -i $INDX $PART
+		gpart resize -i $INDX $PART
+	fi
+	
+	#gpart commit $PART
+	#gpart commit $DISK
+
+	service growfs onestart
+	sysctl -w kern.geom.debugflags=0
+
+	return 0;
+}
+
+case "$0" in
+	*/myx.common/bin/os/growSlashFsUfs.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common os/growSlashFsUfs --yes" >&2
+			echo "    or: myx.common os/growSlashFsUfs diskName sliceName [ufs-partition-index [swap-partition-index]]" >&2
+			exit 1
+		fi
+		set -e
+		if [ "$1" = "--yes" ] ; then
+			OsGrowSlashFsUfs
+			exit 0
+		fi
+		OsGrowSlashFsUfs "$@"
+	;;
+esac

@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# This script is universal for FreeBSD, Darwin, Ubuntu.
+
+Cat(){
+	local MYXROOT="${MYXROOT:-/usr/local/share/myx.common}" UNAME=
+
+	local EXECUTE="sed '"'/^case "$0" in/,$d'"'"
+	while [ $# -gt 0 ]; do case "$1" in
+		--full) EXECUTE=cat ; shift ;;
+		--uname) UNAME=$2 ; shift 2 ;;
+		*) break ;;
+	esac done
+
+	[ -n "$1" ] || { echo "⛔ ERROR: Cat: COMMAND argument is required!" >&2; exit 1; }
+	[ -n "$UNAME" ] || UNAME=$(uname -s)
+	local COMMAND="$( ls -1d "$MYXROOT/bin/$1.$UNAME" "$MYXROOT/bin/$1.Common" "$MYXROOT/include/obsolete/user/bin/$1" 2>/dev/null | head -n1 || : )"
+	if [ -f "$COMMAND" ]; then
+		eval $EXECUTE "$COMMAND"
+		return 0
+	fi
+	echo "⛔ ERROR: Cat: unknown command: $1" >&2
+	return 1
+}
+
+case "$0" in
+	*/myx.common/bin/cat.Common) 
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common cat [--full] [--uname {Darwin|FreeBSD|Linux}] <command>" >&2
+			echo "    for given 'myx.common' command, outputs a source code to stdout, cutting the standalone execution part." >&2
+			echo "  NOTE: use --uname when requesting source code for specific target OS." >&2
+			echo "  NOTE: use --full option to get full source code." >&2
+			exit 1
+		fi
+		set -e
+		Cat "$@"
+	;;
+esac

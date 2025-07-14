@@ -1,17 +1,8 @@
 #!/bin/sh
 
-##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
-
-type GitClonePull >/dev/null 2>&1 || \
-	. "${MYXROOT:-/usr/local/share/myx.common}/bin/git/clonePull"
-
 case "$0" in
-	*/bin/lib/gitClonePull) 
-		if [ -z "$1" -o "$1" = "--help" ] ; then
-			echo "Syntax: see: myx.common git/clonePull --help" >&2
-			exit 1
-		fi
+	*/bin/lib/gitClonePull)
 		set -e
-		GitClonePull "$@"
+		exec "$(myx.common which git/clonePull)" "$@"
 	;;
 esac

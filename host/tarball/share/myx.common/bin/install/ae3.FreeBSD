@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+#
+# acmcms can only be installed on freebsd.
+#
+
+set -e
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+UserRequireRoot "install/ae3"
+
+# This supposed to be done in the beginning of the ae3 installer anyway:
+#   fetch https://raw.githubusercontent.com/myx/os-myx.common-freebsd/master/sh-scripts/install-myx.common-freebsd.sh -o - | sh -e
+
+fetch https://raw.githubusercontent.com/A-E-3/ae3-install-utility/master/sh-scripts/install-freebsd.sh -o - | sh -e

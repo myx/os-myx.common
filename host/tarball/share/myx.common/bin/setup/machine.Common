@@ -1,0 +1,22 @@
+#!/bin/sh
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+SetupMachine(){
+	UserRequireRoot "SetupMachine"
+	myx.common install/ensure/utilBashRsyncScreenSudo nano bzip2
+	myx.common setup/completion --host
+}
+
+case "$0" in
+	*/bin/setup/machine.Common) 
+		if [ -z "$1" -o "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/machine" >&2
+			exit 1
+		fi
+		set -e
+		SetupMachine "$@"
+	;;
+esac
+

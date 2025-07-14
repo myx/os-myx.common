@@ -1,0 +1,20 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+OsGetCpuCount(){
+	nproc --all
+	# sysctl -n hw.ncpu
+}
+
+
+case "$0" in
+	*/myx.common/bin/os/getCpuCount.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common os/getCpuCount" >&2
+			exit 1
+		fi
+		set -e
+		OsGetCpuCount "$@"
+	;;
+esac

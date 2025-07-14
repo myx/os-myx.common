@@ -1,0 +1,82 @@
+#!/bin/sh
+
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/replaceLine.Common"
+
+SetupShellCompletion(){
+	
+	local utilityName="$1"
+	if [ -z "$utilityName" ] ; then
+		echo "⛔ ERROR: SetupShellCompletion: utilityName is required!" >&2
+		exit 1
+	fi
+
+	echo "Setting up completion for: $HOME, utility: $utilityName" >&2
+	
+	local commentText=" ### $utilityName completion ###"
+	
+	case "$2" in
+		--command)
+			if [ -z "$3" ] ; then
+				echo "⛔ ERROR: SetupShellCompletion: listCommand is required!" >&2
+				exit 1
+			fi
+			local listCommand="$3"
+			;;
+			
+		--directory)
+			if [ -z "$3" ] ; then
+				echo "⛔ ERROR: SetupShellCompletion: listDirectory is required!" >&2
+				exit 1
+			fi
+			local listCommand="find \"$3\" -type f | sed \"s,$3/,,g\" | sort"
+			;;
+			
+		--remove)
+			[ ! -f "$HOME/.bash_profile" ] || ReplaceLine "$HOME/.bash_profile" " $commentText\$" \
+				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
+			
+			[ ! -f "$HOME/.bashrc" ] || ReplaceLine "$HOME/.bashrc" " $commentText\$" \
+				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
+				
+			[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " $commentText\$" \
+				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
+				
+			[ ! -f "$HOME/.zshrc" ] || ReplaceLine "$HOME/.zshrc" " $commentText\$" \
+				"# removed by myx.common lib/setupShellCompletion # $utilityName $commentText"
+
+			return 0
+			;;
+	
+		*)
+			echo "⛔ ERROR: SetupShellCompletion: invalid mode: $2" >&2
+			exit 1
+	esac 
+	
+	[ ! -f "$HOME/.bash_profile" ] || ReplaceLine "$HOME/.bash_profile" " $commentText\$" \
+		"complete -W '\`$listCommand\`' $utilityName $commentText"
+	
+	[ ! -f "$HOME/.bashrc" ] || ReplaceLine "$HOME/.bashrc" " $commentText\$" \
+		"complete -W '\`$listCommand\`' $utilityName $commentText"
+		
+	[ ! -f "$HOME/.cshrc" ] || ReplaceLine "$HOME/.cshrc" " $commentText\$" \
+		"complete $utilityName 'p:*:\`$listCommand\`:' $commentText"
+
+	[ ! -f "$HOME/.zshrc" ] || ReplaceLine "$HOME/.zshrc" " $commentText\$" \
+		"complete -W \"\$($listCommand)\" $utilityName $commentText"
+}
+
+case "$0" in
+	*/myx.common/bin/lib/setupShellCompletion.Common) 
+		if [ -z "$1" ] ; then
+			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --command <list_command>" >&2
+			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --directory <list_directory>" >&2
+			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --remove" >&2
+			exit 1
+		fi
+		set -e
+		SetupShellCompletion "$@"
+	;;
+esac

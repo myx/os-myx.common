@@ -1,17 +1,8 @@
 #!/bin/sh
 
-##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
-
-type OsGetUserHome >/dev/null 2>&1 || \
-	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUserHome"
-
 case "$0" in
-	*/bin/os/getBaseHomeDirectory) 
-		if [ -z "$1" -o "$1" = "--help" ] ; then
-			echo "Syntax: see: myx.common os/getUserHome --help" >&2
-			exit 1
-		fi
+	*/bin/os/getBaseHomeDirectory)
 		set -e
-		OsGetUserHome "$@"
+		exec "$(myx.common which os/getUserHome)" "$@"
 	;;
 esac

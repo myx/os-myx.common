@@ -1,0 +1,5 @@
+#!/bin/sh
+set -x
+
+echo "⏳ Pre-Install script"
+sleep 1

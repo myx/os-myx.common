@@ -1,0 +1,102 @@
+#!/bin/sh
+
+set -e
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/replaceLine.Common"
+
+type Prefix >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/prefix.Common"
+
+SetupServerNtpdSvc(){
+	# update NTP date NOW!
+	chown ntpd:ntpd /var/db/ntp/ntpd.pid
+	service ntpd stop || echo "ntpd daemon is not running!"
+	sleep 1
+	ntpdate -u -b pool.ntp.org || true
+	service ntpd start || true
+}
+
+
+SetupServer(){
+	UserRequireRoot "setup/server"
+
+	myx.common setup/machine
+	
+	[ -e /boot/loader.conf ] || touch /boot/loader.conf
+	ReplaceLine /boot/loader.conf '^autoboot_delay=*' 'autoboot_delay="2"'
+	
+	myx.common tune/networkSpeed
+	myx.common tune/zfsQuarterCache --upsert
+	
+
+	# extra software
+	myx.common install/ensure/utilBashRsyncScreenSudo curl wget
+	
+	[ -e /usr/local/etc/sudoers ] || touch /usr/local/etc/sudoers
+	[ -d /usr/local/etc/sudoers.d ] || mkdir -m 750 -p /usr/local/etc/sudoers.d
+	ReplaceLine /usr/local/etc/sudoers "^#*includedir /usr/local/etc/sudoers.d*" "@includedir /usr/local/etc/sudoers.d"
+
+	[ -e /usr/local/etc/sudoers.d/000-wheel ] || touch /usr/local/etc/sudoers.d/000-wheel
+	ReplaceLine /usr/local/etc/sudoers.d/000-wheel '^%wheel ALL=*' '%wheel ALL=(ALL) ALL'
+
+	#
+	# WTF? But still have homes that differ on 
+	# my freebsds (like its depends on ZFS/UFS)
+	#
+	[ ! -d "/usr/home" -a ! -d "/home" ] && ({
+		mkdir /usr/home
+		chmod 777 /usr/home
+		chown root:wheel /usr/home
+	})
+	[ ! -d "/home" -a -d "/usr/home" ] && ln -s /usr/home /home
+	[ ! -d "/usr/home" -a -d "/home" ] && ln -s /home /usr/home
+	
+	# rc.conf
+	sysrc \
+		sshd_enable=YES \
+		moused_enable=YES \
+		ntpd_enable=YES \
+		ntpdate_enable=YES \
+		fsck_y_enable=YES
+
+	# force-setup UTC timezone
+	tzsetup UTC ; adjkerntz -a
+	
+	# Deliberately excluded:
+	#	powerd_enable=YES \
+	
+	Prefix "ntpd" SetupServerNtpdSvc
+	
+	test "$1" != "--postfix-mta" || myx.common os/installPostfixMTA
+	
+	ReplaceLine "/etc/ssh/sshd_config" "^PermitEmptyPasswords *" "PermitEmptyPasswords no"
+	
+	ReplaceLine "/etc/ssh/sshd_config" "^PasswordAuthentication *" "PasswordAuthentication no"
+	ReplaceLine "/etc/ssh/sshd_config" "^ChallengeResponseAuthentication *" "ChallengeResponseAuthentication no"
+
+	ReplaceLine "/etc/ssh/sshd_config" "^PermitRootLogin *" "PermitRootLogin prohibit-password"
+	##ReplaceLine "/etc/ssh/sshd_config" "^PermitRootLogin *" "PermitRootLogin forced-commands-only"
+	##ReplaceLine "/etc/ssh/sshd_config" "^PermitRootLogin *" "PermitRootLogin no"
+
+	ReplaceLine "/etc/ssh/sshd_config" "^UseDNS *" "UseDNS no"
+	
+	service sshd reload
+}
+
+
+case "$0" in
+	*/myx.common/bin/setup/server.*) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/server [--postfix-mta]" >&2
+			exit 1
+		fi
+		set -e
+		SetupServer "$@"
+	;;
+esac
+
+

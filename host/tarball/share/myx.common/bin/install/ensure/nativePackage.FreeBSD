@@ -1,0 +1,31 @@
+#!/bin/sh
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+InstallEnsureNativePackage(){
+	set -e
+	
+	if [ "$1" = "--list-installed" ]; then
+		pkg info -aq
+		return 0
+	fi
+
+	UserRequireRoot "InstallEnsureNativePackage"
+
+	[ -z "$1" ] && echo "⛔ ERROR: InstallEnsureNativePackage: Arguments are expected!" >&2 && return 1
+
+	pkg install -y "$@"
+}
+
+case "$0" in
+	*/myx.common/bin/install/ensure/nativePackage.*) 
+		if [ -z "$1" -o "$1" = "--help" ] ; then
+			echo "Syntax: myx.common install/ensure/nativePackage native_package_name [native_package_name2 [...]]" >&2
+			echo "        myx.common install/ensure/nativePackage --list-installed" >&2
+			exit 1
+		fi
+		set -e
+		InstallEnsureNativePackage "$@"
+	;;
+esac

@@ -1,0 +1,113 @@
+#!/bin/sh
+
+set -e
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/replaceLine.Common"
+
+type SetLoaderConf >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/setLoaderConf.FreeBSD"
+
+SetupIpfwOpen(){
+
+	UserRequireRoot "setup/ipfw-open"
+
+	sysrc firewall_enable="YES"
+	sysrc firewall_nat_enable="YES"
+	sysrc firewall_script="/usr/local/etc/ipfw.sh"
+	sysrc firewall_type="open"
+	
+	SetLoaderConf net.inet.ip.fw.default_to_accept 1
+	
+	if [ ! -f /usr/local/etc/ipfw-system.sh ] && [ ! -f /usr/local/etc/ipfw-custom.sh ] && [ -s /usr/local/etc/ipfw.sh ] ; then
+		mv /usr/local/etc/ipfw.sh /usr/local/etc/ipfw-system.sh
+	fi
+	
+	[ -s /usr/local/etc/ipfw-system.sh ] || sed -e 's/^[ \t]*//' > /usr/local/etc/ipfw-system.sh <<- 'EOF'
+		#!/bin/sh
+	EOF
+	[ -s /usr/local/etc/ipfw-custom.sh ] || sed -e 's/^[ \t]*//' > /usr/local/etc/ipfw-custom.sh <<- 'EOF'
+		#!/bin/sh
+	EOF
+	
+	if [ ! -s /usr/local/etc/ipfw.sh ] || [ "$1" = "--force" ] ; then
+		sed -e 's/^[ \t]*//' > /usr/local/etc/ipfw.sh <<- 'EOF'
+			#!/bin/sh
+			
+			fwcmd="/sbin/ipfw -qf"
+			
+			${fwcmd} flush
+			${fwcmd} pipe flush
+			${fwcmd} queue flush
+			${fwcmd} table all flush
+
+			# /etc/rc.firewall: setup_loopback()
+			${fwcmd} add 111 pass ip from any to any via lo0 // local internal
+			${fwcmd} add 111 deny all from any to 127.0.0.0/8
+    		${fwcmd} add 111 deny ip from 127.0.0.0/8 to any
+
+			# block lans through wan, if wan is present
+			if ifconfig wan 2> /dev/null > /dev/null ; then
+				${fwcmd} add 231 deny all from any to 192.168.0.0/16 in recv wan
+				${fwcmd} add 231 deny all from any to 192.168.0.0/16 out xmit wan
+				${fwcmd} add 231 deny all from 192.168.0.0/16 to any in recv wan
+				
+				${fwcmd} add 231 deny all from any to 172.16.0.0/12 in recv wan
+				${fwcmd} add 231 deny all from any to 172.16.0.0/12 out xmit wan
+				${fwcmd} add 231 deny all from 172.16.0.0/12 to any in recv wan
+				
+				${fwcmd} add 231 deny all from any to 10.0.0.0/8 in recv wan
+				${fwcmd} add 231 deny all from any to 10.0.0.0/8 out xmit wan
+				${fwcmd} add 231 deny all from 10.0.0.0/8 to any in recv wan
+			fi
+
+			# /etc/rc.firewall: setup_ipv6_mandatory()
+			${fwcmd} add 321 pass ipv6-icmp from :: to ff02::/16
+			${fwcmd} add 321 pass ipv6-icmp from fe80::/10 to fe80::/10
+			${fwcmd} add 321 pass ipv6-icmp from fe80::/10 to ff02::/16
+			${fwcmd} add 321 pass ipv6-icmp from any to any icmp6types 1
+			${fwcmd} add 321 pass ipv6-icmp from any to any icmp6types 2,135,136
+
+			${fwcmd} add 65000 allow ip from any to any
+			
+			[ -s /usr/local/etc/ipfw-system.sh ] && . /usr/local/etc/ipfw-system.sh || true ## myx-system-ipfw
+			[ -s /usr/local/etc/ipfw-custom.sh ] && . /usr/local/etc/ipfw-custom.sh || true ## myx-ipfw-custom
+		EOF
+	fi 
+	
+	ReplaceLine /usr/local/etc/ipfw.sh ' || true ## myx-system-ipfw$' '[ -s /usr/local/etc/ipfw-system.sh ] && . /usr/local/etc/ipfw-system.sh || true ## myx-system-ipfw'
+	ReplaceLine /usr/local/etc/ipfw.sh ' || true ## myx-ipfw-custom$' '[ -s /usr/local/etc/ipfw-custom.sh ] && . /usr/local/etc/ipfw-custom.sh || true ## myx-ipfw-custom'
+	
+	chown root:wheel /usr/local/etc/ipfw.sh /usr/local/etc/ipfw-*.sh
+	chmod ug=rwx,o= /usr/local/etc/ipfw.sh /usr/local/etc/ipfw-*.sh
+	
+	kldload ipfw_nat || true
+	
+	##
+	## Must work without breaking current ssh session
+	##
+	
+	# /usr/local/etc/ipfw.sh
+	
+	service ipfw restart || service ipfw onestart
+	
+	# echo 'service ipfw restart || service ipfw onestart || true ; sleep 1' | sh -c 'eval "`cat`"'
+}
+
+
+case "$0" in
+	*/myx.common/bin/setup/ipfw-open.FreeBSD) 
+		if [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/ipfw-open [--force]" >&2
+			echo "Options: " >&2
+			echo "   --force    will rewrite the /usr/local/etc/ipfw.sh (otherwise it is" >&2
+			echo "              written only when this file is empty or doesn't exist)" >&2
+			exit 1
+		fi
+		set -e
+		SetupIpfwOpen "$@"
+	;;
+esac

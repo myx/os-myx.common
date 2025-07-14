@@ -1,0 +1,76 @@
+#!/bin/sh
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+TuneZfsQuarterCache(){
+	# sysctl -n hw.physmem
+	# sysctl -a | grep vfs\\.zfs | grep \\.arc_
+
+	UserRequireRoot "TuneZfsQuarterCache"
+	
+	if [ "--upsert" = "$1" ] ; then
+		cat > /usr/local/etc/rc.d/myx-common-zfs-quarter-cache <<- 'EOF'
+			#!/bin/sh
+			
+			# REQUIRE: DAEMON
+			# BEFORE:  LOGIN
+			# KEYWORD: nojail
+			
+			
+			. /etc/rc.subr
+			
+			name="mczfsqc"
+			#rcvar="mczfsqc_enable"
+			
+			start_cmd="/usr/local/bin/myx.common tune/zfsQuarterCache"
+			stop_cmd=":"
+			
+			load_rc_config $name
+			
+			mczfsqc_enable="${mczfsqc_enable:-YES}"
+			
+			run_rc_command "$1"
+		EOF
+		chown root:wheel /usr/local/etc/rc.d/myx-common-zfs-quarter-cache
+		chmod +x /usr/local/etc/rc.d/myx-common-zfs-quarter-cache
+		sysrc mczfsqc_enable="YES"
+		echo "MC-ZFS-QC: rc script installed: $( ls -lstar /usr/local/etc/rc.d/myx-common-zfs-quarter-cache )" >&2
+	fi
+	
+	if [ "--remove" = "$1" ] ; then
+		rm /usr/local/etc/rc.d/myx-common-zfs-quarter-cache
+		sysrc -X mczfsqc_enable || true
+		echo "MC-ZFS-QC: rc script removed: /usr/local/etc/rc.d/myx-common-zfs-quarter-cache" >&2
+		return 0
+	fi
+
+	if [ "" = "$(sysctl -a | grep vfs.zfs.arc_max)" ] ; then
+		echo "MC-ZFS-QC: No ZFS ARC tunable detected." >&2
+		return 0
+	fi
+	
+	MEM_ALL="$( sysctl -n hw.physmem )"
+	NEW_ARC="$( echo "" | bc -e "$MEM_ALL / 4" )"
+	MAX_ARC="$( sysctl -n vfs.zfs.arc_max )"
+	MIN_ARC="$( sysctl -n vfs.zfs.arc_min )"
+	
+	if [ "$NEW_ARC" -lt "$MAX_ARC" -a "$MIN_ARC" -lt "$NEW_ARC" ] ; then
+		echo "MC-ZFS-QC: setting new arc_max, $NEW_ARC (physmem: $MEM_ALL, max-arc: $MAX_ARC)" >&2
+		sysctl vfs.zfs.arc_max=$NEW_ARC
+	else
+		echo "MC-ZFS-QC: not changing arc settings (physmem: $MEM_ALL, max-arc: $MAX_ARC)" >&2
+	fi
+}
+
+case "$0" in
+	*/myx.common/bin/tune/zfsQuarterCache.*) 
+		if [ "--help" = "$1" ] ; then
+			# TuneZfsQuarterCache --upsert
+			echo "Syntax: myx.common tune/zfsQuarterCache [--upsert/--remove]" >&2
+			exit 1
+		fi
+		set -e
+		TuneZfsQuarterCache "$@"
+	;;
+esac

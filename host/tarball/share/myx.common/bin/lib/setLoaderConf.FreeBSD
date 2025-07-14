@@ -1,0 +1,58 @@
+#!/bin/sh
+
+set -e
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+type ReplaceLine >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/replaceLine.Common"
+
+SetLoaderConf(){
+	UserRequireRoot "lib/setLoaderConf"
+
+	local PARAM="$1"
+	
+	if [ "$2" = "--grow" ] ; then
+		local GROW="TRUE"
+		shift
+	fi
+	if [ "$2" = "--shrink" ] ; then
+		local SHRINK="TRUE"
+		shift
+	fi
+	
+	local VALUE="$2"
+	
+	## local CURRENT="$(sysrc -f /boot/loader.conf -nq "$PARAM" || true)"
+	local CURRENT="$(cat /boot/loader.conf | grep "$PARAM" | awk -F "=" '{print $2}' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+	
+	if [ "$GROW" = "TRUE" ] ; then
+		if [ "$VALUE" -gt "$CURRENT" ] ; then 
+			ReplaceLine /boot/loader.conf "^$PARAM=*" "$PARAM=$VALUE" || true
+		fi
+		return 0
+	fi
+	if [ "$SHRINK" = "TRUE" ] ; then
+		if [ "$VALUE" -lt "$CURRENT" ] ; then 
+			ReplaceLine /boot/loader.conf "^$PARAM=*" "$PARAM=$VALUE" || true
+		fi
+		return 0
+	fi
+	
+	if [ "$VALUE" != "$CURRENT" ] ; then 
+		ReplaceLine /boot/loader.conf "^$PARAM=*" "$PARAM=$VALUE" || true
+	fi
+}
+
+
+case "$0" in
+	*/myx.common/bin/lib/setLoaderConf.*) 
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
+			echo "Syntax: myx.common lib/setLoaderConf parameter [--grow/--shrink] value" >&2
+			exit 1
+		fi
+		set -e
+		SetLoaderConf "$@"
+	;;
+esac

@@ -1,0 +1,72 @@
+#!/bin/sh
+#
+# PROVIDE: installerenv
+# BEFORE: bsdinstall
+# REQUIRE: NETWORKING
+
+. /etc/rc.subr
+
+name="installerenv"
+start_cmd="installerenv_start"
+
+installerenv_start() {
+	set -e
+
+	echo "InstallerEnv: rc.d script - start" >&2
+
+	while true; do
+		tput reset >/dev/null 2>&1 || :
+		export UNATTENDED=1
+		export nonInteractive="YES"
+		export ASSUME_ALWAYS_YES=YES
+
+		export TERM=xterm
+
+		# redundant declarations to make manual debugging easier (if bsdinstall fails)
+		export TMPDIR=${TMPDIR:-/tmp}
+		export DISTRIBUTIONS="kernel.txz base.txz"
+		export BSDINSTALL_DISTDIR="/mnt/usr/freebsd-dist"
+		export BSDINSTALL_DISTSITE="https://download.freebsd.org/ftp/releases/$( uname -m )/$( freebsd-version | cut -d'-' -f1 )-RELEASE"
+		export BSDINSTALL_CHROOT="/mnt"
+		export BSDINSTALL_LOG="$TMPDIR/install.log"
+
+		if ! /etc/mcb-install-stage1; then
+			echo "InstallerEnv: stage1 failed (exit code: $?), sleeping 30 seconds and rebooting..." >&2
+			sleep 5 && sh
+			#sleep 30 && reboot
+			reboot
+		fi
+
+		echo "InstallerEnv: stage1 success, sleeping 3 seconds and continue..." >&2
+		sleep 3
+
+		local timeout
+
+		if chroot /mnt /tmp/mcb-install-stage2; then
+			echo "InstallerEnv: stage2 success, installation complete ✅" >&2
+			timeout=10
+		else
+			echo "InstallerEnv: stage2 failed ⛔️ (exit code: $?)!" >&2
+			timeout=30
+		fi
+
+		printf "Press ENTER within ⏱️ ${timeout}s to spawn into shell before reboot: "
+
+		if ! IFS= read -r -t "$timeout" reply; then
+			echo    # timeout expired
+			echo "⏱️  No input in ${timeout}s; rebooting…" >&2
+			reboot
+		fi
+
+		echo     # newline after ENTER
+		echo "✅ Got ENTER; proceeding…"
+		# rest of your script here
+
+		echo "InstallerEnv: starting shell, type 'exit' or 'reboot' to reboot, type 'exit 77' to re-run" >&2
+		( export PS1='> type "exit 77" to re-run the installer or "exit" to reboot <\n## '; sh; ) || { [ $? -eq 77 ] || reboot; }
+	done
+	exit 1
+}
+
+load_rc_config $name
+run_rc_command "$1"

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+case "$0" in
+	*/bin/setup/client.Common) 
+		if [ -z "$1" -o "$1" = "--help" ] ; then
+			echo "Syntax: myx.common setup/client" >&2
+			exit 1
+		fi
+		set -e
+		myx.common setup/console
+		myx.common setup/completion
+	;;
+esac
+

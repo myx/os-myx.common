@@ -1,0 +1,10 @@
+#!/bin/sh
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+if [ -x "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getWheelGroupNames.${MYXUNIX:-$( uname -s )}" ]; then
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getWheelGroupNames.${MYXUNIX:-$( uname -s )}"
+	set +e ; return 0 2>/dev/null || exit 0
+fi
+
+echo "⛔️ ERROR: myx.common os/getWheelGroupNames: abstract method, uname: $( uname -s )" >&2
+return 1 
