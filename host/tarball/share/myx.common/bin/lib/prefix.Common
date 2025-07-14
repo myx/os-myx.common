@@ -54,7 +54,7 @@ Prefix(){
 	#!/usr/bin/env bash
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 
-	set -ex
+	set -e
 
     [ -z "$verbose" ] || echo "$PREFTEXT: starting..."
 	local evalCmd='(
