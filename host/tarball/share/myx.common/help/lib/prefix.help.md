@@ -46,3 +46,4 @@
 
     myx.common lib/prefix -e -2 mybuild.sh svc11.myserver.example.org
 
+    myx.common lib/prefix -v -e "countdown" sh -c "for i in 1 2 3 4 5 ; do sleep 1; echo ...; done"
