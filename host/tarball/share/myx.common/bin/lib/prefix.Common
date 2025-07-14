@@ -14,12 +14,13 @@ fi
 
 
 Prefix(){
+	set -x
 	local verbose prefixLimit prefixElapsed doAsync
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			--verbose|-v) verbose="$1"; shift ;;
 			--elapsed|-e) prefixElapsed="$1"; shift ;;
-			--async|-a) doAsync=" </dev/null & # parallel"; shift ;;
+			--async|-a) doAsync=' </dev/null & # parallel'; shift ;;
 			--prefix-limit|-l)
 				: "${2:?"⛔ ERROR: $1 <number> - numeric argument is expected!"}"
 				case "$2" in
@@ -57,12 +58,11 @@ Prefix(){
 	set -e
 
     [ -z "$verbose" ] || echo "$PREFTEXT: starting..."
-	local evalCmd='(
-		"$@" 2>&1 && { [ -z "$verbose" ] || echo "." ; } \
+	eval '{ 
+		( "$@" 2>&1 && { [ -z "$verbose" ] || echo "." ; } \
     		|| { EXITCODE=$? ; set +x ; echo "⛔ ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ; } \
    		) | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2 
-	'
-	eval "{ $evalCmd } $doAsync" 
+	}' $doAsync
 }
 
 case "$0" in
