@@ -35,21 +35,18 @@ if test `id -u` = 0 ; then
 	case "`uname -s`" in
 	        Darwin)
 	       		echo "Using: macosx"
-	        	FETCH="https://github.com/myx/os-myx.common-macosx/archive/master.tar.gz"
 	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
 	        	CHOWN="root:wheel"
 				;;
 	        FreeBSD)
 	       		echo "Using: freebsd"
 				pkg bootstrap -y ; [ -n "$( pkg info | grep ca_root )" ] || pkg install -y ca_root_nss
-	        	FETCH="https://github.com/myx/os-myx.common-freebsd/archive/master.tar.gz"
 	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
 	        	CHOWN="root:wheel"
 				;;
 	        Linux)
 	        	if [ -z "$FETCH" -a -n "`which apt || true`" ] ; then
 	        		echo "Using: linux + apt"
-		        	FETCH="https://github.com/myx/os-myx.common-ubuntu/archive/master.tar.gz"
 		        	UPACK(){ tar -xzf - --strip-components=3 -C "$1" --wildcards '**/host/tarball/*' ; }
 		        	CHOWN="root:adm"
 		        fi
@@ -71,7 +68,6 @@ if test `id -u` = 0 ; then
 	
    	T_DIR="$( mktemp -t "myx.common-installer-XXXXXXXX" -d )"
 	FetchStdout https://github.com/myx/os-myx.common/archive/master.tar.gz | UPACK "$T_DIR"
-	FetchStdout "$FETCH" | UPACK "$T_DIR"
 	
     if command -v rsync >/dev/null 2>&1 && [ -d "/usr/local/share/myx.common/" ] ; then
     	echo "Using: rsync"
