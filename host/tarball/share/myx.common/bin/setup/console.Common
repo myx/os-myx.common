@@ -95,7 +95,7 @@ SetupConsole(){
 
 case "$0" in
 	*/bin/setup/console.Common) 
-		if [ -z "$1" -o "$1" = "--help" ] ; then
+		if [ "$1" = "--help" ] ; then
 			echo "Syntax: myx.common setup/console" >&2
 			exit 1
 		fi
