@@ -1,0 +1,147 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+if type Parallel >/dev/null 2>&1 ; then
+	return 0
+fi
+
+[ -n "$SedLineReader" ] || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/sedLineReader.${MYXUNIX:-$( uname -s )}"
+
+# type Unbuffer >/dev/null 2>&1 || \
+#	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/unbuffer.Common"
+
+##### simple POSIX “Parallel” xargs replacement #####
+Parallel(){
+	local PARALLEL_LIMIT=4
+	# parse options
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--limit=*)	PARALLEL_LIMIT=${1#*=}; shift ;;
+			--limit) shift; PARALLEL_LIMIT=$1; shift ;;
+			--|--eval) shift; break ;;
+			*) break ;;
+		esac
+	done
+
+	local PARALLEL_CMD="$@"
+	[ -n "$PARALLEL_CMD" ] || PARALLEL_CMD=eval
+
+	# sanity‐check
+	[ "$PARALLEL_LIMIT" -gt 0 ] 2>/dev/null || {
+		echo '⛔ ERROR: Parallel: --limit must be a positive integer' >&2
+		return 1
+	}
+
+	# - make random temp dir with $RANDOM.<master loop pid> suffix
+	# - trap removal of that dir on EXIT
+	# - in that dir would be files  slot-ready-<waiterPid>.<slot index>;
+	# - main loop daclares no-op handler SIGUSR1 on USR1 to wake up from `sleep 1`;
+	# - main loop does `sleep 1` and polls using `ls -1d`` freed slots, any number in a scan, removes file first and 'starts new task' then;
+	# - each slot has (one-time or dedicated) waiter process like:
+	#   { wait $slotTaskPid; touch slot-ready.$slotWaiterPid.$slotTaskPid.$slotIndex ; sinal USR1 to $mainLoop; exec wait $$ ; }
+	#
+	# slot waiter:
+	# - waits for task with `wait $slotTaskPid`
+	# - touches the `slot-ready.$slotWaiterPid.$slotTaskPid.$slotIndex` file
+	# - sends USR1 signal to $mainLoopPid
+	# - on waiter exit (one-time or dedicated, regardless) cleanups whatever possible
+	# - if zombies are not possible to cleanup from waiters temselves, then remember in PIDS
+	#
+	# TODO: from here:
+	# optionally - variant (*) dedicated slot waiter:
+	# - 'start new task' will mean:
+	#    - keep slot-dedicated waiter with slot-dedicated FD<slot index + 10> 
+	#    - send new tasks there via `eval printf ... >&<slot fd>`
+	# - slot waiter:
+	#    - while reads -r and starts tasks or while reads -r new task pids, whatever better/simpler
+	# 
+
+	# make a unique tempdir and cleanup on EXIT
+	local TMPPARALLEL_DIR; TMPPARALLEL_DIR="$(mktemp -d "${TMPDIR:-/tmp}/parallel.$$.XXXXXX")"
+	trap "rm -rf -- '$TMPPARALLEL_DIR'" EXIT
+
+	# runtime state
+	local ACTIVE=0
+	local SLOT_PIDS=''   # “slot:waiterPid” pairs, e.g. “1:1234 2:1235”
+
+	local PARALLEL_LINE ready slotspec slot sleepPid mainPid
+
+	(
+		set -x +e
+		trap '[ -z "$sleepPid" ] || kill $sleepPid' USR1
+		while true; do
+			sleep 1 2>/dev/null || :
+		done
+		trap - USR1
+	) </dev/null >/dev/null 2>&1 &
+	mainPid=$!
+
+	# dispatch loop
+	while true; do
+		if ! IFS= read -r PARALLEL_LINE 2>/dev/null ; then
+			case "$?" in
+				128) continue;;
+				*) break;;
+			esac
+		fi
+		
+		# throttle: wait for any slot to free if we’re at limit
+		while [ "$ACTIVE" -ge "$PARALLEL_LIMIT" ]; do
+			( sleep .5 2>/dev/null || : ) &
+			sleepPid=$! ; wait $sleepPid ; sleepPid=;
+			# cross-platform poll via `ls -1d`
+			for ready in $(ls -1d "$TMPPARALLEL_DIR"/slot-ready.* 2>/dev/null || :); do
+				[ -e "$ready" ] || continue
+				slot="${ready#slot-ready.}"
+				if waiter="$(printf '%s\n' $SLOT_PIDS | grep "^$slot:")"; then
+					# wait $waiterPid, should immediately return, anti-zombie
+					wait ${waiter##*:} 2>/dev/null || :
+				fi
+				rm -f -- "$ready"
+				ACTIVE=$((ACTIVE - 1))
+				# remove that slot from in-flight list
+				SLOT_PIDS="$(printf '%s\n' $SLOT_PIDS | grep -v "^$slot:")"
+			done
+		done
+
+		# pick the lowest free slot
+		for i in $(seq 1 "$PARALLEL_LIMIT"); do
+			case " $SLOT_PIDS " in
+				*" $i:"*) ;;                # in use
+				*) slot=$i; break;;
+			esac
+		done
+
+
+		# one-time waiter for this job+slot, captures main loop pid, job pid, and slot as constants
+		eval " 
+			# launch your work in background
+			eval 'set -e +x;' \"\$PARALLEL_CMD\" '$PARALLEL_LINE' &
+			wait ; touch \"$TMPPARALLEL_DIR/slot-ready.$slot\"
+			kill -USR1 $mainPid 2>/dev/null
+		" </dev/null &
+
+		# book-keep: <slotNumber>:<waiterPid>
+		SLOT_PIDS="$SLOT_PIDS $slot:$!"
+		ACTIVE=$((ACTIVE + 1))
+
+	done
+
+	echo "Parallel: all dispatched"
+	kill $mainPid 2>/dev/null
+	wait $mainPid 2>/dev/null
+	wait
+}
+
+case "$0" in
+	*/myx.common/bin/lib/parallel.Common) 
+		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/parallel.help.include" >&2
+			exit 1
+		fi
+		set -e
+		Parallel "$@"
+	;;
+esac
