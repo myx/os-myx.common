@@ -13,6 +13,10 @@
 
                 Use this argument of an executable command for prefix text.
 
+	<command> [...<command-argument>]
+
+                The command to execute asyncronously with it's output prefixed.
+
   Options:
 
     --verbose, -v

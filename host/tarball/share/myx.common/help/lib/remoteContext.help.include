@@ -1,4 +1,4 @@
 echo '📘 Syntax: myx.common lib/remoteContext [...<option>] ...<context-spec>' >&2
 echo '📘 Syntax: myx.common lib/remoteContext [--interactive] [--force] [--verbose] --insert-{tarball|path|script|command} <path|value> ...' >&2
 echo '📘 Syntax: myx.common lib/remoteContext --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/include/help/lib/remoteContext.help.md" >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/remoteContext.help.md" >&2

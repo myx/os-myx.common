@@ -1,4 +1,4 @@
 echo '📘 Syntax: myx.common lib/catMarkdown [--strip-all] [<markdown-file>]' >&2
 echo '📘 Syntax: myx.common lib/catMarkdown --help' >&2
-[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/include/help/lib/catMarkdown.help.md" >&2
-#[ "$1" != '--help' ] || myx.common lib/catMarkdown --strip-all "${MYXROOT:=/usr/local/share/myx.common}/include/help/lib/catMarkdown.help.md" >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/lib/catMarkdown.help.md" >&2
+#[ "$1" != '--help' ] || myx.common lib/catMarkdown --strip-all "${MYXROOT:=/usr/local/share/myx.common}/help/lib/catMarkdown.help.md" >&2

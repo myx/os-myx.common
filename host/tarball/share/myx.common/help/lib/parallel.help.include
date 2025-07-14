@@ -1,0 +1,4 @@
+echo '📘 Syntax: myx.common lib/parallel [...<option>] <command> [...<command-argument>]' >&2
+echo '📘 Syntax: myx.common lib/parallel [--verbose|-v] [--limit <number>] <command> [...<command-argument>]' >&2
+echo '📘 Syntax: myx.common lib/parallel --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/parallel.help.md" >&2
