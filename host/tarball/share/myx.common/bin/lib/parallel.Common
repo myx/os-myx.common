@@ -81,7 +81,7 @@ Parallel(){
 
 	{
 		while true; do 
-			while IFS= read -r slot <&3; do
+			while IFS= read -t 1 -r slot <&3; do
 				printf '\n' >&4 
 			done 2>/dev/null || :
 		done
@@ -99,7 +99,7 @@ Parallel(){
 		while [ "$ACTIVE" -ge "$PARALLEL_LIMIT" ]; do
 
 			# sleep intil running job(s) finished
-			IFS= read -r _ <&4
+			IFS= read -t 1 -r _ <&4
 
 			# cross-platform poll via `ls -1d`
 			for ready in $(ls -1d "$TMPPARALLEL_DIR/$mainPid"-slot-ready.* 2>/dev/null || :); do
