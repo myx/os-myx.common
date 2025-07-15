@@ -68,7 +68,7 @@ Parallel(){
 	local ACTIVE=0
 	local SLOT_PIDS=''   # “slot:waiterPid” pairs, e.g. “1:1234 2:1235”
 
-	local PARALLEL_LINE ready slotspec slot sleepPid mainPid
+	local PARALLEL_LINE ready slotspec slot mainPid
 
 
 	local FIFO_CRTL="$TMPPARALLEL_DIR/ready-ctrl.$$.fifo"
@@ -79,21 +79,17 @@ Parallel(){
 	exec 4<>"$FIFO_MAIN" 
 	rm -- "$FIFO_CRTL" "$FIFO_MAIN"
 
-	echo > "$TMPPARALLEL_DIR/sleep.pid"
 	{
-		local sleepPid
 		while true; do 
 			while IFS= read -r slot <&3; do
 				printf '\n' >&4 
-				#sleepPid=$(cat '"$TMPPARALLEL_DIR"'/sleep.pid)
-				#[ -z "$sleepPid" ] || kill -- $sleepPid
 			done 2>/dev/null || :
 		done
  	} &
 	mainPid=$!
 
 	[ -z "$verbose" ] || {
-		echo ">> Parallel: start, limit:$PARALLEL_LIMIT, command:$PARALLEL_CMD, ctrl_pid:$mainPid" >&2
+		echo ">> Parallel: start, limit:$PARALLEL_LIMIT, command:$PARALLEL_CMD" >&2
 	}
 
 	# dispatch loop
