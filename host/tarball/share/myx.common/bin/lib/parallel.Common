@@ -68,29 +68,27 @@ Parallel(){
 
 	local PARALLEL_LINE ready slotspec slot sleepPid mainPid
 
-	(
-		set -x +e
-		trap '[ -z "$sleepPid" ] || kill $sleepPid' USR1
-		while true; do
-			sleep 1 2>/dev/null || :
-		done
+	echo "" > "$TMPPARALLEL_DIR/sleep.pid"
+	{
+		set +e
+		trap 'sleepPid="$(cat "$TMPPARALLEL_DIR/sleep.pid")"; [ -z "$sleepPid" ] || kill $sleepPid' USR1
+		while true; do sleep .1 || :; done 2>/dev/null
 		trap - USR1
-	) </dev/null >/dev/null 2>&1 &
+	} &
 	mainPid=$!
 
 	# dispatch loop
-	while true; do
-		if ! IFS= read -r PARALLEL_LINE 2>/dev/null ; then
-			case "$?" in
-				128) continue;;
-				*) break;;
-			esac
-		fi
+	while IFS= read -r PARALLEL_LINE 2>/dev/null; do
 		
 		# throttle: wait for any slot to free if we’re at limit
 		while [ "$ACTIVE" -ge "$PARALLEL_LIMIT" ]; do
-			( sleep .5 2>/dev/null || : ) &
-			sleepPid=$! ; wait $sleepPid ; sleepPid=;
+
+			sleep 5 2>/dev/null &
+			sleepPid=$!
+			echo $sleepPid > "$TMPPARALLEL_DIR/sleep.pid"
+			wait $sleepPid 2>/dev/null || :
+			echo  > "$TMPPARALLEL_DIR/sleep.pid"
+
 			# cross-platform poll via `ls -1d`
 			for ready in $(ls -1d "$TMPPARALLEL_DIR"/slot-ready.* 2>/dev/null || :); do
 				[ -e "$ready" ] || continue
@@ -129,9 +127,9 @@ Parallel(){
 
 	done
 
-	echo "Parallel: all dispatched"
+	#echo "Parallel: all dispatched"
 	kill $mainPid 2>/dev/null
-	wait $mainPid 2>/dev/null
+	wait $mainPid 2>/dev/null || :
 	wait
 }
 
