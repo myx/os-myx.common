@@ -132,7 +132,7 @@ Parallel(){
 		# one-time waiter for this job+slot, captures main loop pid, job pid, and slot as constants
 		eval " 
 			# launch your work in background
-			eval 'set -e +x;' \"\$PARALLEL_CMD\" '$PARALLEL_LINE'
+			( set -e -x; eval '\$PARALLEL_CMD' '$PARALLEL_LINE' )
 			# eval 'set -e +x;' \"\$PARALLEL_CMD\" '$PARALLEL_LINE' &
 			# wait
 			touch \"$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot\"
