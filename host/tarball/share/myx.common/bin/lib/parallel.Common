@@ -14,18 +14,20 @@ fi
 
 ##### simple POSIX “Parallel” xargs replacement #####
 Parallel(){
-	local PARALLEL_LIMIT=${ENV_PARALLEL_WORKER_COUNT:-4} verbose
-	[ -z "$MDSC_DETAIL" ] || verbose=v
+	local PARALLEL_LIMIT=${ENV_PARALLEL_WORKER_COUNT:-4} verbose='+'
 	# parse options
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			--workers=*)	PARALLEL_LIMIT=${1#*=}; shift ;;
 			--workers|-w)	shift; PARALLEL_LIMIT=$1; shift ;;
-			--verbose|-v)   verbose="${verbose}v"; shift ;;
+			--verbose|-v)   verbose='-'; shift ;;
+			--quiet|-q)   verbose='+'; shift ;;
 			--|--eval) shift; break ;;
 			*) break ;;
 		esac
 	done
+
+	[ -n "$verbose" ] || [ -z "$MDSC_DETAIL" ] || verbose='-'
 
 	local PARALLEL_CMD="$@"
 	[ -n "$PARALLEL_CMD" ] || PARALLEL_CMD=eval
@@ -91,7 +93,7 @@ Parallel(){
  	} &
 	mainPid=$!
 
-	[ -z "$verbose" ] || {
+	[ "$verbose" = '+' ] || {
 		echo ">> Parallel: start, limit:$PARALLEL_LIMIT, command:$PARALLEL_CMD" >&2
 	}
 
@@ -132,8 +134,8 @@ Parallel(){
 		# one-time waiter for this job+slot, captures main loop pid, job pid, and slot as constants
 		eval " 
 			# launch your work in background
-			( set -e -x; eval '\$PARALLEL_CMD' '$PARALLEL_LINE' )
-			# eval 'set -e +x;' \"\$PARALLEL_CMD\" '$PARALLEL_LINE' &
+			( set -e ${verbose}x; eval '\$PARALLEL_CMD' '$PARALLEL_LINE' )
+			# eval 'set -e ${verbose}x;' \"\$PARALLEL_CMD\" '$PARALLEL_LINE' &
 			# wait
 			touch \"$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot\"
 			printf '\n' >&3 || :
