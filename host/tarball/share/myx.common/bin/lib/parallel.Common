@@ -14,12 +14,14 @@ fi
 
 ##### simple POSIX “Parallel” xargs replacement #####
 Parallel(){
-	local PARALLEL_LIMIT=8
+	local PARALLEL_LIMIT=${ENV_PARALLEL_WORKER_COUNT:-4} verbose
+	[ -z "$MDSC_DETAIL" ] || verbose=v
 	# parse options
 	while [ $# -gt 0 ]; do
 		case "$1" in
 			--workers=*)	PARALLEL_LIMIT=${1#*=}; shift ;;
 			--workers|-w)	shift; PARALLEL_LIMIT=$1; shift ;;
+			--verbose|-v)   verbose="${verbose}v"; shift ;;
 			--|--eval) shift; break ;;
 			*) break ;;
 		esac
@@ -67,15 +69,20 @@ Parallel(){
 	local SLOT_PIDS=''   # “slot:waiterPid” pairs, e.g. “1:1234 2:1235”
 
 	local PARALLEL_LINE ready slotspec slot sleepPid mainPid
-
-	echo "" > "$TMPPARALLEL_DIR/sleep.pid"
+	echo > "$TMPPARALLEL_DIR/sleep.pid"
 	{
-		set +e
-		trap 'sleepPid="$(cat "$TMPPARALLEL_DIR/sleep.pid")"; [ -z "$sleepPid" ] || kill $sleepPid' USR1
-		while true; do sleep .1 || :; done 2>/dev/null
-		trap - USR1
+		while true; do 
+			sleep 5.33 2>/dev/null &
+			trap '( kill -- '"$!"' $(cat '"$TMPPARALLEL_DIR"'/sleep.pid) 2>/dev/null || :; ) &' SIGUSR1
+			wait 2>/dev/null
+		done
+		trap - SIGUSR1
 	} &
 	mainPid=$!
+
+	[ -z "$verbose" ] || {
+		echo ">> Parallel: start, limit:$PARALLEL_LIMIT, command:$PARALLEL_CMD, ctrl_pid:$mainPid" >&2
+	}
 
 	# dispatch loop
 	while IFS= read -r PARALLEL_LINE 2>/dev/null; do
@@ -83,16 +90,16 @@ Parallel(){
 		# throttle: wait for any slot to free if we’re at limit
 		while [ "$ACTIVE" -ge "$PARALLEL_LIMIT" ]; do
 
-			sleep 5 2>/dev/null &
+			sleep 5.77 2>/dev/null &
 			sleepPid=$!
 			echo $sleepPid > "$TMPPARALLEL_DIR/sleep.pid"
 			wait $sleepPid 2>/dev/null || :
-			echo  > "$TMPPARALLEL_DIR/sleep.pid"
+			echo > "$TMPPARALLEL_DIR/sleep.pid"
 
 			# cross-platform poll via `ls -1d`
-			for ready in $(ls -1d "$TMPPARALLEL_DIR"/slot-ready.* 2>/dev/null || :); do
+			for ready in $(ls -1d "$TMPPARALLEL_DIR/$mainPid"-slot-ready.* 2>/dev/null || :); do
 				[ -e "$ready" ] || continue
-				slot="${ready#slot-ready.}"
+				slot="${ready#*-slot-ready.}"
 				if waiter="$(printf '%s\n' $SLOT_PIDS | grep "^$slot:")"; then
 					# wait $waiterPid, should immediately return, anti-zombie
 					wait ${waiter##*:} 2>/dev/null || :
@@ -117,8 +124,8 @@ Parallel(){
 		eval " 
 			# launch your work in background
 			eval 'set -e +x;' \"\$PARALLEL_CMD\" '$PARALLEL_LINE' &
-			wait ; touch \"$TMPPARALLEL_DIR/slot-ready.$slot\"
-			kill -USR1 $mainPid 2>/dev/null
+			wait ; touch \"$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot\"
+			kill -s SIGUSR1 $mainPid 2>/dev/null
 		" </dev/null &
 
 		# book-keep: <slotNumber>:<waiterPid>

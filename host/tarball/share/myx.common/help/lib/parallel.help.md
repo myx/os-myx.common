@@ -19,6 +19,12 @@
 
                 Maximum number of parallel tasks. Default: 4.
 
+  Environment:
+
+    ENV_PARALLEL_WORKER_COUNT
+                if --workers is not specified, the value of this environment variable 
+                is used as default. If unset - '4' workers will be used.
+
   Examples:
 
     ls -1d {source.txt,output.txt} 2>/dev/null | myx.common lib/parallel cat
