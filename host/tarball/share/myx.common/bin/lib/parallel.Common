@@ -75,11 +75,11 @@ Parallel(){
 		while true; do 
 			sleep 5.33 2>/dev/null &
 			sleepPid=$!
-			trap - SIGUSR1 
 			trap 'kill -- '"$sleepPid"' $(cat '"$TMPPARALLEL_DIR"'/sleep.pid) 2>/dev/null || :;' SIGUSR1
-			trap - SIGTERM
 			trap 'kill -- '"$sleepPid"' || :; wait 2>/dev/null; exit 0;' SIGTERM
 			wait $sleepPid
+			trap - SIGUSR1 
+			trap - SIGTERM
 		done
 	) &
 	mainPid=$!
