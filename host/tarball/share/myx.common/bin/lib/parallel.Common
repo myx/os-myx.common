@@ -84,8 +84,8 @@ Parallel(){
 	{
 
 		while true; do 
-			dd bs=512 count=1 <&3 >/dev/null || :
-			# IFS= read -t 1 -r slot <&3 2>/dev/null || :
+			dd bs=512 count=1 <&3 >/dev/null 2>&1 || :
+			# IFS= read -t 1 -r slot <&3 2>/dev/null 2>&1 || :
 			if ! printf '\n' >&4; then
 				break 2
 			fi
@@ -104,7 +104,7 @@ Parallel(){
 		while [ "$ACTIVE" -ge "$PARALLEL_LIMIT" ]; do
 
 			# sleep intil running job(s) finished
-			dd bs=512 count=1 <&4 >/dev/null || :
+			dd bs=512 count=1 <&4 >/dev/null 2>&1 || :
 			# IFS= read -t 1 -r _ <&4 || :
 
 			# cross-platform poll via `ls -1d`
