@@ -14,12 +14,12 @@ fi
 
 ##### simple POSIX “Parallel” xargs replacement #####
 Parallel(){
-	local PARALLEL_LIMIT=4
+	local PARALLEL_LIMIT=8
 	# parse options
 	while [ $# -gt 0 ]; do
 		case "$1" in
-			--limit=*)	PARALLEL_LIMIT=${1#*=}; shift ;;
-			--limit) shift; PARALLEL_LIMIT=$1; shift ;;
+			--workers=*)	PARALLEL_LIMIT=${1#*=}; shift ;;
+			--workers|-w)	shift; PARALLEL_LIMIT=$1; shift ;;
 			--|--eval) shift; break ;;
 			*) break ;;
 		esac
@@ -30,7 +30,7 @@ Parallel(){
 
 	# sanity‐check
 	[ "$PARALLEL_LIMIT" -gt 0 ] 2>/dev/null || {
-		echo '⛔ ERROR: Parallel: --limit must be a positive integer' >&2
+		echo '⛔ ERROR: Parallel: --workers must be a positive integer' >&2
 		return 1
 	}
 

@@ -14,8 +14,8 @@
                 Adds a line before and after execution, so you see commands that do not
                 output anything.
 
-	-l <number>
-    --limit <number>
+	-w <number>
+    --workers <number>
 
                 Maximum number of parallel tasks. Default: 4.
 
@@ -23,5 +23,5 @@
 
     ls -1d {source.txt,output.txt} 2>/dev/null | myx.common lib/parallel cat
 
-    . "$(myx.common which lib/parallel)"; Parallel --limit 16 MyContextFunction --check-item <( cat my-list.txt )
+    . "$(myx.common which lib/parallel)"; Parallel -w 16 MyContextFunction --check-item <( cat my-list.txt )
 
