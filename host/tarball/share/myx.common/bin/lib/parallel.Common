@@ -85,7 +85,6 @@ Parallel(){
 
 		while true; do 
 			dd bs=512 count=1 <&3 >/dev/null 2>&1 || :
-			# IFS= read -t 1 -r slot <&3 2>/dev/null 2>&1 || :
 			if ! printf '\n' >&4; then
 				break 2
 			fi
@@ -105,7 +104,6 @@ Parallel(){
 
 			# sleep intil running job(s) finished
 			dd bs=512 count=1 <&4 >/dev/null 2>&1 || :
-			# IFS= read -t 1 -r _ <&4 || :
 
 			# cross-platform poll via `ls -1d`
 			for ready in $(ls -1d "$TMPPARALLEL_DIR/$mainPid"-slot-ready.* 2>/dev/null || :); do
@@ -134,9 +132,10 @@ Parallel(){
 		# one-time waiter for this job+slot, captures main loop pid, job pid, and slot as constants
 		eval " 
 			# launch your work in background
-			( set -e ${verbose}x; eval '\$PARALLEL_CMD' '$PARALLEL_LINE' )
-			# eval 'set -e ${verbose}x;' \"\$PARALLEL_CMD\" '$PARALLEL_LINE' &
-			# wait
+			( set -e ${verbose}x; eval '\$PARALLEL_CMD' '$PARALLEL_LINE' ) || {
+				EXITCODE=\$?
+				echo \"⛔ ERROR: exited with error status (\$EXITCODE)\" >&2
+			}
 			touch \"$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot\"
 			printf '\n' >&3 || :
 		" </dev/null &
