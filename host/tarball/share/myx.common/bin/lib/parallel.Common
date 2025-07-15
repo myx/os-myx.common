@@ -69,19 +69,27 @@ Parallel(){
 	local SLOT_PIDS=''   # “slot:waiterPid” pairs, e.g. “1:1234 2:1235”
 
 	local PARALLEL_LINE ready slotspec slot sleepPid mainPid
+
+
+	local FIFO_CRTL="$TMPPARALLEL_DIR/ready-ctrl.$$.fifo"
+	local FIFO_MAIN="$TMPPARALLEL_DIR/ready-main.$$.fifo"
+	mkfifo "$FIFO_CRTL"
+	mkfifo "$FIFO_MAIN"
+	exec 3<>"$FIFO_CRTL" 
+	exec 4<>"$FIFO_MAIN" 
+	rm -- "$FIFO_CRTL" "$FIFO_MAIN"
+
 	echo > "$TMPPARALLEL_DIR/sleep.pid"
-	(
+	{
 		local sleepPid
 		while true; do 
-			sleep 5.33 2>/dev/null &
-			sleepPid=$!
-			trap 'kill -- '"$sleepPid"' $(cat '"$TMPPARALLEL_DIR"'/sleep.pid) 2>/dev/null || :;' SIGUSR1
-			trap 'kill -- '"$sleepPid"' || :; wait 2>/dev/null; exit 0;' SIGTERM
-			wait $sleepPid
-			trap - SIGUSR1 
-			trap - SIGTERM
+			while IFS= read -r slot <&3; do
+				printf '\n' >&4 
+				#sleepPid=$(cat '"$TMPPARALLEL_DIR"'/sleep.pid)
+				#[ -z "$sleepPid" ] || kill -- $sleepPid
+			done 2>/dev/null || :
 		done
-	) &
+ 	} &
 	mainPid=$!
 
 	[ -z "$verbose" ] || {
@@ -94,11 +102,8 @@ Parallel(){
 		# throttle: wait for any slot to free if we’re at limit
 		while [ "$ACTIVE" -ge "$PARALLEL_LIMIT" ]; do
 
-			sleep 5.77 2>/dev/null &
-			sleepPid=$!
-			echo $sleepPid > "$TMPPARALLEL_DIR/sleep.pid"
-			wait $sleepPid 2>/dev/null || :
-			echo > "$TMPPARALLEL_DIR/sleep.pid"
+			# sleep intil running job(s) finished
+			IFS= read -r _ <&4
 
 			# cross-platform poll via `ls -1d`
 			for ready in $(ls -1d "$TMPPARALLEL_DIR/$mainPid"-slot-ready.* 2>/dev/null || :); do
@@ -129,7 +134,7 @@ Parallel(){
 			# launch your work in background
 			eval 'set -e +x;' \"\$PARALLEL_CMD\" '$PARALLEL_LINE' &
 			wait ; touch \"$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot\"
-			kill -s SIGUSR1 $mainPid 2>/dev/null
+			printf '\n' >&3
 		" </dev/null &
 
 		# book-keep: <slotNumber>:<waiterPid>
@@ -139,8 +144,10 @@ Parallel(){
 	done
 
 	#echo "Parallel: all dispatched"
+	exec 4>&- 
 	kill $mainPid 2>/dev/null
 	wait $mainPid 2>/dev/null || :
+	exec 3>&- 
 	wait
 }
 
