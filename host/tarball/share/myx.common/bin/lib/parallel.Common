@@ -71,12 +71,16 @@ Parallel(){
 	local PARALLEL_LINE ready slotspec slot sleepPid mainPid
 	echo > "$TMPPARALLEL_DIR/sleep.pid"
 	{
+		local sleepPid
 		while true; do 
 			sleep 5.33 2>/dev/null &
-			trap '( kill -- '"$!"' $(cat '"$TMPPARALLEL_DIR"'/sleep.pid) 2>/dev/null || :; ) &' SIGUSR1
-			wait 2>/dev/null
+			sleepPid=$!
+			trap - SIGUSR1 
+			trap 'kill -- '"$sleepPid"' $(cat '"$TMPPARALLEL_DIR"'/sleep.pid) 2>/dev/null || :;' SIGUSR1
+			trap - SIGTERM
+			trap 'kill -- '"$sleepPid"' || :; wait 2>/dev/null; exit 0;' SIGTERM
+			wait $sleepPid
 		done
-		trap - SIGUSR1
 	} &
 	mainPid=$!
 
