@@ -131,7 +131,9 @@ Parallel(){
 
 		# one-time waiter for this job+slot, captures main loop pid, job pid, and slot as constants
 		eval " 
-			( set -e ${verbose}x; eval '\$PARALLEL_CMD' '$PARALLEL_LINE' ) || {
+			( set -e ${verbose}x; {
+				$PARALLEL_CMD $PARALLEL_LINE 
+			} ) || {
 				EXITCODE=\$?
 				echo \"⛔ ERROR: exited with error status (\$EXITCODE)\" >&2
 			}
