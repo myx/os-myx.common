@@ -10,14 +10,12 @@ CatMarkdown() {
 	set -e
 
 	local doStripAll doForceTty doBasicSed
-	while [ $# -gt 0 ]; do
-		case "$1" in
-			--strip-all) shift ; doStripAll=yes ;;
-			--force-tty) shift ; doForceTty=yes ;;
-			--basic-sed) shift ; doBasicSed=yes ;;
-		esac
-		break;
-	done
+	while [ $# -gt 0 ]; do case "$1" in
+		--strip-all) shift ; doStripAll=yes ;;
+		--force-tty) shift ; doForceTty=yes ;;
+		--basic-sed) shift ; doBasicSed=yes ;;
+		*) break ;;
+	esac done 
 
 	local fromFile="$1"
 	if [ -n "$fromFile" ] ; then

@@ -10,91 +10,87 @@ fi
 #	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/unbuffer.Common"
 
 RemoteContext(){
-	while [ $# -gt 0 ]; do
-		case "$1" in
-			--intern-no-comment-cat-for-script)
-				sed \
-					-e 's/^[[:space:]]*//' \
-					-e 's/[[:space:]]#.*$//' \
-					-e 's/[[:space:]]*$//' \
-					-e 's/^#.*$//' \
-					-e '/^$/d' \
-					-e 's/\t/    /g'
-				return 0
-			;;
-			--intern-one-liner-cat-for-script)
-  				sed \
-					-e 's/^[[:space:]]*//' \
-					-e 's/[[:space:]]#.*$//' \
-					-e 's/[[:space:]]*$//' \
-					-e 's/^#.*$//' \
-					-e '/^$/d'  \
-					-e 's/\t/    /g'\
-				| sed -n \
-					-e ':a' \
-					-e 'N' \
-					-e '$!ba' \
-					-e 's/\\\n//g' \
-					-e 's/[[:space:]]*$//' \
-					-e 's/case\n/case /g' \
-					-e 's/then\n/then /g' \
-					-e 's/else\n/else /g' \
-					-e 's/elif\n/elif /g' \
-					-e 's/do\n/do /g' \
-					-e 's/;\n/; /g' \
-					-e 's/(\n/( /g' \
-					-e 's/{\n/{ /g' \
-					-e 's/\n/; /g' \
-					-e 'p' 
-				return 0
-				sed -n \
-					-e 's/^[[:space:]]*#.*$//' \
-					-e 's/[[:space:]][[:space:]]*#.*$//' \
-					-e '/^[[:space:]]*$/d' \
-					-e ':a' -e 'N' -e '$!ba' \
-					-e 's/\\\n//g' \
-					-e 's/^[[:space:]]*//; s/[[:space:]]*$//' \
-					-e 's/case\n/case /g' \
-					-e 's/then\n/then /g' \
-					-e 's/else\n/else /g' \
-					-e 's/elif\n/elif /g' \
-					-e 's/do\n/do /g' \
-					-e 's/;\n/; /g' \
-					-e 's/(\n/( /g' \
-					-e 's/{\n/{ /g' \
-					-e 's/\n/; /g' \
-					-e 'p'
-				return 0
-			;;
-			*) break ;;
-		esac
-	done
+	while [ $# -gt 0 ]; do case "$1" in
+		--intern-no-comment-cat-for-script)
+			sed \
+				-e 's/^[[:space:]]*//' \
+				-e 's/[[:space:]]#.*$//' \
+				-e 's/[[:space:]]*$//' \
+				-e 's/^#.*$//' \
+				-e '/^$/d' \
+				-e 's/\t/    /g'
+			return 0
+		;;
+		--intern-one-liner-cat-for-script)
+			sed \
+				-e 's/^[[:space:]]*//' \
+				-e 's/[[:space:]]#.*$//' \
+				-e 's/[[:space:]]*$//' \
+				-e 's/^#.*$//' \
+				-e '/^$/d'  \
+				-e 's/\t/    /g'\
+			| sed -n \
+				-e ':a' \
+				-e 'N' \
+				-e '$!ba' \
+				-e 's/\\\n//g' \
+				-e 's/[[:space:]]*$//' \
+				-e 's/case\n/case /g' \
+				-e 's/then\n/then /g' \
+				-e 's/else\n/else /g' \
+				-e 's/elif\n/elif /g' \
+				-e 's/do\n/do /g' \
+				-e 's/;\n/; /g' \
+				-e 's/(\n/( /g' \
+				-e 's/{\n/{ /g' \
+				-e 's/\n/; /g' \
+				-e 'p' 
+			return 0
+			sed -n \
+				-e 's/^[[:space:]]*#.*$//' \
+				-e 's/[[:space:]][[:space:]]*#.*$//' \
+				-e '/^[[:space:]]*$/d' \
+				-e ':a' -e 'N' -e '$!ba' \
+				-e 's/\\\n//g' \
+				-e 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+				-e 's/case\n/case /g' \
+				-e 's/then\n/then /g' \
+				-e 's/else\n/else /g' \
+				-e 's/elif\n/elif /g' \
+				-e 's/do\n/do /g' \
+				-e 's/;\n/; /g' \
+				-e 's/(\n/( /g' \
+				-e 's/{\n/{ /g' \
+				-e 's/\n/; /g' \
+				-e 'p'
+			return 0
+		;;
+		*) break ;;
+	esac done
 
 	local verbose='' interactive='' force='' clean='' requireBash='' compress=z
 
-	while [ $# -gt 0 ]; do
-		case "$1" in
-			--verbose|-v) verbose="v$verbose" ; shift ;;
-			--interactive|-i) interactive=i ; shift ;;
-			--force|-f) force=f ; shift ;;
-			--clean|-c) clean=c ; shift ;;
-			--require-bash) requireBash=bash; shift ;;
-			--use-gzip|--gzip) compress=z ; shift ;;
-			--use-bzip2|--bz2) compress=j ; shift ;;
-			--use-xz|--xz) compress=J ; shift ;;
-			--|--*) break ;;
-			-?)
-				echo "Local: ⛔ ERROR: RemoteContext: Unknown option: $1" >&2
-				RemoteContext --help-syntax
-				exit 1
-			;;
-			-?*) # bundled single-char flags: -vfi, -cf, etc.
-				local flags=${1#-} ; shift
-				set -- $(echo "$flags" | sed 's/./-& /g') "$@"
-			;;
-			*) break ;;
-		esac
-	done
+	while [ $# -gt 0 ]; do case "$1" in
+		--verbose|-v) verbose="v$verbose" ; shift ;;
+		--interactive|-i) interactive=i ; shift ;;
+		--force|-f) force=f ; shift ;;
+		--clean|-c) clean=c ; shift ;;
+		--require-bash) requireBash=bash; shift ;;
+		--use-gzip|--gzip) compress=z ; shift ;;
+		--use-bzip2|--bz2) compress=j ; shift ;;
+		--use-xz|--xz) compress=J ; shift ;;
+		--|--*) break ;;
+		-?)
+			echo "Local: ⛔ ERROR: RemoteContext: Unknown option: $1" >&2
+			RemoteContext --help-syntax
+			exit 1
+		;;
+		-?*) # bundled single-char flags: -vfi, -cf, etc.
+			local flags=${1#-} ; shift
+			set -- $(echo "$flags" | sed 's/./-& /g') "$@"
+		;;
+		*) break ;;
+	esac done
 
 	# require at least one arg
 	[ ! $# -eq 0 ] || {
@@ -105,8 +101,7 @@ RemoteContext(){
 	set -e
 	local includeTarballs='' includePaths='' includeScripts='' includeCommands=''
 
-	while [ $# -gt 0 ]; do
-	case "$1" in
+	while [ $# -gt 0 ]; do case "$1" in
 		--insert-path)
 			[ -n "$2" ] || { echo "Local: ⛔ ERROR: RemoteContext: $1 needs an argument" >&2; exit 1; }
 			local pair=$2; shift 2
@@ -244,8 +239,7 @@ RemoteContext(){
 		*) 
 			break
 		;;
-	esac
-	done
+	esac done
 
 	if [ -z "$force" ] && [[ -t 1 ]]; then
 		echo "Local: ⛔ ERROR: RemoteContext: This script generates a payload that must be piped into a remote shell. Use --force to proceed or add a pipe." >&2

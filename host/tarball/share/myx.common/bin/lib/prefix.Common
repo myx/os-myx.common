@@ -15,21 +15,19 @@ fi
 
 Prefix(){
 	local verbose prefixLimit prefixElapsed doAsync
-	while [ $# -gt 0 ]; do
-		case "$1" in
-			--verbose|-v) verbose="$1"; shift ;;
-			--elapsed|-e) prefixElapsed="$1"; shift ;;
-			--async|-a) doAsync=' </dev/null & # parallel'; shift ;;
-			--prefix-limit|-l)
-				: "${2:?"⛔ ERROR: $1 <number> - numeric argument is expected!"}"
-				case "$2" in
-					''|*[!0-9]*) echo "⛔ ERROR: $1 expects a numeric value, but got '$2'" >&2 ; exit 1 ;;
-				esac				
-				prefixLimit="$2"; shift 2
-			;;
-			*) break ;;
-		esac
-	done
+	while [ $# -gt 0 ]; do case "$1" in
+		--verbose|-v) verbose="$1"; shift ;;
+		--elapsed|-e) prefixElapsed="$1"; shift ;;
+		--async|-a) doAsync=' </dev/null & # parallel'; shift ;;
+		--prefix-limit|-l)
+			: "${2:?"⛔ ERROR: $1 <number> - numeric argument is expected!"}"
+			case "$2" in
+				''|*[!0-9]*) echo "⛔ ERROR: $1 expects a numeric value, but got '$2'" >&2 ; exit 1 ;;
+			esac				
+			prefixLimit="$2"; shift 2
+		;;
+		*) break ;;
+	esac done
 
 	local PREFTEXT
 

@@ -7,20 +7,18 @@ FetchStdout(){
 	# declare all locals up front
 	local CACHE_ROOT CACHE_WRITE URL CACHE_KEY cmd
 
-	while [ $# -gt 0 ]; do
-		case "$1" in
-			--do-cache) shift; CACHE_WRITE=yes ;;
-  			--local-cache=*) CACHE_ROOT="${1#*=}"; shift ;;
-  			--local-cache) 
-				[ -n "$2" ] || { 
-					echo "⛔ ERROR: FetchStdout: $1: The CACHE_ROOT is required!" >&2; exit 1; 
-				}
-				CACHE_ROOT=$2
-				shift 2
-			;;
-			*) break ;;
-		esac
-	done
+	while [ $# -gt 0 ]; do case "$1" in
+		--do-cache) shift; CACHE_WRITE=yes ;;
+		--local-cache=*) CACHE_ROOT="${1#*=}"; shift ;;
+		--local-cache) 
+			[ -n "$2" ] || { 
+				echo "⛔ ERROR: FetchStdout: $1: The CACHE_ROOT is required!" >&2; exit 1; 
+			}
+			CACHE_ROOT=$2
+			shift 2
+		;;
+		*) break ;;
+	esac done
 
 	# require URL
 	[ -n "$1" ] || { printf '⛔ ERROR: FetchStdout: The URL is required!\n' >&2; exit 1; }

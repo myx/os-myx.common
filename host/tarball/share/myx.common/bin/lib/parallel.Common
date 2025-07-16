@@ -16,16 +16,14 @@ fi
 Parallel(){
 	local PARALLEL_LIMIT=${ENV_PARALLEL_WORKER_COUNT:-4} verbose='+'
 	# parse options
-	while [ $# -gt 0 ]; do
-		case "$1" in
-			--workers=*)	PARALLEL_LIMIT=${1#*=}; shift ;;
-			--workers|-w)	shift; PARALLEL_LIMIT=$1; shift ;;
-			--verbose|-v)   verbose='-'; shift ;;
-			--quiet|-q)   verbose='+'; shift ;;
-			--|--eval) shift; break ;;
-			*) break ;;
-		esac
-	done
+	while [ $# -gt 0 ]; do case "$1" in
+		--workers=*)	PARALLEL_LIMIT=${1#*=}; shift ;;
+		--workers|-w)	shift; PARALLEL_LIMIT=$1; shift ;;
+		--verbose|-v)   verbose='-'; shift ;;
+		--quiet|-q)   verbose='+'; shift ;;
+		--|--eval) shift; break ;;
+		*) break ;;
+	esac done
 
 	[ -n "$verbose" ] || [ -z "$MDSC_DETAIL" ] || verbose='-'
 

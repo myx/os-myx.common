@@ -7,40 +7,38 @@ NotifySlack(){
 	local eventType="unset" eventText="" eventUser="${eventUser:-$(hostname)}" eventEmoji=""
 	local doLogger="" slackBearer="${slackBearer:-$SLACK_TOKEN}" slackChannel="${slackChannel:-$SLACK_TOPIC}"
 
-	while [ "$1" != "" ] ; do
-		case "$1" in
-			--text)
-				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local eventText="$2" ; shift 2
-			;;
-			--bearer)
-				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local slackBearer="$2" ; shift 2
-			;;
-			--channel)
-				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local slackChannel="$2" ; shift 2
-			;;
-			--user)
-				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local eventUser="$2" ; shift 2
-			;;
-			--emoji)
-				[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
-				local eventEmoji="$2" ; shift 2
-			;;
-			--logger)
-				local doLogger="TRUE" ; shift
-			;;
-			--alert|--audit|--track|--debug)
-				local eventType="${1##--}" ; shift
-			;;
-			*)
-				echo "NotifySlack: invalid option: $1" >&2
-				return 1
-			;;
-		esac
-	done
+	while [ $# -gt 0 ]; do case "$1" in
+		--text)
+			[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+			local eventText="$2" ; shift 2
+		;;
+		--bearer)
+			[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+			local slackBearer="$2" ; shift 2
+		;;
+		--channel)
+			[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+			local slackChannel="$2" ; shift 2
+		;;
+		--user)
+			[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+			local eventUser="$2" ; shift 2
+		;;
+		--emoji)
+			[ -z "$2" ] && echo "NotifySlack: argument expected after $1 option" >&2 && return 1
+			local eventEmoji="$2" ; shift 2
+		;;
+		--logger)
+			local doLogger="TRUE" ; shift
+		;;
+		--alert|--audit|--track|--debug)
+			local eventType="${1##--}" ; shift
+		;;
+		*)
+			echo "NotifySlack: invalid option: $1" >&2
+			return 1
+		;;
+	esac done
 
 	if [ -z "$eventText" ] ; then
 		echo "NotifySlack: slack text message is required!" >&2

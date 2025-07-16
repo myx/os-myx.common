@@ -9,18 +9,16 @@ InstallFreebsd(){
 	set -e
 
 	local doClean= doUnattended=yes doDryRun=echo doAllowDhcp=
-	while [ $# -gt 0 ]; do
-		case "$1" in
-			--clean) shift ; doClean=yes ;;
-			--interactive) shift ; doUnattended= ;;
-			--unattended) shift ; doUnattended=yes ;;
-			--apply) shift ; doDryRun= ;;
-			--dry-run) shift ; doDryRun=echo ;;
-			--dhcp) shift ; doAllowDhcp=yes ;;
-			--no-dhcp) shift ; doAllowDhcp= ;;
-		esac
-		break;
-	done
+	while [ $# -gt 0 ]; do case "$1" in
+		--clean) shift ; doClean=yes ;;
+		--interactive) shift ; doUnattended= ;;
+		--unattended) shift ; doUnattended=yes ;;
+		--apply) shift ; doDryRun= ;;
+		--dry-run) shift ; doDryRun=echo ;;
+		--dhcp) shift ; doAllowDhcp=yes ;;
+		--no-dhcp) shift ; doAllowDhcp= ;;
+		*) break ;;
+	esac done
 
 # sanity-check: user is root
 [ `id -u` = 0 ] || { echo "⛔ ERROR: $0: Must be run under root user!" >&2 ; exit 1 ; }
