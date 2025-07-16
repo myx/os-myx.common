@@ -116,7 +116,7 @@ Parallel(){
 				rm -f -- "$ready"
 				ACTIVE=$((ACTIVE - 1))
 				# remove that slot from in-flight list
-				SLOT_PIDS="$(printf '%s\n' $SLOT_PIDS | grep -v "^$slot:")"
+				SLOT_PIDS=$(printf '%s\n' $SLOT_PIDS | grep -v "^$slot:" | tr '\n' ' ')
 			done
 		done
 
@@ -142,7 +142,7 @@ Parallel(){
 		" </dev/null &
 
 		# book-keep: <slotNumber>:<waiterPid>
-		SLOT_PIDS="$SLOT_PIDS $slot:$!"
+		SLOT_PIDS="$slot:$! $SLOT_PIDS"
 		ACTIVE=$((ACTIVE + 1))
 
 	done
