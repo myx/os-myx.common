@@ -93,7 +93,7 @@ Parallel(){
 	mainPid=$!
 
 	[ "$verbose" = '+' ] || {
-		echo ">> Parallel: start, limit:$PARALLEL_LIMIT, command:$PARALLEL_CMD" >&2
+		echo ">> Parallel: [$mainPid] start, limit:$PARALLEL_LIMIT, command:$PARALLEL_CMD" >&2
 	}
 
 	# dispatch loop
@@ -137,7 +137,7 @@ Parallel(){
 				EXITCODE=\$?
 				echo \"⛔ ERROR: exited with error status (\$EXITCODE)\" >&2
 			}
-			touch \"$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot\"
+			touch \"$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot\" || :
 			printf '\n' >&3 || :
 		" </dev/null &
 
@@ -147,12 +147,20 @@ Parallel(){
 
 	done
 
+	[ "$verbose" = '+' ] || {
+		echo ">> Parallel: [$mainPid] all dispatched" >&2
+	}
+
 	#echo "Parallel: all dispatched"
 	exec 4>&- 
 	kill $mainPid 2>/dev/null || :
 	wait $mainPid 2>/dev/null || :
 	exec 3>&- 
 	wait
+
+	[ "$verbose" = '+' ] || {
+		echo ">> Parallel: [$mainPid] done." >&2
+	}
 }
 
 case "$0" in
