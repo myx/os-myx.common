@@ -149,7 +149,7 @@ Parallel(){
 
 	#echo "Parallel: all dispatched"
 	exec 4>&- 
-	kill $mainPid 2>/dev/null
+	kill $mainPid 2>/dev/null || :
 	wait $mainPid 2>/dev/null || :
 	exec 3>&- 
 	wait
