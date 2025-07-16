@@ -45,12 +45,11 @@ if test `id -u` = 0 ; then
 	        	CHOWN="root:wheel"
 				;;
 	        Linux)
-	        	if [ -z "$FETCH" -a -n "`which apt || true`" ] ; then
+	        	if [ -z "$FETCH" ] && command -v apt >/dev/null 2>&1; then
 	        		echo "Using: linux + apt"
 		        	UPACK(){ tar -xzf - --strip-components=3 -C "$1" --wildcards '**/host/tarball/*' ; }
 		        	CHOWN="root:adm"
-		        fi
-	            if [ -z "$FETCH" ] ; then
+		        elif [ -z "$FETCH" ] ; then
 	            	echo "⛔ ERROR: Unknown Linux: $0 '`uname -a`' {'apt' is expected}" >&2
 	            	exit 1
 	            fi
