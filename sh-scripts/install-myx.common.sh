@@ -29,10 +29,10 @@ FetchStdout() {
     exit 1
 }
 
-if test `id -u` = 0 ; then 
+if [ "$( id -u )" = 0 ]; then 
 	echo "installer is in 'root' mode, will install/change os packages/settings..."
 	
-	case "`uname -s`" in
+	case "$( uname -s )" in
 	        Darwin)
 	       		echo "Using: macosx"
 	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
@@ -50,12 +50,12 @@ if test `id -u` = 0 ; then
 		        	UPACK(){ tar -xzf - --strip-components=3 -C "$1" --wildcards '**/host/tarball/*' ; }
 		        	CHOWN="root:adm"
 		        elif [ -z "$FETCH" ] ; then
-	            	echo "⛔ ERROR: Unknown Linux: $0 '`uname -a`' {'apt' is expected}" >&2
+	            	echo "⛔ ERROR: Unknown Linux: $0 '$( uname -a )' {'apt' is expected}" >&2
 	            	exit 1
 	            fi
 				;;
 	        *)
-	            echo "⛔ ERROR: Unknown OS: $0 '`uname -s`' {Darwin/FreeBSD/Linux expected}" >&2
+	            echo "⛔ ERROR: Unknown OS: $0 '$( uname -s )' {Darwin/FreeBSD/Linux expected}" >&2
 	            echo "  Can't choose OS for you. If you wish to forcefully " >&2
 	            echo "  install particular version, try:" >&2
 				echo "  - macosx:  curl --silent -L https://raw.githubusercontent.com/myx/os-myx.common-macosx/master/sh-scripts/install-myx.common-macosx.sh | sh -e" >&2
@@ -110,5 +110,5 @@ else
 	echo "installer is in 'user' mode..."
 
 	test -x "/usr/local/bin/myx.common" || (echo "System-wide 'myx.common' is already installed, skipping (in 'user' mode)." >&2 ; exit 0)
-	test -n "`which myx.common`" || (echo "⛔ ERROR: 'myx.common' is required, can't proceed in 'user' mode!"  >&2 ; exit 1)
+	command -v myx.common >/dev/null 2>&1 || (echo "⛔ ERROR: 'myx.common' is required, can't proceed in 'user' mode!"  >&2 ; exit 1)
 fi
