@@ -22,7 +22,7 @@
 	--workers-x2 | --turbo | --twice-as-hard
 	--workers-x3 | --overclock
 	--workers-x4 | --beast-mode
-                Multiply current worker count limit by 2, 3 or 4. This options are pair 
+                Multiply current worker count limit by 2, 3 or 4. These options pair
                 well with the use of ENV_PARALLEL_WORKER_COUNT environment variable.
 
 
