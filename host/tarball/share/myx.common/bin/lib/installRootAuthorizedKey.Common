@@ -15,7 +15,7 @@ type OsGetUserHome >/dev/null 2>&1 || \
 	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getUserHome.Common"
 
 type OsGetWheelGroupName >/dev/null 2>&1 || \
-	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getWheelGroupName"
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/os/getWheelGroupName.Common"
 
 InstallRootAuthorizedKey(){
 
