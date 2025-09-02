@@ -87,7 +87,7 @@ Parallel(){
 			dd bs=512 count=1 <&4 >/dev/null 2>&1 || :
 
 			# cross-platform poll via `ls -1d`
-			for ready in $(ls -1Ud "$TMPPARALLEL_DIR/$mainPid"-slot-ready.* 2>/dev/null || :); do
+			for ready in $(ls -1fd "$TMPPARALLEL_DIR/$mainPid"-slot-ready.* 2>/dev/null || :); do
 				[ -e "$ready" ] || continue
 				slot="${ready#*-slot-ready.}"
 				if waiter="$(printf '%s\n' $SLOT_PIDS | grep "^$slot:")"; then

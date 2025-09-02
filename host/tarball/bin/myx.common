@@ -20,7 +20,7 @@ fi
 }
 
 set -e
-COMMAND="$( ls -1Ud "$MYXROOT/bin/$1.$(uname -s)" "$MYXROOT/bin/$1.Common" "$MYXROOT/include/obsolete/user/bin/$1" 2>/dev/null | head -n1 || : )"
+COMMAND="$( ls -1fd "$MYXROOT/bin/$1.$(uname -s)" "$MYXROOT/bin/$1.Common" "$MYXROOT/include/obsolete/user/bin/$1" 2>/dev/null | head -n1 || : )"
 if [ -x "$COMMAND" ]; then
 	shift ; set -e
 	exec "$COMMAND" "$@"
