@@ -12,7 +12,7 @@ Which(){
 
 	[ -n "$1" ] || { echo "⛔ ERROR: Which: COMMAND argument is required!" >&2; exit 1; }
 	[ -n "$UNAME" ] || UNAME=$(uname -s)
-	local COMMAND="$( ls -1d "$MYXROOT/bin/$1.$UNAME" "$MYXROOT/bin/$1.Common" "$MYXROOT/include/obsolete/user/bin/$1" 2>/dev/null | head -n1 || : )"
+	local COMMAND="$( ls -1Ud "$MYXROOT/bin/$1.$UNAME" "$MYXROOT/bin/$1.Common" "$MYXROOT/include/obsolete/user/bin/$1" 2>/dev/null | head -n1 || : )"
 	if [ -f "$COMMAND" ]; then
 		echo "$COMMAND"
 		return 0
