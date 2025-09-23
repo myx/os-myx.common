@@ -13,7 +13,7 @@ Provides: \
 	\
 	image-install:exec-update-before:sh-scripts/install-myx.common.sh \
 
-Installs:
+Installs: 
 Compiles: 
 Augments: 
 Suggests: 
