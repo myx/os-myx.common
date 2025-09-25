@@ -42,7 +42,7 @@ GitCloneSync(){
 			if [ "$clonedBranch" != "${specificBranch:-master}" ] && [ "$clonedBranch" != "${specificBranch:-main}" ] ; then
 				echo "GitCloneSync: Switch branches: $clonedBranch -> ${specificBranch:-master}..." >&2
 
-				if ! git diff --quiet "@{push}" HEAD then
+				if ! git diff --quiet "@{push}" HEAD; then
 					if [ "$noPush" != "true" ]; then
 						echo "GitCloneSync: Switch branches: Local branch has changes: will push." >&2
 						git pull
