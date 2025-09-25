@@ -88,9 +88,9 @@ GitCloneSync(){
 	    cd "$tgtPath"
 	    echo "GitCloneSync: 🔂 $tgtPath: updating..." >&2
 	    git remote set-url origin "$repoUrl"
-	    if [ -n "$specificBranch" ] ; then
+	    [ -z "$specificBranch" ] || {
 	    	git checkout $specificBranch
-	    fi
+	    }
 	    git pull
 	    if [ "$noPush" != "true" ] && ! git diff --quiet "@{push}" HEAD ; then
 	    	git push
