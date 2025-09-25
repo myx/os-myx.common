@@ -46,6 +46,11 @@ GitCloneSync(){
 					set +e; return 12
 				}
 
+				if [ -n "$(git status -s)" ] || [ -n "$(git stash list)" ]; then
+					echo "GitCloneSync: 🛑 ERROR: Switch branches: 🙅‍♂️ Local branch has uncommited changes or stashes!" >&2
+					set +e; return 13
+				fi
+
 				if ! git diff --quiet "@{push}" HEAD; then
 					if [ "$noPush" != "true" ]; then
 						echo "GitCloneSync: 🔀 Switch branches: Local branch has changes: will push." >&2
