@@ -21,29 +21,48 @@ GitCloneSync(){
 
 	local specificBranch="$3"
 	
-	local currentPath="`pwd`"
+	local currentPath="$(pwd)"
 	
-	if [ -d "$tgtPath" ] && [ -d "$tgtPath/.git" ] ; then
+	if [ -d "$tgtPath" ]; then
 		cd "$tgtPath"
+
+		# non-git existing folder, init-add-commit-push
 		if [ "$noPush" != "true" ] && [ ! -d ".git" ] && [ "0" = "`git ls-remote --exit-code -h "$repoUrl" ; echo $? | tr '2' '0'`" ] ; then
 			echo "GitCloneSync: Initializing git repository..." >&2
 			git init
 			git remote add origin "$repoUrl"
 			git add .
 			git commit -m "GitCloneSync: Initial commit"
-			git push -u origin master
+			git push -u origin "${specificBranch:-master}"
 		fi
-		if git rev-parse --abbrev-ref HEAD > /dev/null ; then
+
+		# check switch branch (todo: need to check and commit current local changes to previous branch?)
+		if [ -d ".git" ] && git rev-parse --abbrev-ref HEAD > /dev/null ; then
 			local clonedBranch="`git rev-parse --abbrev-ref HEAD`"
 			if [ "$clonedBranch" != "${specificBranch:-master}" ] && [ "$clonedBranch" != "${specificBranch:-main}" ] ; then
 				echo "GitCloneSync: Switch branches: $clonedBranch -> ${specificBranch:-master}..." >&2
+
+				if ! git diff --quiet "@{push}" HEAD then
+					if [ "$noPush" != "true" ] &&  ; then
+						echo "GitCloneSync: Switch branches: Local branch has changes: will push." >&2
+						git pull
+						git push
+					else
+						echo "GitCloneSync: Switch branches: Local branch has changes: will discard." >&2
+					fi
+				fi
+
 				cd "$tgtPath/.."
 				rm -rf "$tgtPath"
+
+				echo "GitCloneSync: Switch branches: Local branch has changes: old checkout deleted." >&2
 			fi
 		fi
+
 		cd "$currentPath"
 	fi
-	if [ ! -d "$tgtPath" ] || [ ! -d "$tgtPath/.git" ] ; then
+
+	if [ ! -d "$tgtPath" ] ; then
 	    echo "GitCloneSync: $tgtPath: creating..." >&2
 	    mkdir -p "$tgtPath"
 		if [ -n "$specificBranch" ] ; then
@@ -54,7 +73,8 @@ GitCloneSync(){
 		    return 1
 		fi
 	fi
-    if [ "$noWrite" != "true" ] && [ ! -f "$tgtPath/README.md" -a ! -f "$tgtPath/README.MD" ] ; then
+
+    if [ "$noWrite" != "true" ] && [ ! -f "$tgtPath/README.md" ] && [ ! -f "$tgtPath/README.MD" ] ; then
         cd "$tgtPath"
         touch README.md
         git add README.md
@@ -62,6 +82,7 @@ GitCloneSync(){
         git push -u
 		cd "$currentPath"
     fi
+
 	if [ -d "$tgtPath" ] ; then
 	    cd "$tgtPath"
 	    echo "GitCloneSync: $tgtPath: updating..." >&2
