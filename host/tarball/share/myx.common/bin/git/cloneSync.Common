@@ -58,7 +58,7 @@ GitCloneSync(){
 				cd "$currentPath"
 				rm -rf "$tgtPath"
 
-				echo "GitCloneSync: 🔀 Switch branches: Local branch has changes: old checkout deleted." >&2
+				echo "GitCloneSync: 🔀 Switch branches: previous checkout deleted." >&2
 			fi
 		fi
 
