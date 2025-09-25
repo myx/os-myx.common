@@ -37,10 +37,13 @@ GitCloneSync(){
 		fi
 
 		# check switch branch (todo: need to check and commit current local changes to previous branch?)
-		if [ -d ".git" ] && git rev-parse --abbrev-ref HEAD > /dev/null ; then
-			local clonedBranch="`git rev-parse --abbrev-ref HEAD`"
-			if [ "$clonedBranch" != "${specificBranch:-master}" ] && [ "$clonedBranch" != "${specificBranch:-main}" ] ; then
-				echo "GitCloneSync: 🔀 Switch branches: $clonedBranch -> ${specificBranch:-master}..." >&2
+		local clonedBranch ; if [ -n "$specificBranch" ] && [ -d ".git" ] && clonedBranch=$( git rev-parse --abbrev-ref HEAD ) ; then
+			if [ "$clonedBranch" != "$specificBranch" ] ; then
+				echo "GitCloneSync: 🔀 Switch branches: $clonedBranch -> ${specificBranch}..." >&2
+				git ls-remote --heads origin "$specificBranch" | grep -q . || {
+					echo "GitCloneSync: 🛑 ERROR: Switch branches: specified remote branch does not exist: $specificBranch..." >&2
+					set +e; return 12
+				}
 
 				if ! git diff --quiet "@{push}" HEAD; then
 					if [ "$noPush" != "true" ]; then
@@ -65,9 +68,7 @@ GitCloneSync(){
 	if [ ! -d "$tgtPath" ] ; then
 	    echo "GitCloneSync: ⤵️ $tgtPath: creating..." >&2
 	    mkdir -p "$tgtPath"
-		if [ -n "$specificBranch" ] ; then
-			local GIT_BRANCH_OPT="--branch $specificBranch"
-		fi
+		local GIT_BRANCH_OPT= ; [ -z "$specificBranch" ] || GIT_BRANCH_OPT="--branch $specificBranch"
 		if ! git clone $GIT_BRANCH_OPT "$repoUrl" "$tgtPath" ; then
 		    rm -rf "$tgtPath"
 		    return 1
