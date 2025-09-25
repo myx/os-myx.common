@@ -5,13 +5,14 @@
 GitCloneSync(){
 	set -e
 
+	local noWrite= noPush=
 	if [ "$1" = "--no-write" ] ; then
-		local noWrite=true
+		noWrite=true
 		shift
 	fi
 	if [ "$1" = "--no-push" ] ; then
-		local noWrite=true
-		local noPush=true
+		noWrite=true
+		noPush=true
 		shift
 	fi
 
@@ -37,7 +38,7 @@ GitCloneSync(){
 		fi
 
 		# check switch branch (todo: need to check and commit current local changes to previous branch?)
-		local clonedBranch ; if [ -n "$specificBranch" ] && [ -d ".git" ] && clonedBranch=$( git rev-parse --abbrev-ref HEAD ) ; then
+		local clonedBranch= ; if [ -n "$specificBranch" ] && [ -d ".git" ] && clonedBranch=$( git rev-parse --abbrev-ref HEAD ) ; then
 			if [ "$clonedBranch" != "$specificBranch" ] ; then
 				echo "GitCloneSync: 🔀 Switch branches: $clonedBranch -> ${specificBranch}..." >&2
 				git ls-remote --heads origin "$specificBranch" | grep -q . || {
