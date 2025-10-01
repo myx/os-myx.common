@@ -1,4 +1,4 @@
 echo '📘 Syntax: myx.common lib/prefix [...<option>] <prefix-spec> <command> [...<command-argument>]' >&2
-echo '📘 Syntax: myx.common lib/prefix [--verbose|-v] [--elapsed|-e] [--prefix-limit <number>] --|-1|-2|-3|<prefix-text> <command> [...<command-argument>]' >&2
+echo '📘 Syntax: myx.common lib/prefix [-v] [-e] [-a] [-o] [--prefix-limit <number>] --|-1|-2|-3|<prefix-text> <command> [...<command-argument>]' >&2
 echo '📘 Syntax: myx.common lib/prefix --help' >&2
 [ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/prefix.help.md" >&2

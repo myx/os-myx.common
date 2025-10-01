@@ -6,7 +6,7 @@ if type Prefix >/dev/null 2>&1 ; then
 	return 0
 fi
 
-[ -n "${SedLineReader-}" ] || \
+[ -n "$SedLineReader" ] || \
 	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/sedLineReader.${MYXUNIX:-$( uname -s )}"
 
 # type Unbuffer >/dev/null 2>&1 || \
@@ -14,10 +14,11 @@ fi
 
 
 Prefix(){
-	local verbose prefixLimit prefixElapsed doAsync
+	local verbose prefixLimit prefixElapsed doBoth doAsync
 	while [ $# -gt 0 ]; do case "$1" in
 		--verbose|-v) verbose="$1"; shift ;;
 		--elapsed|-e) prefixElapsed="$1"; shift ;;
+		--stdout|-o) doBoth=Y; shift ;;
 		--async|-a) doAsync=' </dev/null & # parallel'; shift ;;
 		--prefix-limit|-l)
 			: "${2:?"⛔ ERROR: $1 <number> - numeric argument is expected!"}"
@@ -54,12 +55,22 @@ Prefix(){
 
 	set -e
 
-    [ -z "$verbose" ] || echo "$PREFTEXT: starting..."
-	eval '{ 
-		( "$@" 2>&1 && { [ -z "$verbose" ] || echo "." ; } \
-    		|| { EXITCODE=$? ; set +x ; echo "⛔ ERROR: exited with error status ($EXITCODE)" ; exit $EXITCODE ; } \
-   		) | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2 
-	}' $doAsync
+    [ -z "$verbose" ] || echo "$PREFTEXT: starting..." >&2
+	if [ -z "$doBoth" ]; then
+	eval '( 
+		set -e; set -o pipefail || :; exec 5>&1; { { "$@"; } 1>&5 \
+			&& { [ -z "$verbose" ] || echo .; } \
+			|| { EXITCODE=$?; set +x; echo "⛔ ERROR: exited with error status ($EXITCODE)"; exit $EXITCODE; }
+		} 2>&1 | $SedLineReader -e "s^\^^$PREFTEXT: ^" >&2 5>&1
+	) ' $doAsync
+	return 0
+	fi
+	eval '( 
+		set -o pipefail || :; { { "$@"; } 2>&1 \
+			&& { [ -z "$verbose" ] || echo .; } \
+    		|| { EXITCODE=$?; set +x; echo "⛔ ERROR: exited with error status ($EXITCODE)"; exit $EXITCODE; }
+   		} | $SedLineReader -e "s^\^^$PREFTEXT: ^" 1>&2 
+	) ' $doAsync
 }
 
 case "$0" in

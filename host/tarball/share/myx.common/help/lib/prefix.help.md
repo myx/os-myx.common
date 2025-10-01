@@ -33,12 +33,18 @@
 
             Adds elapsed time '00000.000' to each prefixed line.
 
+    -o
+    --stdout
+
+            By default, only 'stderr' is preffixed. Use `-o` option to prefix command's 
+            'stdout' as well.
+
     -a
     --async
 
-            Starts process in backgroud allowing to start multiple prefixed processed
-            and so something or `wait` until all finish. Equivalent to adding code
-            ` </dev/null &` to myx.common lib/prefix command.
+            Starts process in backgroud allowing to start multiple prefixed processes, and
+            then use `wait` at the point you want stop until they all finished. Equivalent 
+            to adding code ` </dev/null &` to `myx.common lib/prefix` command.
 
     -l <number>
     --prefix-limit <number>
@@ -48,7 +54,7 @@
 
   Examples:
 
-    myx.common lib/prefix -e -2 mybuild.sh svc11.myserver.example.org
+    myx.common lib/prefix -v -e -2 mybuild.sh svc11.myserver.example.org
 
-    myx.common lib/prefix -v -e "countdown" sh -c "for i in 1 2 3 4 5 ; do sleep .25; echo ...; done"
+    myx.common lib/prefix -e -o "countdown" sh -c "for i in 1 2 3 4 5 ; do sleep .25; echo ...; done"
 
