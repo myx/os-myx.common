@@ -40,7 +40,7 @@ TuneZfsQuarterCache(){
 	
 	if [ "--remove" = "$1" ] ; then
 		rm /usr/local/etc/rc.d/myx-common-zfs-quarter-cache
-		sysrc -X mczfsqc_enable || true
+		sysrc -X mczfsqc_enable || :
 		echo "MC-ZFS-QC: rc script removed: /usr/local/etc/rc.d/myx-common-zfs-quarter-cache" >&2
 		return 0
 	fi

@@ -26,7 +26,7 @@ InstallUser(){
 
 	if getent passwd "$NAME" > /dev/null 2>&1; then
 		echo "Using existing user '$NAME'."
-		usermod "$NAME" -g "$NAME" -c "$TITLE" -d "$UHOME" -s /bin/bash || true
+		usermod "$NAME" -g "$NAME" -c "$TITLE" -d "$UHOME" -s /bin/bash || :
 	else 
 		echo "Creating user '$NAME'."
 		useradd --system "$NAME" -g "$NAME" ${UGID:+--uid $UGID} -c "$TITLE" -d "$UHOME" -s /bin/bash

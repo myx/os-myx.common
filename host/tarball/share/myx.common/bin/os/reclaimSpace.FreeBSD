@@ -4,7 +4,7 @@
 
 ReclaimSpace(){
 	[ `id -u` = 0 ] || { echo "⛔ ERROR: $0: Must be run under root user!" >&2 ; exit 1 ; }
-	[ -n "`which pkg || true`" ] || { echo "⛔ ERROR: $0: pkg is required!" >&2 ; exit 1 ; }
+	[ -n "`which pkg || :`" ] || { echo "⛔ ERROR: $0: pkg is required!" >&2 ; exit 1 ; }
 
 	echo "ReclaimSpace: cleaning stale files in /tmp..." >&2
 	find /tmp/ -type f -mtime +31 -delete

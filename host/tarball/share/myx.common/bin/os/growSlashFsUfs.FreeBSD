@@ -77,7 +77,7 @@ OsGrowSlashFsUfs(){
 	echo "Current size: ${SIZE_NOW}G" >&2
 
 	if [ "$SWAP" != "" ] ; then
-		swapoff -a || true
+		swapoff -a || :
 		gpart delete -i $SWAP $PART
 		
 		## TODO: calculate new size and check that it is bigger than current
@@ -88,7 +88,7 @@ OsGrowSlashFsUfs(){
 		
 		echo "New size: ${SIZE_NEW}G" >&2
 		
-		gpart resize -i $INDX -s ${SIZE_NEW}G $PART || true
+		gpart resize -i $INDX -s ${SIZE_NEW}G $PART || :
 		 
 		gpart add -t freebsd-swap -a 4k $PART
 		swapon -a

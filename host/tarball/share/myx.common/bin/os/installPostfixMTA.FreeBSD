@@ -78,7 +78,7 @@ OsInstallPostfixMTA(){
 
 	newaliases
 	service sendmail onestop > /dev/null || echo "sendmail is not running (which is good)"
-	postconf compatibility_level=2 || true
+	postconf compatibility_level=2 || :
 	service postfix restart
 }
 

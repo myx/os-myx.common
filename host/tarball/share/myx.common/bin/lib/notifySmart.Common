@@ -74,7 +74,7 @@ NotifySmart(){
 				-H "Content-Type: application/json; charset=utf-8" \
 				-H "Authorization: Bearer ${slackBearer}" \
 				2>&1 >> /dev/null \
-			|| true \
+			|| : \
 		) <<- RESTJSON
 			{
 				"text": "$( echo -n "$eventText" | sed -e 's/\"/\\\"/g;s/\r/\\\r/g;s/\n/\\\n/g' )", 

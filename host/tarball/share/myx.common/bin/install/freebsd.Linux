@@ -386,7 +386,7 @@ cleanup() {
 		umount "$TEMPDIR"
 	fi
 
-	rmdir "${WORKDIR-}" "${TEMPDIR-}" 2>/dev/null || true
+	rmdir "${WORKDIR-}" "${TEMPDIR-}" 2>/dev/null || :
 }
 
 # Trap EXIT so cleanup always runs
@@ -396,7 +396,7 @@ trap cleanup EXIT
 if [ "$SPACE_CONSTRAINS" = "tiny" ]; then
 	TEMPDIR=/tmp/freebsd-install-ramfs
 
-	umount "$WORKDIR" 2>/dev/null || true
+	umount "$WORKDIR" 2>/dev/null || :
 
 	mkdir -p "$TEMPDIR" "$WORKDIR"
 
@@ -405,13 +405,13 @@ if [ "$SPACE_CONSTRAINS" = "tiny" ]; then
 
 		mount -t ramfs ramfs "$TEMPDIR"
 
-		modprobe btrfs 2>/dev/null || true
+		modprobe btrfs 2>/dev/null || :
 		truncate -s 1G "$TEMPDIR/container.img"
 
 		# ← NEW: clear any stale loop mounts so mkfs won’t refuse “device is mounted”
 		for ld in $(losetup --all | cut -d: -f1); do
-			umount "$ld" 2>/dev/null || true
-			losetup -d "$ld" 2>/dev/null || true
+			umount "$ld" 2>/dev/null || :
+			losetup -d "$ld" 2>/dev/null || :
 		done
 
 		LOOPDEV=$(losetup --find --show "$TEMPDIR/container.img")

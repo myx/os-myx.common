@@ -71,9 +71,9 @@ if [ "$( id -u )" = 0 ]; then
     if command -v rsync >/dev/null 2>&1 && [ -d "/usr/local/share/myx.common/" ] ; then
     	echo "Using: rsync"
     	rsync -rltOi --no-motd "$T_DIR/bin/myx.common" "/usr/local/bin/myx.common" 2>&1 \
-		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || true)
+		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || :)
     	rsync -rltOi --no-motd --delete "$T_DIR/share/myx.common/" "/usr/local/share/myx.common/" 2>&1 \
-		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || true)
+		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || :)
     else
     	echo "Using: tar-tar"
 	   	tar -cpf - -C "$T_DIR" $( ls "$T_DIR" ) | tar -xvpf - -C "/usr/local/"

@@ -13,19 +13,19 @@ type SetSysctlConf >/dev/null 2>&1 || \
 TuneNetworkProtect(){
 	set -e
 	
-	SetSysctlConf net.inet.tcp.blackhole 2 || true
-	SetSysctlConf net.inet.udp.blackhole 1 || true
-	SetSysctlConf net.inet.ip.redirect 0 || true
-	SetSysctlConf net.inet6.ip6.redirect 0 || true
+	SetSysctlConf net.inet.tcp.blackhole 2 || :
+	SetSysctlConf net.inet.udp.blackhole 1 || :
+	SetSysctlConf net.inet.ip.redirect 0 || :
+	SetSysctlConf net.inet6.ip6.redirect 0 || :
 
-	SetSysctlConf net.inet.icmp.drop_redirect 1 || true
+	SetSysctlConf net.inet.icmp.drop_redirect 1 || :
 
-	SetSysctlConf net.inet.tcp.syncache.rexmtlimit 1 || true
-	SetSysctlConf net.inet.tcp.always_keepalive 0 || true
-	SetSysctlConf net.inet.tcp.drop_synfin 1 || true
+	SetSysctlConf net.inet.tcp.syncache.rexmtlimit 1 || :
+	SetSysctlConf net.inet.tcp.always_keepalive 0 || :
+	SetSysctlConf net.inet.tcp.drop_synfin 1 || :
 
-	SetSysctlConf net.inet.ip.rtexpire 10 || true
-	SetSysctlConf net.inet.ip.rtminexpire 10 || true
+	SetSysctlConf net.inet.ip.rtexpire 10 || :
+	SetSysctlConf net.inet.ip.rtminexpire 10 || :
 }
 
 

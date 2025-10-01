@@ -73,18 +73,18 @@ SetupIpfwOpen(){
 
 			${fwcmd} add 65000 allow ip from any to any
 			
-			[ -s /usr/local/etc/ipfw-system.sh ] && . /usr/local/etc/ipfw-system.sh || true ## myx-system-ipfw
-			[ -s /usr/local/etc/ipfw-custom.sh ] && . /usr/local/etc/ipfw-custom.sh || true ## myx-ipfw-custom
+			[ -s /usr/local/etc/ipfw-system.sh ] && . /usr/local/etc/ipfw-system.sh || : ## myx-system-ipfw
+			[ -s /usr/local/etc/ipfw-custom.sh ] && . /usr/local/etc/ipfw-custom.sh || : ## myx-ipfw-custom
 		EOF
 	fi 
 	
-	ReplaceLine /usr/local/etc/ipfw.sh ' || true ## myx-system-ipfw$' '[ -s /usr/local/etc/ipfw-system.sh ] && . /usr/local/etc/ipfw-system.sh || true ## myx-system-ipfw'
-	ReplaceLine /usr/local/etc/ipfw.sh ' || true ## myx-ipfw-custom$' '[ -s /usr/local/etc/ipfw-custom.sh ] && . /usr/local/etc/ipfw-custom.sh || true ## myx-ipfw-custom'
+	ReplaceLine /usr/local/etc/ipfw.sh ' || : ## myx-system-ipfw$' '[ -s /usr/local/etc/ipfw-system.sh ] && . /usr/local/etc/ipfw-system.sh || : ## myx-system-ipfw'
+	ReplaceLine /usr/local/etc/ipfw.sh ' || : ## myx-ipfw-custom$' '[ -s /usr/local/etc/ipfw-custom.sh ] && . /usr/local/etc/ipfw-custom.sh || : ## myx-ipfw-custom'
 	
 	chown root:wheel /usr/local/etc/ipfw.sh /usr/local/etc/ipfw-*.sh
 	chmod ug=rwx,o= /usr/local/etc/ipfw.sh /usr/local/etc/ipfw-*.sh
 	
-	kldload ipfw_nat || true
+	kldload ipfw_nat || :
 	
 	##
 	## Must work without breaking current ssh session
@@ -94,7 +94,7 @@ SetupIpfwOpen(){
 	
 	service ipfw restart || service ipfw onestart
 	
-	# echo 'service ipfw restart || service ipfw onestart || true ; sleep 1' | sh -c 'eval "`cat`"'
+	# echo 'service ipfw restart || service ipfw onestart || : ; sleep 1' | sh -c 'eval "`cat`"'
 }
 
 

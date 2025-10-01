@@ -16,8 +16,8 @@ SetupServerNtpdSvc(){
 	chown ntpd:ntpd /var/db/ntp/ntpd.pid
 	service ntpd stop || echo "ntpd daemon is not running!"
 	sleep 1
-	ntpdate -u -b pool.ntp.org || true
-	service ntpd start || true
+	ntpdate -u -b pool.ntp.org || :
+	service ntpd start || :
 }
 
 

@@ -30,19 +30,19 @@ SetSysctlConf(){
 	
 		if [ "$GROW" = "TRUE" ] ; then
 			if [ "$VALUE" -gt "$CURRENT" ] ; then 
-				sysctl "$PARAM=$VALUE" && ReplaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE" || true
+				sysctl "$PARAM=$VALUE" && ReplaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE" || :
 			fi
 			return 0
 		fi
 		if [ "$SHRINK" = "TRUE" ] ; then
 			if [ "$VALUE" -lt "$CURRENT" ] ; then 
-				sysctl "$PARAM=$VALUE" && ReplaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE" || true
+				sysctl "$PARAM=$VALUE" && ReplaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE" || :
 			fi
 			return 0
 		fi
 	
 		if [ "$VALUE" != "$CURRENT" ] ; then 
-			sysctl "$PARAM=$VALUE" && ReplaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE" || true
+			sysctl "$PARAM=$VALUE" && ReplaceLine /etc/sysctl.conf "^$PARAM=*" "$PARAM=$VALUE" || :
 		fi
 	else
 	
