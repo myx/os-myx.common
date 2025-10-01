@@ -6,12 +6,6 @@ if type Parallel >/dev/null 2>&1 ; then
 	return 0
 fi
 
-[ -n "$SedLineReader" ] || \
-	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/sedLineReader.${MYXUNIX:-$( uname -s )}"
-
-# type Unbuffer >/dev/null 2>&1 || \
-#	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/unbuffer.Common"
-
 ##### simple POSIX “Parallel” xargs replacement #####
 Parallel(){
 	local WORKERS=${ENV_PARALLEL_WORKER_COUNT:-4} verbose='+'
@@ -133,6 +127,7 @@ Parallel(){
 	}
 
 	#echo "Parallel: all dispatched"
+	printf '\n' >&3 || :
 	exec 4>&- 
 	kill $mainPid 2>/dev/null || :
 	wait $mainPid 2>/dev/null || :
