@@ -9,6 +9,9 @@
 			Note: Works best with long-running (1 second or longer) tasks. Not that
 			efficient to run something tiny.
 
+			The special feature is that this utility in includable into shell scripts
+			and allows running local shell context functions is parallel (see example).
+
   Options:
 
     -v
