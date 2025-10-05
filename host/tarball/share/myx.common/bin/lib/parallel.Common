@@ -67,9 +67,7 @@ Parallel(){
  	} &
 	mainPid=$!
 
-	[ "$verbose" = '+' ] || {
-		echo ">> Parallel: [$mainPid] start, limit:$WORKERS, command:$PARALLEL_CMD" >&2
-	}
+	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit:$WORKERS, command:$PARALLEL_CMD" >&2
 
 	# dispatch loop
 	while IFS= read -r PARALLEL_LINE 2>/dev/null; do
@@ -122,9 +120,7 @@ Parallel(){
 
 	done
 
-	[ "$verbose" = '+' ] || {
-		echo ">> Parallel: [$mainPid] all dispatched" >&2
-	}
+	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] all dispatched" >&2
 
 	#echo "Parallel: all dispatched"
 	printf '\n' >&3 || :
@@ -134,9 +130,7 @@ Parallel(){
 	exec 3>&- 
 	wait
 
-	[ "$verbose" = '+' ] || {
-		echo ">> Parallel: [$mainPid] done." >&2
-	}
+	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] done." >&2
 }
 
 case "$0" in

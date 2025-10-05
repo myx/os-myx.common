@@ -1,0 +1,50 @@
+#!/bin/sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+
+if type Iterate >/dev/null 2>&1 ; then
+	return 0
+fi
+
+Iterate(){
+	local verbose='+'
+	# parse options
+	while [ $# -gt 0 ]; do case "$1" in
+		--verbose|-v)   verbose='-'; shift ;;
+		--quiet|-q)   verbose='+'; shift ;;
+		--|--eval) shift; break ;;
+		*) break ;;
+	esac done
+
+	[ -n "$verbose" ] || [ -z "$MDSC_DETAIL" ] || verbose='-'
+
+	local PARALLEL_LINE PARALLEL_CMD="$@"
+	[ -n "$PARALLEL_CMD" ] || PARALLEL_CMD=eval
+
+	[ "$verbose" = '+' ] || echo ">> Iterate: start, command:$PARALLEL_CMD" >&2
+
+	while IFS= read -r PARALLEL_LINE 2>/dev/null; do
+		eval " 
+			( set -e ${verbose}x; {
+				$PARALLEL_CMD $PARALLEL_LINE 
+			} ) || {
+				EXITCODE=\$?
+				echo \"⛔ ERROR: exited with error status (\$EXITCODE)\" >&2
+			}
+		" </dev/null &
+		wait
+	done
+
+	[ "$verbose" = '+' ] || echo ">> Iterate: all dispatched, done" >&2
+}
+
+case "$0" in
+	*/myx.common/bin/lib/iterate.Common) 
+		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/iterate.help.include" >&2
+			exit 1
+		fi
+		set -e
+		Iterate "$@"
+	;;
+esac
