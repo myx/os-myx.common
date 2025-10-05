@@ -4,7 +4,10 @@
     <command> [...<command-argument>]
 
             The command to execute in parallel, providing extra arguments from stdin
-            lines.
+            lines. 
+			
+			Note: Works best with long-running (1 second or longer) tasks. Not that
+			efficient to run something tiny.
 
   Options:
 
