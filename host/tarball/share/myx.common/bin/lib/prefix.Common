@@ -23,7 +23,7 @@ Prefix(){
 		--prefix-limit|-l)
 			: "${2:?"⛔ ERROR: $1 <number> - numeric argument is expected!"}"
 			case "$2" in
-				''|*[!0-9]*) echo "⛔ ERROR: $1 expects a numeric value, but got '$2'" >&2 ; exit 1 ;;
+				''|*[!0-9]*) echo "⛔ ERROR: $1 expects a numeric value, but got '$2'" >&2 ; return 1 ;;
 			esac				
 			prefixLimit="$2"; shift 2
 		;;
@@ -33,7 +33,7 @@ Prefix(){
 	local PREFTEXT
 
 	case "$1" in
-			"") echo "⛔ ERROR: prefix: prefix text argument is required!" >&2 ; exit 1 ;;
+			"") echo "⛔ ERROR: prefix: prefix text argument is required!" >&2 ; return 1 ;;
 	        -1) PREFTEXT="$( basename "$2" )" ; shift ;;
 	        -2) PREFTEXT="$( basename "$3" )" ; shift ;;
 	        -3) PREFTEXT="$( basename "$4" )" ; shift ;;
@@ -50,6 +50,11 @@ Prefix(){
 		PREFTEXT="$( printf %s "$PREFTEXT" | tr '^' '-' | tr -d '\n' )"
 	fi
 	
+	if [ ! $# -gt 0 ]; then
+		echo "⛔ ERROR: prefix: <command ...> expected" >&2
+		return 1
+	fi
+
 	#!/usr/bin/env bash
 	# local PREFTEXT="` tr '^' '-' <<<"$PREFTEXT" | tr -d '\n' `"
 
@@ -80,7 +85,6 @@ case "$0" in
 			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/prefix.help.include" >&2
 			exit 1
 		fi
-		set -e
 		Prefix "$@"
 	;;
 esac
