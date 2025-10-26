@@ -43,7 +43,7 @@ Parallel(){
 
 	# runtime state
 	local ACTIVE=0
-	local SLOT_PIDS=''   # “slot:waiterPid” pairs, e.g. “1:1234 2:1235”
+	local SLOT_PIDS=   # “slot:waiterPid” pairs, e.g. “1:1234 2:1235”
 
 	local PARALLEL_LINE ready slotspec slot mainPid
 
@@ -67,6 +67,8 @@ Parallel(){
 	mainPid=$!
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit:$WORKERS, command:$PARALLEL_CMD" >&2
+
+	local ready slot
 
 	# dispatch loop
 	while IFS= read -r PARALLEL_LINE 2>/dev/null; do
@@ -93,10 +95,10 @@ Parallel(){
 		done
 
 		# pick the lowest free slot
-		for i in $(seq 1 "$WORKERS"); do
+		for ready in $(seq 1 "$WORKERS"); do
 			case " $SLOT_PIDS " in
-				*" $i:"*) ;;                # in use
-				*) slot=$i; break;;
+				*" $ready:"*) ;;                # in use
+				*) slot=$ready; break;;
 			esac
 		done
 
@@ -109,7 +111,7 @@ Parallel(){
 				EXITCODE=\$?
 				echo \"⛔ ERROR: exited with error status (\$EXITCODE)\" >&2
 			}
-			touch \"$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot\" || :
+			touch '$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot' || :
 			printf '\n' >&3 || :
 		" </dev/null &
 
