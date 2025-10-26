@@ -93,7 +93,7 @@ Parallel(){
 			[ "$ACTIVE" -ge "$WORKERS" ] || break
 
 			# sleep intil running job(s) finished
-			dd bs=512 count=1 <&4 >/dev/null 2>&1 || :
+			dd bs=256 count=1 <&4 >/dev/null 2>&1 || :
 
 		done
 
