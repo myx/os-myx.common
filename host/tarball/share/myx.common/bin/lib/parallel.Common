@@ -109,16 +109,16 @@ Parallel(){
 
 
 		# one-time waiter for this job+slot, captures main loop pid, job pid, and slot as constants
-		eval " 
-			( set -e ${verbose}x; {
+		( eval " 
+			set -e ${verbose}x; {
 				$PARALLEL_CMD $PARALLEL_LINE 
-			} ) || {
+			} || {
 				EXITCODE=\$?
 				echo \"⛔ ERROR: exited with error status (\$EXITCODE)\" >&2
 			}
 			touch '$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot' || :
 			printf '\n' >&3 || :
-		" </dev/null &
+		" ) </dev/null &
 
 		# book-keep: <slotNumber>:<waiterPid>
 		SLOT_PIDS="$slot:$! $SLOT_PIDS"
