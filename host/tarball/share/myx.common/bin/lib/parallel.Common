@@ -76,9 +76,6 @@ Parallel(){
 		# throttle: wait for any slot to free if we’re at limit
 		while [ "$ACTIVE" -ge "$WORKERS" ]; do
 
-			# sleep intil running job(s) finished
-			dd bs=512 count=1 <&4 >/dev/null 2>&1 || :
-
 			# cross-platform poll via `ls -1d`
 			for ready in $(ls -1fd "$TMPPARALLEL_DIR/$mainPid"-slot-ready.* 2>/dev/null || :); do
 				[ -e "$ready" ] || continue
@@ -92,6 +89,12 @@ Parallel(){
 				# remove that slot from in-flight list
 				SLOT_PIDS=$(printf '%s\n' $SLOT_PIDS | grep -v "^$slot:" | tr '\n' ' ')
 			done
+
+			[ "$ACTIVE" -ge "$WORKERS" ] || break
+
+			# sleep intil running job(s) finished
+			dd bs=512 count=1 <&4 >/dev/null 2>&1 || :
+
 		done
 
 		# pick the lowest free slot
