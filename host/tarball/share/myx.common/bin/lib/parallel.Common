@@ -92,7 +92,9 @@ Parallel(){
 			[ "$ACTIVE" -ge "$WORKERS" ] || break
 
 			# sleep intil running job(s) finished
-			dd bs=128 count=1 <&4 >/dev/null 2>&1 || :
+			if ! dd bs=128 count=1 <&4 >/dev/null 2>&1; then
+				break 2
+			fi
 
 		done
 
