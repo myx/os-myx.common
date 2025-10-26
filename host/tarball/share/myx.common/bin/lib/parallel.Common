@@ -58,7 +58,7 @@ Parallel(){
 
 	{
 		while dd bs=256 count=1 <&3 >/dev/null 2>&1; do 
-			if ! printf '\n' >&4; then
+			if ! echo >&4; then
 				break
 			fi
 		done
@@ -117,7 +117,7 @@ Parallel(){
 				}
 				touch '$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot' || :
 			" 
-			printf '\n' >&3 || :
+			echo >&3 || :
 		} </dev/null &
 
 		# book-keep: <slotNumber>:<waiterPid>
