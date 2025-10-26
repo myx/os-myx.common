@@ -132,10 +132,10 @@ Parallel(){
 
 	#echo "Parallel: all dispatched"
 	exec 4>&- || :
-	printf '\n' >&3 || :
+	echo >&3 || :
+	exec 3>&- || :
 	kill $mainPid 2>/dev/null || :
 	wait $mainPid 2>/dev/null || :
-	exec 3>&- || :
 	wait || :
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] done." >&2
