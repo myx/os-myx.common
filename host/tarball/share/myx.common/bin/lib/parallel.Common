@@ -58,7 +58,9 @@ Parallel(){
 
 	{
 		while true; do 
-			dd bs=256 count=1 <&3 >/dev/null 2>&1 || :
+			if ! dd bs=256 count=1 <&3 >/dev/null 2>&1; then
+				break
+			fi
 			if ! printf '\n' >&4; then
 				break
 			fi
