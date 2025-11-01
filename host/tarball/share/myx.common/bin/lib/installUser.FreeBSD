@@ -1,7 +1,6 @@
 #!/bin/sh
 
 set -e
-#set -x
 
 type UserRequireRoot >/dev/null 2>&1 || \
 	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"

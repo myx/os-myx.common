@@ -3,7 +3,6 @@
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
 set -e
-#set -x
 
 . ${0%/*}/../../include/out.sh
 
