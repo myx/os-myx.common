@@ -66,7 +66,7 @@ Parallel(){
  	} &
 	mainPid=$!
 
-	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit:$WORKERS, command:$PARALLEL_CMD" >&2
+	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
 
 	local ready slot
 
@@ -113,12 +113,7 @@ Parallel(){
 			set -e
 			[ "$verbose" = '+' ] || echo ">> Parallel: exec: $PARALLEL_CMD $PARALLEL_LINE " >&2
 			eval " 
-				{
-					$PARALLEL_CMD $PARALLEL_LINE 
-				} || {
-					EXITCODE=\$?
-					echo \"⛔ ERROR: exited with error status (\$EXITCODE)\" >&2
-				}
+				( $PARALLEL_CMD $PARALLEL_LINE ) || echo \"⛔ ERROR: exited with error status (\$?)\" >&2
 				touch '$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot' || :
 			" 
 			echo >&3 || :
