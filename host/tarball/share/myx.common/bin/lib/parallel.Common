@@ -111,12 +111,13 @@ Parallel(){
 		# one-time waiter for this job+slot, captures main loop pid, job pid, and slot as constants
 		{
 			set -e
-			[ "$verbose" = '+' ] || echo ">> Parallel: exec: $PARALLEL_CMD $PARALLEL_LINE " >&2
+			[ "$verbose" = '+' ] || echo ">> Parallel: exec: [$slot] $PARALLEL_CMD $PARALLEL_LINE" >&2
 			eval " 
 				( $PARALLEL_CMD $PARALLEL_LINE ) || echo \"⛔ ERROR: exited with error status (\$?)\" >&2
 				touch '$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot' || :
 			" 
 			echo >&3 || :
+			[ "$verbose" = '+' ] || echo ">> Parallel: done: [$slot]" >&2
 		} </dev/null &
 
 		# book-keep: <slotNumber>:<waiterPid>
