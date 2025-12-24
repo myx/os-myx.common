@@ -61,7 +61,7 @@ Parallel(){
 		if ! echo >&4; then
 			break
 		fi
-	done &
+	done 2>/dev/null &
 	mainPid=$!
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
@@ -128,10 +128,10 @@ Parallel(){
 
 	#echo "Parallel: all dispatched"
 	exec 4>&- || :
-	#kill $mainPid 2>/dev/null || :
 	echo >&3 || :
 	exec 3>&- || :
 	pkill -P $mainPid 2>/dev/null || :
+	kill $mainPid 2>/dev/null || :
 	wait $mainPid 2>/dev/null || :
 	wait || :
 
