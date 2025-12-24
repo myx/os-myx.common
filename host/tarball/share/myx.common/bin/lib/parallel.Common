@@ -57,8 +57,15 @@ Parallel(){
 	exec 4<>"$FIFO_MAIN" 
 	rm -- "$FIFO_CRTL" "$FIFO_MAIN"
 
-	setsid sh -c ' while dd bs=256 count=1 <&3 >/dev/null 2>&1; do if ! echo >&4; then break; fi done ' & 
+	{
+		while dd bs=256 count=1 <&3 >/dev/null 2>&1; do 
+			if ! echo >&4; then
+				break
+			fi
+		done
+ 	} &
 	mainPid=$!
+	# setpgid $mainPid $mainPid 2>/dev/null || :
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
 
@@ -126,7 +133,8 @@ Parallel(){
 	exec 4>&- || :
 	echo >&3 || :
 	exec 3>&- || :
-	kill -TERM -$mainPid 2>/dev/null || :
+	kill -TERM $mainPid 2>/dev/null || :
+	# kill -TERM -$mainPid 2>/dev/null || :
 	wait $mainPid 2>/dev/null || :
 	wait || :
 
