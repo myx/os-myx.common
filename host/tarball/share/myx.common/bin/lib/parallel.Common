@@ -65,7 +65,6 @@ Parallel(){
 		done
  	} &
 	mainPid=$!
-	# setpgid $mainPid $mainPid 2>/dev/null || :
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
 
@@ -133,8 +132,7 @@ Parallel(){
 	exec 4>&- || :
 	echo >&3 || :
 	exec 3>&- || :
-	kill -TERM $mainPid 2>/dev/null || :
-	# kill -TERM -$mainPid 2>/dev/null || :
+	kill -TERM -$mainPid 2>/dev/null || :
 	wait $mainPid 2>/dev/null || :
 	wait || :
 
