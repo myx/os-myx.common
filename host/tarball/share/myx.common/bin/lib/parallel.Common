@@ -63,7 +63,7 @@ Parallel(){
 				break
 			fi
 		done
- 	} 2>/dev/null &
+ 	} & 2>/dev/null 
 	mainPid=$!
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
