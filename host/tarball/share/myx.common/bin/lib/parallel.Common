@@ -132,8 +132,8 @@ Parallel(){
 	exec 4>&- || :
 	echo >&3 || :
 	exec 3>&- || :
-	pkill -TERM -P $mainPid dd
-	# kill -TERM $mainPid 2>/dev/null || :
+	kill -TERM $mainPid 2>/dev/null || :
+	pkill -TERM -P $mainPid 2>/dev/null || :
 	wait $mainPid 2>/dev/null || :
 	wait || :
 
