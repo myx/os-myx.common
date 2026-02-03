@@ -9,7 +9,7 @@ fi
 ##### simple POSIX “Parallel” xargs replacement #####
 Parallel(){
 	set +x
-	local WORKERS=${ENV_PARALLEL_WORKER_COUNT:-4} verbose='+'
+	local WORKERS=${ENV_PARALLEL_WORKER_COUNT:-4} verbose=${ENV_PARALLEL_VERBOSE:-+}
 	# parse options
 	while [ $# -gt 0 ]; do case "$1" in
 		--workers=*)	WORKERS=${1#*=}; shift ;;
@@ -85,7 +85,14 @@ Parallel(){
 				rm -f -- "$ready"
 				ACTIVE=$((ACTIVE - 1))
 				# remove that slot from in-flight list
-				SLOT_PIDS=$(printf '%s\n' $SLOT_PIDS | grep -v "^$slot:" | tr '\n' ' ')
+				ready=""; for SLOT_PIDS in $SLOT_PIDS; do 
+					case "$SLOT_PIDS" in 
+						"$slot:"*) ;;
+						*) ready="${ready:+$ready }$SLOT_PIDS" ;; 
+					esac 
+				done 
+				SLOT_PIDS=$ready
+				# SLOT_PIDS=$(printf '%s\n' $SLOT_PIDS | grep -v "^$slot:" || true | tr '\n' ' ')
 			done
 
 			[ "$ACTIVE" -ge "$WORKERS" ] || break
