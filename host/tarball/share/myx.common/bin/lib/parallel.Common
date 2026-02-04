@@ -66,7 +66,7 @@ Parallel(){
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
 
-	local ready slot
+	local ready slot curr
 
 	# dispatch loop
 	while IFS= read -r PARALLEL_LINE 2>/dev/null; do
@@ -85,10 +85,10 @@ Parallel(){
 				rm -f -- "$ready"
 				ACTIVE=$((ACTIVE - 1))
 				# remove that slot from in-flight list
-				ready=""; for SLOT_PIDS in $SLOT_PIDS; do 
-					case "$SLOT_PIDS" in 
+				ready=""; for curr in $SLOT_PIDS; do 
+					case "$curr" in 
 						"$slot:"*) ;;
-						*) ready="${ready:+$ready }$SLOT_PIDS" ;; 
+						*) ready="${ready:+$ready }$curr" ;; 
 					esac 
 				done 
 				SLOT_PIDS=$ready
