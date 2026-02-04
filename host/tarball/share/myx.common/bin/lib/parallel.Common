@@ -139,7 +139,6 @@ Parallel(){
 	wait $mainPid 2>/dev/null || :
 	echo >&3 || :
 	exec 3>&- || :
-	pkill -TERM -P $mainPid 2>/dev/null || :
 	wait || :
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] done." >&2
