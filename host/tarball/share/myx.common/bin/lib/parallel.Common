@@ -66,7 +66,7 @@ Parallel(){
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
 
-	local ready slot curr
+	local ready slot curr waiter
 
 	# dispatch loop
 	while IFS= read -r PARALLEL_LINE 2>/dev/null; do
