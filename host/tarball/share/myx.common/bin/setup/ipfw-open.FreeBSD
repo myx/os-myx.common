@@ -75,11 +75,14 @@ SetupIpfwOpen(){
 			
 			[ -s /usr/local/etc/ipfw-system.sh ] && . /usr/local/etc/ipfw-system.sh || : ## myx-system-ipfw
 			[ -s /usr/local/etc/ipfw-custom.sh ] && . /usr/local/etc/ipfw-custom.sh || : ## myx-ipfw-custom
+
+			[ -d /usr/local/etc/ipfw.d ] && for f in $(printf "%s\n" /usr/local/etc/ipfw.d/ipfw-* 2>/dev/null | sort); do . "$f" || :; done ## myx-ipfw-others
 		EOF
 	fi 
 	
 	ReplaceLine /usr/local/etc/ipfw.sh ' ## myx-system-ipfw$' '[ -s /usr/local/etc/ipfw-system.sh ] && . /usr/local/etc/ipfw-system.sh || : ## myx-system-ipfw'
 	ReplaceLine /usr/local/etc/ipfw.sh ' ## myx-ipfw-custom$' '[ -s /usr/local/etc/ipfw-custom.sh ] && . /usr/local/etc/ipfw-custom.sh || : ## myx-ipfw-custom'
+	ReplaceLine /usr/local/etc/ipfw.sh ' ## myx-ipfw-others$' '[ -d /usr/local/etc/ipfw.d ] && for f in $(printf "%s\n" /usr/local/etc/ipfw.d/ipfw-* 2>/dev/null | sort); do . "$f" || :; done ## myx-ipfw-others'
 	
 	chown root:wheel /usr/local/etc/ipfw.sh /usr/local/etc/ipfw-*.sh
 	chmod ug=rwx,o= /usr/local/etc/ipfw.sh /usr/local/etc/ipfw-*.sh
