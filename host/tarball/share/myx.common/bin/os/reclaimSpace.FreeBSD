@@ -10,7 +10,9 @@ ReclaimSpace(){
 	find /tmp/ -type f -mtime +31 -delete
 
 	echo "ReclaimSpace: cleaning freebsd-update cache..." >&2
-	find /var/db/freebsd-update/files/ -type f -delete
+	if [ -d "/var/db/freebsd-update/files" ]; then
+		find /var/db/freebsd-update/files/ -type f -delete
+	fi
 
 	echo "ReclaimSpace: cleaning pkg caches..." >&2
 	pkg clean -a -y
