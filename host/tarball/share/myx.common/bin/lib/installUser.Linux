@@ -44,9 +44,8 @@ InstallUser(){
 
 case "$0" in
 	*/myx.common/bin/lib/installUser.*) 
-		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/installUser username [usertitle [uid-or-gid [home-path]]]" >&2
-			echo "Requires: root user" >&2
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/installUser.help.include" >&2
 			exit 1
 		fi
 		set -e

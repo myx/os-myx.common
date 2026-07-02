@@ -50,7 +50,7 @@ InstallAuthorizedKey(){
 case "$0" in
 	*/myx.common/bin/lib/installAuthorizedKey.Common) 
 		if [ -z "$1" -o "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/installAuthorizedKey <user-name> <ssh-key> [--remove]" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/installAuthorizedKey.help.include" >&2
 			exit 1
 		fi
 		set -e

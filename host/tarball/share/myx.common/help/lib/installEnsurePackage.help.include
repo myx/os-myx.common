@@ -1,0 +1,5 @@
+echo '📘 Syntax: myx.common lib/installEnsurePackage utility_name [utility_name2 [...]]' >&2
+echo '📘 Syntax: myx.common lib/installEnsurePackage --help' >&2
+echo "  supported utility names:" >&2
+echo "       `myx.common os/getUtilityPackage --list-basic-utilities`" >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/installEnsurePackage.help.md" >&2

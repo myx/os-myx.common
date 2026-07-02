@@ -36,9 +36,7 @@ InstallEnsurePackage(){
 case "$0" in
 	*/myx.common/bin/lib/installEnsurePackage.*) 
 		if [ -z "$1" -o "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/installEnsurePackage utility_name [utility_name2 [...]]" >&2
-			echo "  supported utility names:" >&2
-			echo "       `myx.common os/getUtilityPackage --list-basic-utilities`" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/installEnsurePackage.help.include" >&2
 			exit 1
 		fi
 		set -e

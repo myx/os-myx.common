@@ -31,9 +31,8 @@ InstallWheelUser(){
 
 case "$0" in
 	*/myx.common/bin/lib/installWheelUser.Common) 
-		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/installWheelUser username [usertitle]" >&2
-			echo "Requires: root user" >&2
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/installWheelUser.help.include" >&2
 			exit 1
 		fi
 		set -e
