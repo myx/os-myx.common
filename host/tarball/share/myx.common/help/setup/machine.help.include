@@ -1,0 +1,3 @@
+echo '📘 Syntax: myx.common setup/machine' >&2
+echo '📘 Syntax: myx.common setup/machine --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/setup/machine.help.md" >&2

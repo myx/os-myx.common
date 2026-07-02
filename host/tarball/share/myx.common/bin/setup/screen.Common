@@ -30,7 +30,7 @@ SetupUserScreen(){
 case "$0" in
 	*/myx.common/bin/setup/screen.Common) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common setup/screen [--host]" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/setup/screen.help.include" >&2
 			exit 1
 		fi
 		set -e

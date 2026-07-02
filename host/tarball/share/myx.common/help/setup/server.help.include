@@ -1,0 +1,4 @@
+echo '📘 Syntax: myx.common setup/server' >&2
+echo '📘 Syntax: myx.common setup/server [--postfix-mta]' >&2
+echo '📘 Syntax: myx.common setup/server --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/setup/server.help.md" >&2

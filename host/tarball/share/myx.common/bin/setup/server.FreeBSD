@@ -91,7 +91,7 @@ SetupServer(){
 case "$0" in
 	*/myx.common/bin/setup/server.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common setup/server [--postfix-mta]" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/setup/server.help.include" >&2
 			exit 1
 		fi
 		set -e

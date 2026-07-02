@@ -12,7 +12,7 @@ SetupMachine(){
 case "$0" in
 	*/bin/setup/machine.Common) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common setup/machine" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/setup/machine.help.include" >&2
 			exit 1
 		fi
 		set -e
