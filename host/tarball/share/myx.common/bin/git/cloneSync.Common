@@ -108,7 +108,7 @@ GitCloneSync(){
 
 case "$0" in
 	*/myx.common/bin/git/cloneSync.Common) 
-		if [ -z "$1" ] ; then
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
 			echo "Syntax: myx.common git/cloneSync [--no-write/--no-push] dst_path repo_url [branch]" >&2
 			echo "    If 'branch' argument is not set, 'master' will be used as default." >&2
 			echo "    '--no-push' implies '--no-write' and is equivalent to: 'myx.common git/clonePull'." >&2
