@@ -24,4 +24,6 @@ Requirements:
 
 Examples:
 
-  myx.common lib/installUserPasswordHash deploy '$6$....'
+```sh
+myx.common lib/installUserPasswordHash deploy '$6$.'
+```

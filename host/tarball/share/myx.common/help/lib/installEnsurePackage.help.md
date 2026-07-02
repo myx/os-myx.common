@@ -15,4 +15,10 @@ Notes:
 
 Examples:
 
-  `myx.common os/getUtilityPackage --list-basic-utilities`
+```sh
+myx.common lib/installEnsurePackage curl
+```
+
+```sh
+myx.common lib/installEnsurePackage curl jq
+```

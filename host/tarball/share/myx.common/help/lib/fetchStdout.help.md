@@ -40,4 +40,14 @@ Environment:
 
 Examples:
 
-	myx.common lib/fetchStdout https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2 | tar -xjvf - -C "$tempFolder"
+```sh
+myx.common lib/fetchStdout https://example.com/index.html
+```
+
+```sh
+myx.common lib/fetchStdout --local-cache /var/cache/myx.fetch --check-cache https://example.com/index.html
+```
+
+```sh
+myx.common lib/fetchStdout --do-cache --local-cache /var/cache/myx.fetch https://example.com/index.html
+```

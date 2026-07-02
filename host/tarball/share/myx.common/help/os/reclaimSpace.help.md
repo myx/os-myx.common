@@ -17,11 +17,13 @@ Behavior:
   Linux: apt cache cleanup, autoremove, /tmp cleanup, journal vacuum.
   FreeBSD: pkg autoremove/clean, /tmp cleanup, freebsd-update cache cleanup.
 
-Examples:
-
-  Sudo myx.common os/reclaimSpace
-
 Notes:
 
   Actions: clean /tmp, apt cache, apt autoremove, journal vacuum
   actions: clean /tmp, freebsd-update cache, pkg cache, pkg autoremove
+
+Examples:
+
+```sh
+myx.common os/reclaimSpace
+```

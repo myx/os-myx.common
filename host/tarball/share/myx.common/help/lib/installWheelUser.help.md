@@ -24,4 +24,14 @@ Requirements:
 
 Examples:
 
-  myx.common lib/installWheelUser deploy "Deploy User"
+```sh
+myx.common lib/installWheelUser deploy "Deploy User"
+```
+
+```sh
+myx.common lib/installWheelUser demo myx
+```
+
+```sh
+myx.common lib/installWheelUser demo
+```

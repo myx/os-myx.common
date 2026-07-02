@@ -31,6 +31,14 @@ Options:
 
 Examples:
 
-  myx.common lib/setupShellCompletion myx.common --command "myx.common help --bare"
-  myx.common lib/setupShellCompletion my-tool --directory ./commands
-  myx.common lib/setupShellCompletion myx.common --remove
+```sh
+myx.common lib/setupShellCompletion myx.common --command "myx.common help --bare"
+```
+
+```sh
+myx.common lib/setupShellCompletion my-tool --directory ./commands
+```
+
+```sh
+myx.common lib/setupShellCompletion myx.common --remove
+```

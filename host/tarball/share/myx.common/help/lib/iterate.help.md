@@ -25,6 +25,14 @@ Options:
 
 Examples:
 
-    Ls -1d {source.txt,output.txt} 2>/dev/null | myx.common lib/iterate cat
+```sh
+myx.common lib/iterate --verbose -- os/getCpuCount
+```
 
-    . "$(myx.common which lib/parallel)"; Iterate -w 16 MyContextFunction --check-item <( cat my-list.txt )
+```sh
+myx.common lib/iterate --quiet -- os/getRamBytes
+```
+
+```sh
+myx.common lib/iterate os/getCpuCount
+```

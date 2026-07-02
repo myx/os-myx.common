@@ -10,5 +10,14 @@ Usage notes:
 
 Examples:
 
-  myx.common lib/replaceText [--plain] <file> <from-string> <to-string>
-  myx.common lib/replaceText --regex <file> <from-sed-regexp> <to-sed-replace>
+```sh
+myx.common lib/replaceText /tmp/example.txt old new
+```
+
+```sh
+myx.common lib/replaceText --plain /tmp/example.txt old new
+```
+
+```sh
+myx.common lib/replaceText --regex /tmp/example.txt old new
+```

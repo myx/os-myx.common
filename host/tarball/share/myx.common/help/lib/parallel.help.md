@@ -44,6 +44,14 @@ Environment:
 
 Examples:
 
-    Ls -1d {source.txt,output.txt} 2>/dev/null | myx.common lib/parallel cat
+```sh
+myx.common lib/parallel os/getCpuCount
+```
 
-    . "$(myx.common which lib/parallel)"; Parallel -w 16 MyContextFunction --check-item <( cat my-list.txt )
+```sh
+myx.common lib/parallel -v -w 8 os/getCpuCount
+```
+
+```sh
+myx.common lib/parallel --workers=6 -- os/getRamBytes
+```

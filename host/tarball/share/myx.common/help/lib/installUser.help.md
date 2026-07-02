@@ -32,4 +32,10 @@ Requirements:
 
 Examples:
 
-  myx.common lib/installUser build "Build User" 1201 /home/build
+```sh
+myx.common lib/installUser build "Build User" 1201 /home/build
+```
+
+```sh
+myx.common lib/installUser deploy
+```

@@ -1,3 +1,4 @@
-echo '📘 Syntax:' >&2
+echo '📘 Syntax: myx.common lib/replaceText [--plain] <file> <from-string> <to-string>' >&2
+echo '📘 Syntax: myx.common lib/replaceText --regex <file> <from-sed-regexp> <to-sed-replace>' >&2
 echo '📘 Syntax: myx.common lib/replaceText --help' >&2
 [ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/replaceText.help.md" >&2

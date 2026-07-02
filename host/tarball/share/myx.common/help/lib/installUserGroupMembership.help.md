@@ -8,3 +8,13 @@ Requires root privileges.
 Usage notes:
 
   Use --help to print detailed help for this command.
+
+Examples:
+
+```sh
+myx.common lib/installUserGroupMembership myx wheel
+```
+
+```sh
+myx.common lib/installUserGroupMembership myx wheel operator
+```

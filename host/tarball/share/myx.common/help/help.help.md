@@ -31,6 +31,14 @@ Options:
 
 Examples:
 
-  myx.common help
-  myx.common help os/needsReboot
-  myx.common help --uname Linux os/getUtilityPackage
+```sh
+myx.common help
+```
+
+```sh
+myx.common help os/needsReboot
+```
+
+```sh
+myx.common help --uname Linux os/getUtilityPackage
+```

@@ -18,4 +18,6 @@ Behavior:
 
 Examples:
 
-  myx.common os/installPostfixMTA
+```sh
+myx.common os/installPostfixMTA
+```

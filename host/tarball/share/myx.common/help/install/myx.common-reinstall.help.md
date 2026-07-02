@@ -19,4 +19,6 @@ Behavior:
 
 Examples:
 
-  Sudo myx.common install/myx.common-reinstall
+```sh
+myx.common install/myx.common-reinstall
+```

@@ -37,3 +37,17 @@ to drop all ANSI formatting and produce plain text.
 	# On file that supposed to exist
 	myx.common lib/catMarkdown "${MYXROOT:-/usr/local/share/myx.common}/help/lib/catMarkdown.help.md"
 	myx.common lib/catMarkdown "${MYXROOT:-/usr/local/share/myx.common}/help/lib/catMarkdown.help.md" | cat
+
+Examples:
+
+```sh
+myx.common lib/catMarkdown
+```
+
+```sh
+myx.common lib/catMarkdown --strip-all /tmp/example.txt
+```
+
+```sh
+myx.common lib/catMarkdown --strip-all --force-tty --basic-sed /tmp/example.txt
+```

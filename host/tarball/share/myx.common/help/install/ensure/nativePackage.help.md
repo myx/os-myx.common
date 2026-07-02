@@ -11,4 +11,14 @@ Usage notes:
 
 Examples:
 
-  myx.common install/ensure/nativePackage --list-installed
+```sh
+myx.common install/ensure/nativePackage git
+```
+
+```sh
+myx.common install/ensure/nativePackage git curl
+```
+
+```sh
+myx.common install/ensure/nativePackage jq unzip
+```

@@ -30,11 +30,16 @@ Output:
 
   Reboot or Latest (suppressed with --silent).
 
-Examples:
-
-  myx.common os/needsReboot --print
-  myx.common os/needsReboot --silent
-
 Notes:
 
   Exit: 0=reboot-required, 1=up-to-date, 2=invalid-args
+
+Examples:
+
+```sh
+myx.common os/needsReboot --print
+```
+
+```sh
+myx.common os/needsReboot --silent
+```

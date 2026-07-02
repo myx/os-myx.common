@@ -31,6 +31,14 @@ Options:
 
 Examples:
 
-  myx.common os/getUtilityPackage rsync
-  myx.common os/getUtilityPackage --no-default foo
-  myx.common os/getUtilityPackage --list-basic-packages
+```sh
+myx.common os/getUtilityPackage rsync
+```
+
+```sh
+myx.common os/getUtilityPackage --no-default foo
+```
+
+```sh
+myx.common os/getUtilityPackage --list-basic-packages
+```
