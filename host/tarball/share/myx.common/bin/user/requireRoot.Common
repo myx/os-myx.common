@@ -9,7 +9,7 @@ UserRequireRoot(){
 case "$0" in
 	*/myx.common/bin/user/requireRoot.Common) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common user/requireRoot [command_name]" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/user/requireRoot.help.include" >&2
 			exit 1
 		fi
 		set -e

@@ -1,0 +1,3 @@
+echo '📘 Syntax: myx.common user/requireRoot [command_name]' >&2
+echo '📘 Syntax: myx.common user/requireRoot --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/user/requireRoot.help.md" >&2
