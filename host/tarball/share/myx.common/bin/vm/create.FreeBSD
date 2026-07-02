@@ -2,6 +2,38 @@
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
+VmCreateFreeBsdResolveIsoPath(){
+	local ISOINPUT="$1"
+
+	if [ -z "$ISOINPUT" ] ; then
+		echo "⛔ ERROR: Syntax error: vm/create: iso image: invalid arguments" >&2
+		return 1
+	fi
+
+	if [ "${ISOINPUT#/}" != "$ISOINPUT" ] ; then
+		if [ ! -f "$ISOINPUT" ] ; then
+			echo "⛔ ERROR: vm/create: ISO file not found: $ISOINPUT" >&2
+			return 1
+		fi
+		echo "$ISOINPUT"
+		return 0
+	fi
+
+	if [ "${ISOINPUT#*/}" != "$ISOINPUT" ] ; then
+		echo "⛔ ERROR: vm/create: ISO argument must be a filename or an absolute path (starting with /): $ISOINPUT" >&2
+		return 1
+	fi
+
+	local RESOLVED="/vms/.iso/$ISOINPUT"
+	if [ ! -f "$RESOLVED" ] ; then
+		echo "⛔ ERROR: vm/create: ISO file not found: $RESOLVED" >&2
+		return 1
+	fi
+
+	echo "$RESOLVED"
+	return 0
+}
+
 VmCreate(){
     local VMTYPE="$1" ; shift
     local VMNAME="$1" ; shift
@@ -82,11 +114,12 @@ VmCreate(){
 		return 1
 	fi
 
-    local VMISO="$1" ; shift
-    if [ -z "$VMISO" ] ; then
+	local VMISOINPUT="$1" ; shift
+	if [ -z "$VMISOINPUT" ] ; then
 		echo "⛔ ERROR: Syntax error: vm/create: iso image: invalid arguments" >&2
 		return 1
     fi
+	local VMISO="$(VmCreateFreeBsdResolveIsoPath "$VMISOINPUT")" || return 1
     	
     if [ -z "$( vm list | egrep "^$VMNAME\W" )" ] ; then
 

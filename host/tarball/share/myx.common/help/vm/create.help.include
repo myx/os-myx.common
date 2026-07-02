@@ -1,4 +1,4 @@
-echo '📘 Syntax: myx.common vm/create --linux/--freebsd/--ubuntu-lvm <name> <cores> <ram> <disk> [--shrink-disk] [--net <lan-name> <mac-address>...] <iso>' >&2
+echo '📘 Syntax: myx.common vm/create {--linux|--freebsd|--ubuntu-lvm} <name> <cores> <ram> <disk> [--shrink-disk] [--net <lan-name> <mac-address>...] <iso>' >&2
 echo '📘 Syntax: myx.common vm/create --help' >&2
 echo '' >&2
 [ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/vm/create.help.md" >&2

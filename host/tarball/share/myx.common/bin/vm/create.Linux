@@ -1,0 +1,419 @@
+#!/usr/bin/env bash
+
+##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
+
+set -euo pipefail
+
+VmCreateLinuxError(){
+	echo "⛔ ERROR: vm/create: $*" >&2
+	exit 1
+}
+
+VmCreateLinuxWarning(){
+	echo "🙋 WARNING: vm/create: $*" >&2
+}
+
+VmCreateLinuxRequireRoot(){
+	[ "$(id -u)" = "0" ] || VmCreateLinuxError "Must be run under root user."
+}
+
+VmCreateLinuxParseSizeToBytes(){
+	local raw="${1//[[:space:]]/}"
+	raw="${raw%B}"
+	raw="${raw%b}"
+	[ -n "$raw" ] || return 1
+	numfmt --from=iec "$raw" 2>/dev/null || return 1
+}
+
+VmCreateLinuxParseSizeToMiB(){
+	local bytes="$1"
+	local mib=$(( bytes / 1024 / 1024 ))
+	[ "$mib" -gt 0 ] || mib=1
+	echo "$mib"
+}
+
+VmCreateLinuxValidateMacAddress(){
+	[[ "$1" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]]
+}
+
+VmCreateLinuxDetectBackend(){
+	# MYX_VM_ENGINE=libvirt forces libvirt regardless of what is installed.
+	# Otherwise, if Proxmox tools are present, use proxmox; fall back to libvirt.
+	local engine="${MYX_VM_ENGINE:-}"
+	if [ "$engine" = "libvirt" ]; then
+		echo "libvirt"
+		return 0
+	fi
+	if command -v qm >/dev/null 2>&1 && command -v pvesm >/dev/null 2>&1; then
+		echo "proxmox"
+		return 0
+	fi
+	echo "libvirt"
+}
+
+VmCreateLinuxValidateProfile(){
+	local mode="$1"
+	case "$mode" in
+		--freebsd|--linux|--ubuntu-lvm)
+			return 0
+			;;
+		*)
+			VmCreateLinuxError "Unknown vm type: $mode"
+			;;
+	esac
+}
+
+VmCreateLinuxResolveProxmoxZfsStorage(){
+	local zfs_storage
+	zfs_storage="$(pvesm status --enabled 1 2>/dev/null | awk '$2=="zfspool"{print $1}')"
+	[ -n "$zfs_storage" ] || VmCreateLinuxError "No enabled Proxmox zfspool storage found."
+
+	if echo "$zfs_storage" | grep -qx 'local-zfs'; then
+		echo 'local-zfs'
+	else
+		echo "$zfs_storage" | head -n1
+	fi
+}
+
+VmCreateLinuxResolveProxmoxIsoReference(){
+	local iso_input="$1"
+	local default_iso_dir="/var/lib/vz/template/iso"
+
+	if [[ "$iso_input" == *:* ]]; then
+		echo "$iso_input"
+		return 0
+	fi
+
+	# Keep filename-first UX: bare ISO names are resolved from default Proxmox ISO storage.
+	if [[ "$iso_input" != */* ]]; then
+		echo "local:iso/${iso_input}"
+		return 0
+	fi
+
+	if [[ "$iso_input" == /* ]]; then
+		[ -f "$iso_input" ] || VmCreateLinuxError "ISO file not found: $iso_input"
+		if [[ "$iso_input" == ${default_iso_dir}/* ]]; then
+			echo "local:iso/$(basename "$iso_input")"
+		else
+			echo "$iso_input"
+		fi
+		return 0
+	fi
+
+	VmCreateLinuxError "For Proxmox backend, use ISO filename or absolute ISO path. Relative paths are not supported."
+}
+
+VmCreateLinuxResolveLibvirtIsoPath(){
+	local iso_input="$1"
+	local default_iso_dir="/var/lib/libvirt/images"
+
+	if [[ "$iso_input" == /* ]]; then
+		[ -f "$iso_input" ] || VmCreateLinuxError "ISO file not found: $iso_input"
+		echo "$iso_input"
+		return 0
+	fi
+
+	if [[ "$iso_input" == */* ]]; then
+		VmCreateLinuxError "For libvirt backend, use ISO filename or absolute ISO path. Relative paths are not supported."
+	fi
+
+	local resolved_iso_path="${default_iso_dir}/${iso_input}"
+	[ -f "$resolved_iso_path" ] || VmCreateLinuxError "ISO file not found: $resolved_iso_path (from filename: $iso_input)"
+	echo "$resolved_iso_path"
+	return 0
+}
+
+VmCreateLinuxFindProxmoxVmidByName(){
+	local vm_name="$1"
+	qm list 2>/dev/null | awk -v n="$vm_name" 'NR>1 && $2==n{print $1; exit}'
+}
+
+VmCreateLinuxGetNextProxmoxVmid(){
+	if command -v pvesh >/dev/null 2>&1; then
+		pvesh get /cluster/nextid 2>/dev/null && return 0
+	fi
+	qm list 2>/dev/null | awk 'NR>1{print $1}' | sort -n | tail -n1 | awk '{print ($1==""?100:($1+1))}'
+}
+
+VmCreateLinuxResizeProxmoxDiskIfNeeded(){
+	local vmid="$1"
+	local target_disk_raw="$2"
+	local target_disk_bytes="$3"
+	local allow_shrink="$4"
+
+	local disk_key disk_line current_raw current_bytes volume_id volume_path zfs_dataset
+	disk_key="$(qm config "$vmid" 2>/dev/null | awk -F: '/^(scsi0|virtio0|sata0):/{print $1; exit}')"
+	[ -n "$disk_key" ] || VmCreateLinuxError "Cannot detect VM system disk key in Proxmox config."
+
+	disk_line="$(qm config "$vmid" 2>/dev/null | awk -v k="$disk_key" -F': ' '$1==k{print $2; exit}')"
+	[ -n "$disk_line" ] || VmCreateLinuxError "Cannot read current disk configuration."
+
+	current_raw="$(echo "$disk_line" | sed -n 's/.*size=\([^,]*\).*/\1/p')"
+	[ -n "$current_raw" ] || VmCreateLinuxError "Cannot detect current disk size from config."
+	current_bytes="$(VmCreateLinuxParseSizeToBytes "$current_raw")" || VmCreateLinuxError "Invalid current disk size: $current_raw"
+
+	if [ "$target_disk_bytes" -gt "$current_bytes" ]; then
+		qm resize "$vmid" "$disk_key" "$target_disk_raw" >/dev/null
+		return 0
+	fi
+
+	if [ "$target_disk_bytes" -eq "$current_bytes" ]; then
+		return 0
+	fi
+
+	if [ -z "$allow_shrink" ]; then
+		VmCreateLinuxWarning "Shrink requested but --shrink-disk not set, skipped."
+		return 0
+	fi
+
+	volume_id="$(echo "$disk_line" | cut -d',' -f1)"
+	volume_path="$(pvesm path "$volume_id" 2>/dev/null || true)"
+	[ -n "$volume_path" ] || VmCreateLinuxError "Cannot resolve zfs volume path for $volume_id."
+	[[ "$volume_path" == /dev/zvol/* ]] || VmCreateLinuxError "Shrink is supported only for zfs zvol disks."
+
+	zfs_dataset="${volume_path#/dev/zvol/}"
+	zfs set "volsize=${target_disk_bytes}" "$zfs_dataset"
+}
+
+VmCreateLinuxResolveLibvirtLogicalPool(){
+	# MYX_VM_LVM_POOL overrides auto-detection.
+	if [ -n "${MYX_VM_LVM_POOL:-}" ]; then
+		virsh pool-info "$MYX_VM_LVM_POOL" >/dev/null 2>&1 || VmCreateLinuxError "MYX_VM_LVM_POOL='${MYX_VM_LVM_POOL}' is not a valid active libvirt pool."
+		echo "$MYX_VM_LVM_POOL"
+		return 0
+	fi
+	local pool_name
+	pool_name="$(virsh pool-list --all 2>/dev/null | awk 'NR>2 && $2=="active"{print $1}' | while read -r p; do t=$(virsh pool-info "$p" 2>/dev/null | awk -F': ' '/^Type:/{print $2}'); [ "$t" = "logical" ] && { echo "$p"; break; }; done)"
+	[ -n "$pool_name" ] || VmCreateLinuxError "No active libvirt logical (LVM) storage pool found. Set MYX_VM_LVM_POOL to specify one."
+	echo "$pool_name"
+}
+
+VmCreateLinuxGetLibvirtVolumeCapacityBytes(){
+	local pool_name="$1"
+	local volume_name="$2"
+	virsh vol-dumpxml --pool "$pool_name" "$volume_name" 2>/dev/null | sed -n 's:.*<capacity[^>]*>\([0-9][0-9]*\)</capacity>.*:\1:p' | head -n1
+}
+
+VmCreateLinuxConfigureLibvirtNetworks(){
+	local vm_name="$1"
+	local live_mode_flag="$2"
+	shift 2
+	local tuple lan mac existing_mac
+
+	while read -r existing_mac; do
+		[ -n "$existing_mac" ] || continue
+		virsh detach-interface "$vm_name" --type bridge --mac "$existing_mac" --config $live_mode_flag >/dev/null 2>&1 || true
+	done < <(virsh domiflist "$vm_name" 2>/dev/null | awk 'NR>2 && $5 ~ /:/{print $5}')
+
+	for tuple in "$@"; do
+		lan="${tuple%%|*}"
+		mac="${tuple##*|}"
+		virsh attach-interface "$vm_name" --type bridge --source "$lan" --model virtio --mac "$mac" --config $live_mode_flag >/dev/null
+	done
+}
+
+VmCreateLinuxRunProxmoxBackend(){
+	local profile="$1" vm_name="$2" vm_cpus="$3" vm_ram_mib="$4" vm_disk_raw="$5" vm_disk_bytes="$6" allow_shrink="$7" vm_iso_input="$8"
+	shift 8
+	local -a network_pairs=("$@")
+
+	command -v qm >/dev/null 2>&1 || VmCreateLinuxError "Proxmox backend requires 'qm'."
+	command -v pvesm >/dev/null 2>&1 || VmCreateLinuxError "Proxmox backend requires 'pvesm'."
+	command -v zfs >/dev/null 2>&1 || VmCreateLinuxError "Proxmox backend requires 'zfs'."
+
+	local storage_name iso_reference vmid os_type idx tuple
+	storage_name="$(VmCreateLinuxResolveProxmoxZfsStorage)"
+	iso_reference="$(VmCreateLinuxResolveProxmoxIsoReference "$vm_iso_input")"
+	vmid="$(VmCreateLinuxFindProxmoxVmidByName "$vm_name")"
+
+	case "$profile" in
+		--freebsd) os_type="other" ;;
+		*) os_type="l26" ;;
+	esac
+
+	if [ -z "$vmid" ]; then
+		vmid="$(VmCreateLinuxGetNextProxmoxVmid)"
+		qm create "$vmid" --name "$vm_name" --memory "$vm_ram_mib" --cores "$vm_cpus" --ostype "$os_type" >/dev/null
+		qm set "$vmid" --scsihw virtio-scsi-pci >/dev/null
+		qm set "$vmid" --scsi0 "${storage_name}:0,size=${vm_disk_raw}" >/dev/null
+		qm set "$vmid" --ide2 "${iso_reference},media=cdrom" >/dev/null
+		qm set "$vmid" --boot "order=scsi0;ide2" >/dev/null || true
+
+		idx=0
+		for tuple in "${network_pairs[@]}"; do
+			qm set "$vmid" --"net${idx}" "virtio=${tuple##*|},bridge=${tuple%%|*}" >/dev/null
+			idx=$((idx+1))
+		done
+
+		echo "VM created (Proxmox): id=${vmid}, name=${vm_name}" >&2
+		echo "Run 'qm start ${vmid}' to boot installer." >&2
+		return 0
+	fi
+
+	qm set "$vmid" --memory "$vm_ram_mib" --cores "$vm_cpus" >/dev/null
+	if [ "${#network_pairs[@]}" -gt 0 ]; then
+		idx=0
+		for tuple in "${network_pairs[@]}"; do
+			qm set "$vmid" --"net${idx}" "virtio=${tuple##*|},bridge=${tuple%%|*}" >/dev/null
+			idx=$((idx+1))
+		done
+	fi
+
+	VmCreateLinuxResizeProxmoxDiskIfNeeded "$vmid" "$vm_disk_raw" "$vm_disk_bytes" "$allow_shrink"
+	echo "VM updated (Proxmox): id=${vmid}, name=${vm_name}" >&2
+	echo "CPU, memory and disk settings were applied." >&2
+	echo "Guest may require reboot/rescan to observe changes." >&2
+}
+
+VmCreateLinuxRunLibvirtBackend(){
+	local profile="$1" vm_name="$2" vm_cpus="$3" vm_ram_mib="$4" vm_disk_raw="$5" vm_disk_bytes="$6" allow_shrink="$7" vm_iso_input="$8"
+	shift 8
+	local -a network_pairs=("$@")
+
+	command -v virsh >/dev/null 2>&1 || VmCreateLinuxError "Libvirt backend requires 'virsh'."
+	command -v virt-install >/dev/null 2>&1 || VmCreateLinuxError "Libvirt backend requires 'virt-install'."
+
+	local vm_iso_path
+	vm_iso_path="$(VmCreateLinuxResolveLibvirtIsoPath "$vm_iso_input")"
+
+	local pool_name volume_name live_mode_flag tuple
+	pool_name="$(VmCreateLinuxResolveLibvirtLogicalPool)"
+	volume_name="${vm_name}.disk0"
+
+	if ! virsh dominfo "$vm_name" >/dev/null 2>&1; then
+		if ! virsh vol-info --pool "$pool_name" "$volume_name" >/dev/null 2>&1; then
+			virsh vol-create-as "$pool_name" "$volume_name" "$vm_disk_raw" --format raw >/dev/null
+		fi
+
+		local -a install_cmd
+		install_cmd=(
+			virt-install
+			--name "$vm_name"
+			--memory "$vm_ram_mib"
+			--vcpus "$vm_cpus"
+			--disk "vol=${pool_name}/${volume_name},bus=virtio"
+			--cdrom "$vm_iso_path"
+			--os-variant detect=on,require=off
+			--noautoconsole
+		)
+
+		if [ "${#network_pairs[@]}" -eq 0 ]; then
+			install_cmd+=(--network none)
+		else
+			for tuple in "${network_pairs[@]}"; do
+				install_cmd+=(--network "bridge=${tuple%%|*},model=virtio,mac=${tuple##*|}")
+			done
+		fi
+
+		"${install_cmd[@]}"
+		echo "VM created (libvirt/LVM): name=${vm_name}" >&2
+		echo "Use 'virsh start ${vm_name}' if auto-start did not happen." >&2
+		return 0
+	fi
+
+	live_mode_flag=""
+	if [ "$(virsh domstate "$vm_name" 2>/dev/null | tr '[:upper:]' '[:lower:]' | xargs)" = "running" ]; then
+		live_mode_flag="--live"
+	fi
+
+	virsh setvcpus "$vm_name" "$vm_cpus" --config $live_mode_flag >/dev/null 2>&1 || VmCreateLinuxWarning "Failed to apply CPU update immediately."
+	virsh setmaxmem "$vm_name" "$((vm_ram_mib * 1024))" --config >/dev/null 2>&1 || true
+	virsh setmem "$vm_name" "$((vm_ram_mib * 1024))" --config $live_mode_flag >/dev/null 2>&1 || VmCreateLinuxWarning "Failed to apply memory update immediately."
+
+	if ! virsh vol-info --pool "$pool_name" "$volume_name" >/dev/null 2>&1; then
+		VmCreateLinuxError "Expected LVM volume '${volume_name}' not found in pool '${pool_name}'."
+	fi
+
+	local current_disk_bytes
+	current_disk_bytes="$(VmCreateLinuxGetLibvirtVolumeCapacityBytes "$pool_name" "$volume_name")"
+	[ -n "$current_disk_bytes" ] || VmCreateLinuxError "Cannot detect current libvirt volume size."
+
+	if [ "$vm_disk_bytes" -gt "$current_disk_bytes" ]; then
+		virsh vol-resize --pool "$pool_name" "$volume_name" "$vm_disk_raw" >/dev/null
+	elif [ "$vm_disk_bytes" -lt "$current_disk_bytes" ]; then
+		if [ -n "$allow_shrink" ]; then
+			virsh vol-resize --pool "$pool_name" "$volume_name" "$vm_disk_raw" --shrink >/dev/null
+		else
+			VmCreateLinuxWarning "Shrink requested but --shrink-disk not set, skipped."
+		fi
+	fi
+
+	if [ "${#network_pairs[@]}" -gt 0 ]; then
+		VmCreateLinuxConfigureLibvirtNetworks "$vm_name" "$live_mode_flag" "${network_pairs[@]}"
+	fi
+
+	echo "VM updated (libvirt/LVM): name=${vm_name}" >&2
+	echo "CPU, memory and disk settings were applied." >&2
+	echo "Guest may require reboot/rescan to observe changes." >&2
+}
+
+VmCreate(){
+	VmCreateLinuxRequireRoot
+	[ $# -ge 6 ] || VmCreateLinuxError "Syntax error: check arguments."
+
+	local vm_profile="$1"; shift
+	local vm_name="$1"; shift
+	local vm_cpu_count="$1"; shift
+	local vm_ram_raw="$1"; shift
+	local vm_disk_raw="$1"; shift
+
+	VmCreateLinuxValidateProfile "$vm_profile"
+	local backend_name
+	backend_name="$(VmCreateLinuxDetectBackend)"
+	local profile_name="$vm_profile"
+
+	[[ "$vm_name" =~ ^[A-Za-z0-9._-]+$ ]] || VmCreateLinuxError "Invalid VM name: $vm_name"
+	[[ "$vm_cpu_count" =~ ^[0-9]+$ ]] || VmCreateLinuxError "Invalid cpu count: $vm_cpu_count"
+	[ "$vm_cpu_count" -gt 0 ] || VmCreateLinuxError "CPU count must be greater than zero."
+
+	local vm_ram_bytes vm_disk_bytes vm_ram_mib
+	vm_ram_bytes="$(VmCreateLinuxParseSizeToBytes "$vm_ram_raw")" || VmCreateLinuxError "Invalid RAM size: $vm_ram_raw"
+	vm_disk_bytes="$(VmCreateLinuxParseSizeToBytes "$vm_disk_raw")" || VmCreateLinuxError "Invalid disk size: $vm_disk_raw"
+	vm_ram_mib="$(VmCreateLinuxParseSizeToMiB "$vm_ram_bytes")"
+
+	local allow_shrink=""
+	local -a network_pairs=()
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--shrink-disk)
+				allow_shrink="yes"
+				shift
+				;;
+			--net)
+				shift
+				[ $# -ge 2 ] || VmCreateLinuxError "Syntax error: network arguments are invalid"
+				[ "${#network_pairs[@]}" -lt 4 ] || VmCreateLinuxError "Only up to 4 network interfaces supported"
+				local lan_name="$1"; shift
+				local mac_addr="$1"; shift
+				VmCreateLinuxValidateMacAddress "$mac_addr" || VmCreateLinuxError "Invalid MAC address: $mac_addr"
+				if command -v ip >/dev/null 2>&1; then
+					ip link show "$lan_name" >/dev/null 2>&1 || VmCreateLinuxWarning "Bridge/interface '$lan_name' not found on host."
+				fi
+				network_pairs+=("$lan_name|$mac_addr")
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	[ $# -ge 1 ] || VmCreateLinuxError "Syntax error: iso image argument is missing"
+	local vm_iso_input="$1"; shift
+	[ $# -eq 0 ] || VmCreateLinuxError "Unexpected extra arguments: $*"
+
+	if [ "$backend_name" = "proxmox" ]; then
+		VmCreateLinuxRunProxmoxBackend "$profile_name" "$vm_name" "$vm_cpu_count" "$vm_ram_mib" "$vm_disk_raw" "$vm_disk_bytes" "$allow_shrink" "$vm_iso_input" "${network_pairs[@]}"
+	else
+		VmCreateLinuxRunLibvirtBackend "$profile_name" "$vm_name" "$vm_cpu_count" "$vm_ram_mib" "$vm_disk_raw" "$vm_disk_bytes" "$allow_shrink" "$vm_iso_input" "${network_pairs[@]}"
+	fi
+}
+
+case "$0" in
+	*/myx.common/bin/vm/create.*)
+		if [ -z "${1:-}" ] || [ "${1:-}" = "--help" ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/vm/create.help.include" >&2
+			exit 1
+		fi
+		VmCreate "$@"
+	;;
+esac
