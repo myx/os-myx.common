@@ -1,0 +1,7 @@
+echo '📘 Syntax: myx.common lib/notifySlack --text <text> [--logger] [--bearer <token-bearer>] [--channel <channel>|--alert|--audit|--track|--debug] [--user <user-name>] [--emoji <emoji>]' >&2
+echo '📘 Syntax: myx.common lib/notifySlack --help' >&2
+echo "Note:" >&2
+echo "	When ommited, bearer, channel and user are taken from SLACK_TOKEN, SLACK_TOPIC and HOST env variables respectively." >&2
+echo "	When channel selected using --alert, --audit, --track or --debug option, command will override channel selection using SLACK_{ALERT|AUDIT|TRACK|DEBUG} (defaulting to SLACK_TOPIC) env varisable respectively." >&2
+echo "  When --logger option is set, message will be duplicated to system logger facility and stderr standard output stream." >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/notifySlack.help.md" >&2

@@ -9,7 +9,7 @@ ExecShStdin(){
 case "$0" in
 	*/myx.common/bin/lib/execShStdin.Common) 
 		if [ "--help" = "$1" ] ; then
-			echo "Syntax: myx.common lib/execShStdin [--bash] [<arguments...>]" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/execShStdin.help.include" >&2
 			exit 1
 		fi
 		set -e
