@@ -104,10 +104,7 @@ SetupIpfwOpen(){
 case "$0" in
 	*/myx.common/bin/setup/ipfw-open.FreeBSD) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common setup/ipfw-open [--force]" >&2
-			echo "Options: " >&2
-			echo "   --force    will rewrite the /usr/local/etc/ipfw.sh (otherwise it is" >&2
-			echo "              written only when this file is empty or doesn't exist)" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/setup/ipfw-open.help.include" >&2
 			exit 1
 		fi
 		set -e

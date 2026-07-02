@@ -470,7 +470,7 @@ RemoteContext(){
 
 case "$0" in
 	*/myx.common/bin/lib/remoteContext.Common)
-		if [ -z "$1" ] || [ "$1" == '--help' ] ; then
+		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
 			RemoteContext ${1:-"--help-syntax"}
 			exit 1
 		fi
