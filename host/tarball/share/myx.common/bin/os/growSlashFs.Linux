@@ -1,298 +1,298 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#!/usr/bin/env bash
-set -euo pipefail
-
-# grow-root.sh
-# Usage: ./grow-root.sh [--execute]
-# Detects root device, partition number, LV path, PV device, filesystem type
-# Prints commands to stdout for manual execution or runs them when --execute is passed.
-
-EXECUTE=false
-if [ "${1:-}" = "--execute" ]; then
-EXECUTE=true
-fi
-
-# Print usage syntax to stderr when not executing
-if ! $EXECUTE; then
-echo "Usage: $0 --execute" >&2
-echo "Run without --execute to preview detected variables and commands" >&2
-fi
-
-# Helpers
-info() { printf '%s\n' "$*"; }
-err() { printf '%s\n' "$*" >&2; }
-
-# Detect root source
-ROOT_SRC=$(findmnt -n -o SOURCE /) || { err "Cannot determine root source"; exit 1; }
-
-# Initialize variables
-LV_PATH=""
-PV_DEV=""
-DISK_DEV=""
-PART_NUM=""
-COMMANDS=""
-
-# Filesystem type
-FS_TYPE=$(findmnt -n -o FSTYPE / || true)
-
-# Detect LVM vs plain partition
-if [[ "$ROOT_SRC" =~ ^/dev/mapper/ ]]; then
-# LVM logical volume
-LV_PATH="$ROOT_SRC"
-# canonical lv path if possible
-LV_CANONICAL=$(lvs --noheadings -o lv_path "$ROOT_SRC" 2>/dev/null | awk '{$1=$1;print}' || true)
-if [ -n "$LV_CANONICAL" ]; then
-	LV_PATH="$LV_CANONICAL"
-fi
-
-# get VG name
-VG_NAME=$(lvs --noheadings -o vg_name "$ROOT_SRC" 2>/dev/null | awk '{$1=$1;print}' || true)
-if [ -z "$VG_NAME" ]; then
-	# fallback: parse mapper name
-	VG_NAME=$(basename "$ROOT_SRC" | sed 's/-[^-]*$//' | sed 's/--/-/g' || true)
-fi
-
-# pick first PV for the VG
-PV_DEV=$(pvs --noheadings -o pv_name,vg_name 2>/dev/null | awk -v vg="$VG_NAME" '$2==vg {print $1; exit}')
-if [ -z "$PV_DEV" ]; then
-	# try pvdisplay
-	PV_DEV=$(pvdisplay -C --noheading -o pv_name,vg_name 2>/dev/null | awk -v vg="$VG_NAME" '$2==vg {print $1; exit}')
-fi
-
-if [ -z "$PV_DEV" ]; then
-	err "Unable to find a physical volume for VG $VG_NAME"
-else
-	# derive disk and partition number from PV_DEV if possible
-	PV_BASENAME=$(basename "$PV_DEV")
-	PART_NUM="${PV_BASENAME##*[!0-9]}"
-	if [ -n "$PART_NUM" ]; then
-	DISK_DEV="/dev/${PV_BASENAME%$PART_NUM}"
-	else
-	DISK_DEV="$PV_DEV"
-	fi
-fi
-
-else
-# Not LVM: root is likely a partition device like /dev/vda3 or /dev/sda2
-LV_PATH="$ROOT_SRC"
-PART_BASENAME=$(basename "$ROOT_SRC")
-PART_NUM="${PART_BASENAME##*[!0-9]}"
-if [ -n "$PART_NUM" ]; then
-	DISK_DEV="/dev/${PART_BASENAME%$PART_NUM}"
-	PV_DEV="$ROOT_SRC"
-else
-	# Could be whole-disk mount or unusual device
-	DISK_DEV="$ROOT_SRC"
-	PV_DEV="$ROOT_SRC"
-fi
-fi
-
-# Build commands to grow
-# 1) growpart if we have a disk and a partition number
-if [ -n "${DISK_DEV:-}" ] && [ -n "${PART_NUM:-}" ]; then
-COMMANDS+="sudo growpart ${DISK_DEV} ${PART_NUM} && "
-TARGET_PV="${PV_DEV:-/dev/${DISK_DEV##*/}${PART_NUM}}"
-else
-TARGET_PV="${PV_DEV:-}"
-fi
-
-# 2) If LVM, pvresize then lvextend
-if [[ "$ROOT_SRC" =~ ^/dev/mapper/ ]] && [ -n "${PV_DEV:-}" ]; then
-COMMANDS+="sudo pvresize ${PV_DEV} && "
-COMMANDS+="sudo lvextend -l +100%FREE ${LV_PATH} && "
-# filesystem grow will operate on mount point for XFS or on LV for ext
-if [ "$FS_TYPE" = "xfs" ]; then
-	COMMANDS+="sudo xfs_growfs /"
-else
-	COMMANDS+="sudo resize2fs ${LV_PATH}"
-fi
-else
-# Non-LVM: grow filesystem on the partition device
-if [ -n "${PV_DEV:-}" ]; then
-	if [ "$FS_TYPE" = "xfs" ]; then
-	# xfs_growfs grows mounted filesystem; specify mountpoint
-	COMMANDS+="sudo xfs_growfs /"
-	else
-	COMMANDS+="sudo resize2fs ${PV_DEV}"
-	fi
-else
-	# Nothing to do
-	COMMANDS+="echo 'No PV or partition detected to resize'"
-fi
-fi
-
-# Trim trailing ' && ' if present
-COMMANDS=$(echo "$COMMANDS" | sed 's/ && $//')
-
-# Output detected variables and commands
-info "Detected values"
-info "ROOT_SRC: $ROOT_SRC"
-info "LV_PATH: $LV_PATH"
-info "PV_DEV: ${PV_DEV:-<none>}"
-info "DISK_DEV: ${DISK_DEV:-<none>}"
-info "PART_NUM: ${PART_NUM:-<none>}"
-info "FS_TYPE: ${FS_TYPE:-<unknown>}"
-info ""
-info "Commands to run"
-info "$COMMANDS"
-info ""
-
-# If not executing, exit now after printing
-if ! $EXECUTE; then
-info "To execute these commands run: $0 --execute"
-exit 0
-fi
-
-# Confirm and execute
-info "Executing commands now"
-info "All commands will be run with sudo. You may be prompted for your password."
-# Run the commands via eval so the combined chain executes as intended
-set -x
-eval "$COMMANDS"
-set +x
-
-info "Done"
-
-
-
-
-
-
-
 #!/bin/sh
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-OsGrowSlashFsUsedSize(){
-	local PART="$1"
-	gpart show $PART | grep 'freebsd-ufs' | awk '{print $5}' | grep G | sed 's/[^0-9\.]*//g'
+OsGrowSlashFsLinuxTrim(){
+	echo "$*" | awk '{$1=$1; print}'
 }
 
-OsGrowSlashFsFreeSize(){
-	local PART="$1"
-	echo `gpart show $PART | grep ' free -' | awk '{print $6}' | grep G | sed 's/[^0-9\.]*//g'` 0 | awk '{print $1}'
+OsGrowSlashFsLinuxHasCommand(){
+	command -v "$1" >/dev/null 2>&1
 }
 
-OsGrowSlashFs(){
-	local DISK="$1"
-	local PART="$2"
-	local INDX="$3"
-	local SWAP="$4"
+OsGrowSlashFsLinuxRequireCommand(){
+	local CMD_NAME="$1"
+	OsGrowSlashFsLinuxHasCommand "$CMD_NAME" || {
+		echo "⛔ ERROR: required command is missing: ${CMD_NAME}" >&2
+		return 1
+	}
+}
+
+OsGrowSlashFsLinuxGetRootSource(){
+	if OsGrowSlashFsLinuxHasCommand findmnt; then
+		findmnt -n -o SOURCE /
+		return 0
+	fi
+
+	[ -r /proc/mounts ] || return 1
+	awk '$2=="/" {print $1; exit}' /proc/mounts
+}
+
+OsGrowSlashFsLinuxGetFsType(){
+	if OsGrowSlashFsLinuxHasCommand findmnt; then
+		findmnt -n -o FSTYPE /
+		return 0
+	fi
+
+	[ -r /proc/mounts ] || return 1
+	awk '$2=="/" {print $3; exit}' /proc/mounts
+}
+
+OsGrowSlashFsLinuxResolveLvPath(){
+	local SRC="$1"
+	local LV=""
+
+	if OsGrowSlashFsLinuxHasCommand lvs; then
+		LV="$(lvs --noheadings -o lv_path "$SRC" 2>/dev/null | OsGrowSlashFsLinuxTrim || true)"
+		if [ "$LV" != "" ]; then
+			echo "$LV"
+			return 0
+		fi
+	fi
+
+	readlink -f "$SRC" 2>/dev/null || echo "$SRC"
+}
+
+OsGrowSlashFsLinuxResolveVgName(){
+	local SRC="$1"
+	local VG=""
+
+	if OsGrowSlashFsLinuxHasCommand lvs; then
+		VG="$(lvs --noheadings -o vg_name "$SRC" 2>/dev/null | OsGrowSlashFsLinuxTrim || true)"
+		if [ "$VG" != "" ]; then
+			echo "$VG"
+			return 0
+		fi
+	fi
+
+	echo ""
+}
+
+OsGrowSlashFsLinuxResolveFirstPvForVg(){
+	local VG="$1"
+	local PV=""
+
+	if [ "$VG" = "" ]; then
+		echo ""
+		return 0
+	fi
+
+	if OsGrowSlashFsLinuxHasCommand pvs; then
+		PV="$(pvs --noheadings -o pv_name,vg_name 2>/dev/null | awk -v vg="$VG" '$2==vg {print $1; exit}')"
+		PV="$(OsGrowSlashFsLinuxTrim "$PV")"
+		if [ "$PV" != "" ]; then
+			echo "$PV"
+			return 0
+		fi
+	fi
+
+	if OsGrowSlashFsLinuxHasCommand pvdisplay; then
+		PV="$(pvdisplay -C --noheading -o pv_name,vg_name 2>/dev/null | awk -v vg="$VG" '$2==vg {print $1; exit}')"
+		PV="$(OsGrowSlashFsLinuxTrim "$PV")"
+		if [ "$PV" != "" ]; then
+			echo "$PV"
+			return 0
+		fi
+	fi
+
+	echo ""
+}
+
+OsGrowSlashFsLinuxResolveDiskAndPartNum(){
+	local DEV="$1"
+	local PKNAME=""
+	local PARTN=""
+
+	if ! OsGrowSlashFsLinuxHasCommand lsblk; then
+		echo "|"
+		return 0
+	fi
+
+	PKNAME="$(lsblk -no PKNAME "$DEV" 2>/dev/null | head -n1 | OsGrowSlashFsLinuxTrim || true)"
+	PARTN="$(lsblk -no PARTN "$DEV" 2>/dev/null | head -n1 | OsGrowSlashFsLinuxTrim || true)"
+
+	if [ "$PKNAME" != "" ] && [ "$PARTN" != "" ]; then
+		echo "/dev/${PKNAME}|${PARTN}"
+		return 0
+	fi
+
+	echo "|"
+}
+
+OsGrowSlashFsLinuxAppendCommand(){
+	local COMMANDS_VALUE="$1"
+	local COMMAND_VALUE="$2"
+
+	if [ "$COMMANDS_VALUE" = "" ]; then
+		echo "$COMMAND_VALUE"
+	else
+		echo "$COMMANDS_VALUE && $COMMAND_VALUE"
+	fi
+}
+
+OsGrowSlashFsLinux(){
+	local EXECUTE="$1"
+	local SUDO_PREFIX=""
+	local ROOT_SRC=""
+	local FS_TYPE=""
+	local LV_PATH=""
+	local VG_NAME=""
+	local PV_DEV=""
+	local DISK_DEV=""
+	local PART_NUM=""
+	local DISK_AND_PART=""
+	local TYPE_HINT=""
+	local IS_LVM=false
+	local COMMANDS=""
+	local CMD=""
 
 	set -e
 
-	if [ "$DISK" = "" ] || [ "$PART" = "" ] ; then
-		local DISKS="$DISK vtbd0 da0"
-		for DSK in $DISKS ; do
-			if [ "`geom disk status -s $DSK`" != "" ] ; then
-				local PARTS="${DSK}s1 $DSK"
-				for PRT in $PARTS ; do
-					if [ "`gpart status -s $PRT`" != "" ] && [ "`gpart show $PRT | grep freebsd-ufs`" != "" ] ; then
-						OsGrowSlashFsUfs $DSK $PRT
-						return 0;
-					fi
-				done
+	if [ "$(id -u)" -ne 0 ] && OsGrowSlashFsLinuxHasCommand sudo; then
+		SUDO_PREFIX="sudo "
+	fi
+
+	ROOT_SRC="$(OsGrowSlashFsLinuxGetRootSource 2>/dev/null || true)"
+	FS_TYPE="$(OsGrowSlashFsLinuxGetFsType 2>/dev/null || true)"
+
+	if [ "$ROOT_SRC" = "" ]; then
+		echo "⛔ ERROR: cannot determine root source" >&2
+		return 1
+	fi
+
+	case "$ROOT_SRC" in
+		/dev/mapper/*)
+			IS_LVM=true
+		;;
+		*)
+			if OsGrowSlashFsLinuxHasCommand lsblk; then
+				TYPE_HINT="$(lsblk -no TYPE "$ROOT_SRC" 2>/dev/null | head -n1 | OsGrowSlashFsLinuxTrim || true)"
+				if [ "$TYPE_HINT" = "lvm" ]; then
+					IS_LVM=true
+				fi
 			fi
-		done
-		
-		echo "⛔ ERROR: Failed: can't detect device and partition (yet)" >&2
-		return 1;
+		;;
+	esac
+
+	if [ "$IS_LVM" = "true" ]; then
+		LV_PATH="$(OsGrowSlashFsLinuxResolveLvPath "$ROOT_SRC")"
+		VG_NAME="$(OsGrowSlashFsLinuxResolveVgName "$ROOT_SRC")"
+		PV_DEV="$(OsGrowSlashFsLinuxResolveFirstPvForVg "$VG_NAME")"
+		if [ "$PV_DEV" != "" ]; then
+			DISK_AND_PART="$(OsGrowSlashFsLinuxResolveDiskAndPartNum "$PV_DEV")"
+			DISK_DEV="$(echo "$DISK_AND_PART" | cut -d'|' -f1)"
+			PART_NUM="$(echo "$DISK_AND_PART" | cut -d'|' -f2)"
+		fi
+	else
+		LV_PATH="$ROOT_SRC"
+		PV_DEV="$ROOT_SRC"
+		DISK_AND_PART="$(OsGrowSlashFsLinuxResolveDiskAndPartNum "$ROOT_SRC")"
+		DISK_DEV="$(echo "$DISK_AND_PART" | cut -d'|' -f1)"
+		PART_NUM="$(echo "$DISK_AND_PART" | cut -d'|' -f2)"
 	fi
 
-	if [ "`geom disk status -s $DISK`" = "" ] ; then
-		echo "⛔ ERROR: Failed: specified disk is invalid: $DISK" >&2
-		return 1;
+	if [ "$DISK_DEV" != "" ] && [ "$PART_NUM" != "" ]; then
+		COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}growpart ${DISK_DEV} ${PART_NUM}")"
 	fi
 
-	if [ "`gpart status -s $PART`" = "" ] || [ "`gpart show $PART | grep freebsd-ufs`" = "" ] ; then
-		echo "⛔ ERROR: Failed: specified part is invalid (or does't contain UFS filesystem): $PART" >&2
-		return 1;
+	if [ "$IS_LVM" = "true" ]; then
+		if [ "$PV_DEV" != "" ]; then
+			COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}pvresize ${PV_DEV}")"
+		fi
+
+		COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}lvextend -l +100%FREE ${LV_PATH}")"
+
+		case "$FS_TYPE" in
+			xfs)
+				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}xfs_growfs /")"
+			;;
+			ext2|ext3|ext4)
+				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}resize2fs ${LV_PATH}")"
+			;;
+			btrfs)
+				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}btrfs filesystem resize max /")"
+			;;
+			*)
+				echo "⛔ ERROR: unsupported filesystem for auto-grow: ${FS_TYPE:-<unknown>}" >&2
+				return 1
+			;;
+		esac
+	else
+		case "$FS_TYPE" in
+			xfs)
+				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}xfs_growfs /")"
+			;;
+			ext2|ext3|ext4)
+				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}resize2fs ${PV_DEV}")"
+			;;
+			btrfs)
+				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}btrfs filesystem resize max /")"
+			;;
+			*)
+				echo "⛔ ERROR: unsupported filesystem for auto-grow: ${FS_TYPE:-<unknown>}" >&2
+				return 1
+			;;
+		esac
 	fi
-	
-	if [ "$INDX" = "" ] ; then
-		INDX="`gpart show $PART | grep freebsd-ufs | awk '{print $3}'`"
-	fi
-	
-	if [ "$SWAP" = "" ] ; then
-		SWAP="`gpart show $PART | grep freebsd-swap | awk '{print $3}'`"
+
+	if [ "$COMMANDS" = "" ]; then
+		echo "⛔ ERROR: nothing to do; no actionable plan was built" >&2
+		return 1
 	fi
 
+	echo "Detected values" >&2
+	echo "ROOT_SRC: ${ROOT_SRC}" >&2
+	echo "IS_LVM: ${IS_LVM}" >&2
+	echo "LV_PATH: ${LV_PATH:-<none>}" >&2
+	echo "VG_NAME: ${VG_NAME:-<none>}" >&2
+	echo "PV_DEV: ${PV_DEV:-<none>}" >&2
+	echo "DISK_DEV: ${DISK_DEV:-<none>}" >&2
+	echo "PART_NUM: ${PART_NUM:-<none>}" >&2
+	echo "FS_TYPE: ${FS_TYPE:-<unknown>}" >&2
+	echo "" >&2
+	echo "Planned command" >&2
+	echo "$COMMANDS" >&2
 
-	echo "Grow: disk: $DISK, part: $PART, indx: $INDX, swap: $SWAP" >&2
-
-	if [ "$INDX" = "" ] ; then
-		echo "⛔ ERROR: Failed: can't detect partition index (yet?)" >&2
-		return 1;
+	if [ "$EXECUTE" != "--execute" ]; then
+		echo "" >&2
+		echo "Preview only. Re-run with --execute to apply." >&2
+		return 0
 	fi
-	
-	sysctl -w kern.geom.debugflags=16
-	sysctl -w kern.geom.part.auto_resize=1
-	camcontrol rescan all
-	devctl rescan pci0
 
-	gpart recover $DISK
-	gpart resize -i $INDX $DISK
-	gpart resize -i $INDX $PART
+	for CMD in growpart pvresize lvextend xfs_growfs resize2fs btrfs ; do
+		case " $COMMANDS " in
+			*" ${SUDO_PREFIX}${CMD} "*)
+				OsGrowSlashFsLinuxRequireCommand "$CMD"
+			;;
+		esac
+	done
 
-	local SIZE_NOW="`OsGrowSlashFsUfsUsedSize $PART`"
-	echo "Current size: ${SIZE_NOW}G" >&2
-
-	if [ "$SWAP" != "" ] ; then
-		swapoff -a || :
-		gpart delete -i $SWAP $PART
-		
-		## TODO: calculate new size and check that it is bigger than current
-		local SIZE_AVL="`OsGrowSlashFsUfsFreeSize $PART`"
-		echo "Free size: ${SIZE_AVL}G" >&2
-
-		local SIZE_NEW="`echo "x = $SIZE_NOW + $SIZE_AVL - 1; scale=0; x/1" | bc`"
-		
-		echo "New size: ${SIZE_NEW}G" >&2
-		
-		gpart resize -i $INDX -s ${SIZE_NEW}G $PART || :
-		 
-		gpart add -t freebsd-swap -a 4k $PART
-		swapon -a
+	if [ "$SUDO_PREFIX" != "" ]; then
+		OsGrowSlashFsLinuxRequireCommand sudo
 	fi
-	if [ "$SWAP" = "" ] ; then
-		gpart resize -i $INDX $PART
-		gpart resize -i $INDX $PART
-	fi
-	
-	#gpart commit $PART
-	#gpart commit $DISK
 
-	service growfs onestart
-	sysctl -w kern.geom.debugflags=0
+	echo "" >&2
+	echo "Executing plan" >&2
+	set -x
+	sh -c "$COMMANDS"
+	set +x
 
-	return 0;
+	echo "Done" >&2
+	return 0
 }
 
 case "$0" in
-	*/myx.common/bin/os/growSlashFsUfs.*) 
+	*/myx.common/bin/os/growSlashFs.*)
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/growSlashFsUfs --yes" >&2
-			echo "    or: myx.common os/growSlashFsUfs diskName sliceName [ufs-partition-index [swap-partition-index]]" >&2
+			echo "Syntax: myx.common os/growSlashFs --execute" >&2
+			echo "    or: myx.common os/growSlashFs" >&2
 			exit 1
 		fi
 		set -e
-		if [ "$1" = "--yes" ] ; then
-			OsGrowSlashFsUfs
-			exit 0
+		if [ "$1" = "--execute" ] ; then
+			OsGrowSlashFsLinux --execute
+			exit $?
 		fi
-		OsGrowSlashFsUfs "$@"
+		OsGrowSlashFsLinux
 	;;
 esac
