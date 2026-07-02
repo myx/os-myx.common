@@ -23,4 +23,3 @@
     ls -1d {source.txt,output.txt} 2>/dev/null | myx.common lib/iterate cat
 
     . "$(myx.common which lib/parallel)"; Iterate -w 16 MyContextFunction --check-item <( cat my-list.txt )
-

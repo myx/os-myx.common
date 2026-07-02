@@ -36,4 +36,3 @@
   Examples:
 
     myx.common lib/async -e -2 mybuild.sh svc11.myserver.example.org ; ... ; wait
-
