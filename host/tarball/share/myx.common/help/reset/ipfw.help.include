@@ -1,0 +1,3 @@
+echo '📘 Syntax: myx.common reset/ipfw' >&2
+echo '📘 Syntax: myx.common reset/ipfw --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/reset/ipfw.help.md" >&2

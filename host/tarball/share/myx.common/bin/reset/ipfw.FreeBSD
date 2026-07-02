@@ -16,7 +16,7 @@ ResetIpfw(){
 case "$0" in
 	*/myx.common/bin/reset/ipfw.FreeBSD) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common reset/ipfw" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/reset/ipfw.help.include" >&2
 			exit 1
 		fi
 		ResetIpfw "$@"

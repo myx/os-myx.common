@@ -62,7 +62,7 @@ SetupBhyve(){
 case "$0" in
 	*/myx.common/bin/setup/bhyve.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common setup/bhyve" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/setup/bhyve.help.include" >&2
 			exit 1
 		fi
 		set -e
