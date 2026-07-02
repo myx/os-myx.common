@@ -14,7 +14,7 @@ alias SedLineReader='sed -l'
 
 case "$0" in
 	*/myx.common/bin/lib/sedLineReader.Common) 
-		if [ -z "$1" ] ; then
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
 			echo "Syntax: myx.common lib/sedLineReader ['sed' arguments, see 'man sed'...]" >&2
 			exit 1
 		fi

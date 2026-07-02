@@ -26,6 +26,8 @@ case "$0" in
 	*/myx.common/bin/os/reclaimSpace.*) 
 		if [ "$1" = "--help" ] ; then
 			echo "Syntax: myx.common os/reclaimSpace" >&2
+			echo "Requires: root user, apt-get, journalctl" >&2
+			echo "Actions: clean /tmp, apt cache, apt autoremove, journal vacuum" >&2
 			exit 1
 		fi
 		set -e

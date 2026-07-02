@@ -4,7 +4,7 @@
 
 OsReclaimSpace(){
 	[ `id -u` = 0 ] || { echo "⛔ ERROR: $0: Must be run under root user!" >&2 ; exit 1 ; }
-	[ -n "`which pkg || :`" ] || { echo "⛔ ERROR: $0: pkg is required!" >&2 ; exit 1 ; }
+	command -v pkg >/dev/null 2>&1 || { echo "⛔ ERROR: $0: pkg is required!" >&2 ; exit 1 ; }
 
 	echo "OsReclaimSpace: cleaning stale files in /tmp..." >&2
 	find /tmp/ -type f -mtime +31 -delete
@@ -28,6 +28,8 @@ case "$0" in
 	*/myx.common/bin/os/reclaimSpace.*) 
 		if [ "$1" = "--help" ] ; then
 			echo "Syntax: myx.common os/reclaimSpace" >&2
+			echo "Requires: root user" >&2
+			echo "Actions: clean /tmp, freebsd-update cache, pkg cache, pkg autoremove" >&2
 			exit 1
 		fi
 		set -e

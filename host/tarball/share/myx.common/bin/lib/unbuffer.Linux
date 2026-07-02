@@ -8,7 +8,7 @@ Unbuffer(){
 
 case "$0" in
 	*/myx.common/bin/lib/unbuffer.*) 
-		if [ -z "$1" ] ; then
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
 			echo "Syntax: myx.common lib/unbuffer  command [... arguments]" >&2
 			exit 1
 		fi
