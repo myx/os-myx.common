@@ -118,6 +118,8 @@ RemoteContext(){
 
 	set -e
 	local includeTarballs='' includePaths='' includeScripts='' includeCommands=''
+	local remoteSshPid=''
+	exec 9>&1
 
 	while [ $# -gt 0 ]; do case "$1" in
 		--insert-path)
@@ -218,8 +220,14 @@ RemoteContext(){
 				command -v bash >/dev/null && exec bash -s
 				command -v sh >/dev/null && exec sh -s
 			' <"$fifo" &
+			remoteSshPid="$!"
 			exec 1> "$fifo"
 			rm "$fifo"
+			if ! kill -0 "$remoteSshPid" 2>/dev/null; then
+				exec 1>&9
+				echo "Local: ⛔ ERROR: RemoteContext: failed to start SSH transport." >&2
+				exit 1
+			fi
 			break
 			
 			ssh $sshOptions "$@" '
@@ -490,6 +498,12 @@ RemoteContext(){
 		fi
 		exit 0
 	}
+
+	if [ -n "$remoteSshPid" ]; then
+		exec 1>&9
+		wait "$remoteSshPid" || exit 1
+	fi
+	exec 9>&-
 }
 
 case "$0" in
