@@ -265,7 +265,7 @@ RemoteContext(){
 
 	# SHELL-NOTE: Uses [[ ... ]] test which is not POSIX sh.
 	# With strict /bin/sh implementations this can fail locally.
-	if [ -z "$force" ] && [[ -t 1 ]]; then
+	if [ -z "$force" ] && [ -t 1 ]; then
 		echo "Local: ⛔ ERROR: RemoteContext: This script generates a payload that must be piped into a remote shell. Use --force to proceed or add a pipe." >&2
 		exit 1
 	fi
