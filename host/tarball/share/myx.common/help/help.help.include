@@ -1,0 +1,6 @@
+echo '📘 Syntax: myx.common help' >&2
+echo '📘 Syntax: myx.common help <command>' >&2
+echo '📘 Syntax: myx.common help [--bare] [--uname {Darwin|FreeBSD|Linux}]' >&2
+echo '📘 Syntax: myx.common help [--uname {Darwin|FreeBSD|Linux}] [<command>]' >&2
+echo '📘 Syntax: myx.common help --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/help.help.md" >&2

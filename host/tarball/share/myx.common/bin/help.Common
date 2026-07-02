@@ -55,13 +55,7 @@ case "$0" in
 	*/myx.common/bin/help.Common) 
 		# if [ -z "$1" ] || [ "$1" = "--help" ] ; then -- not this one, show list by default
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common help" >&2
-			echo "Syntax: myx.common help <command>" >&2
-			echo "Syntax: myx.common help [--bare] [--uname {Darwin|FreeBSD|Linux}]" >&2
-			echo "Syntax: myx.common help [--uname {Darwin|FreeBSD|Linux}] [<command>]" >&2
-			echo "    for given 'myx.common' command, outputs a full path to stdout or dies with error exit code." >&2
-			echo "  NOTE: use --bare (with no <command>) to get the unformatted list of available command names." >&2
-			echo "  NOTE: use --uname when requesting help for specific target OS." >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/help.help.include" >&2
 			exit 1
 		fi
 		set -e

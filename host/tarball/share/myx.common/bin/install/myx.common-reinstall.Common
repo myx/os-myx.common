@@ -24,8 +24,7 @@ MyxCommonReinstall(){
 case "$0" in
 	*/myx.common/bin/install/myx.common-reinstall.Common) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common install/myx.common-reinstall" >&2
-			echo "Requires: root user, one of curl/fetch/wget" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/install/myx.common-reinstall.help.include" >&2
 			exit 1
 		fi
 		set -e

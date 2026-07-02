@@ -49,10 +49,7 @@ Cat(){
 case "$0" in
 	*/myx.common/bin/cat.Common) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common cat [--full|--strip] [--uname {Darwin|FreeBSD|Linux}] <command> [<command>...]" >&2
-			echo "    for given 'myx.common' command, outputs a source code to stdout, cutting the standalone execution part." >&2
-			echo "  NOTE: use --uname when requesting source code for specific target OS." >&2
-			echo "  NOTE: use --full option to get full source code." >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/cat.help.include" >&2
 			exit 1
 		fi
 		set -e

@@ -23,9 +23,7 @@ Which(){
 case "$0" in
 	*/myx.common/bin/which.Common) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common which [--uname {Darwin|FreeBSD|Linux}] <command>" >&2
-			echo "    for given 'myx.common' command, outputs a full path to stdout or dies with error exit code." >&2
-			echo "  NOTE: use --uname when requesting source code location for specific target OS." >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/which.help.include" >&2
 			exit 1
 		fi
 		set -e
