@@ -66,7 +66,21 @@ Supported OS: Linux, FreeBSD, Darwin.
 
 				Adds `myx.common` files and inserts commands to make sure it is found in 'PATH' variable.
 
+##  Usage notes:
+
+	This command emits a shell payload.
+
+	Use one of two execution modes:
+	1) Pass remote target with `--do-ssh`.
+	2) Pipe payload to `ssh ... sh -s` manually.
+
 ##  Examples:
+
+	# Run via built-in SSH mode
+	`myx.common lib/remoteContext --insert-command 'uname -a' --do-ssh -p 27 root@server3.example.org`
+
+	# Run via explicit pipe to SSH
+	`myx.common lib/remoteContext --insert-command 'uname -a' | ssh -p 27 root@server3.example.org sh -s`
 
 	# Open interactive remote session context
 	`myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-script "/usr/local/share/myx.common/include/data/console-myx.common-bootstrap"`
