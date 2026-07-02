@@ -48,7 +48,7 @@ OsNeedsReboot(){
 case "$0" in
 	*/myx.common/bin/os/needsReboot.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/needsReboot [--silent|--reboot]" >&2
+			echo "Syntax: myx.common os/needsReboot [--silent|--print|--reboot|--no-reboot]" >&2
 			exit 1
 		fi
 		set -e

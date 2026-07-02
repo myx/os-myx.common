@@ -2,23 +2,23 @@
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-ReclaimSpace(){
+OsReclaimSpace(){
 	[ `id -u` = 0 ] || { echo "⛔ ERROR: $0: Must be run under root user!" >&2 ; exit 1 ; }
 	command -v apt-get >/dev/null 2>&1 || { echo "⛔ ERROR: $0: apt-get is required!" >&2 ; exit 1 ; }
 
-	echo "ReclaimSpace: cleaning stale files in /tmp..." >&2
+	echo "OsReclaimSpace: cleaning stale files in /tmp..." >&2
 	find /tmp/ -type f -mtime +31 -delete
 
-	echo "ReclaimSpace: cleaning apt caches..." >&2
+	echo "OsReclaimSpace: cleaning apt caches..." >&2
 	apt-get clean
-	
-	echo "ReclaimSpace: removing stale apt packages..." >&2
+
+	echo "OsReclaimSpace: removing stale apt packages..." >&2
 	apt-get autoremove -y
-	
-	echo "ReclaimSpace: cleaning journals..." >&2
+
+	echo "OsReclaimSpace: cleaning journals..." >&2
 	journalctl --vacuum-time=7d --vacuum-size 64M
 
-	echo "ReclaimSpace: removing stale apt packages..." >&2
+	echo "OsReclaimSpace: done." >&2
 }
 
 
@@ -29,6 +29,6 @@ case "$0" in
 			exit 1
 		fi
 		set -e
-		ReclaimSpace "$@"
+		OsReclaimSpace "$@"
 	;;
 esac

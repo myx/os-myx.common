@@ -2,25 +2,25 @@
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-ReclaimSpace(){
+OsReclaimSpace(){
 	[ `id -u` = 0 ] || { echo "⛔ ERROR: $0: Must be run under root user!" >&2 ; exit 1 ; }
 	[ -n "`which pkg || :`" ] || { echo "⛔ ERROR: $0: pkg is required!" >&2 ; exit 1 ; }
 
-	echo "ReclaimSpace: cleaning stale files in /tmp..." >&2
+	echo "OsReclaimSpace: cleaning stale files in /tmp..." >&2
 	find /tmp/ -type f -mtime +31 -delete
 
-	echo "ReclaimSpace: cleaning freebsd-update cache..." >&2
+	echo "OsReclaimSpace: cleaning freebsd-update cache..." >&2
 	if [ -d "/var/db/freebsd-update/files" ]; then
 		find /var/db/freebsd-update/files/ -type f -delete
 	fi
 
-	echo "ReclaimSpace: cleaning pkg caches..." >&2
+	echo "OsReclaimSpace: cleaning pkg caches..." >&2
 	pkg clean -a -y
-	
-	echo "ReclaimSpace: removing stale pkg packages..." >&2
+
+	echo "OsReclaimSpace: removing stale pkg packages..." >&2
 	pkg autoremove -y
-	
-	echo "ReclaimSpace: done." >&2
+
+	echo "OsReclaimSpace: done." >&2
 }
 
 
@@ -31,6 +31,6 @@ case "$0" in
 			exit 1
 		fi
 		set -e
-		ReclaimSpace "$@"
+		OsReclaimSpace "$@"
 	;;
 esac

@@ -2,24 +2,20 @@
 
 ##### !!! THIS SCRIPT MUST BE OVERRIDEN IN OS-DEPENDENT IMPLEMENTATION !!! #####
 
-OsGrowSlashFsLinuxTrim(){
-	echo "$*" | awk '{$1=$1; print}'
-}
-
-OsGrowSlashFsLinuxHasCommand(){
+OsGrowSlashFsHasCommand(){
 	command -v "$1" >/dev/null 2>&1
 }
 
-OsGrowSlashFsLinuxRequireCommand(){
+OsGrowSlashFsRequireCommand(){
 	local CMD_NAME="$1"
-	OsGrowSlashFsLinuxHasCommand "$CMD_NAME" || {
+	OsGrowSlashFsHasCommand "$CMD_NAME" || {
 		echo "⛔ ERROR: required command is missing: ${CMD_NAME}" >&2
 		return 1
 	}
 }
 
-OsGrowSlashFsLinuxGetRootSource(){
-	if OsGrowSlashFsLinuxHasCommand findmnt; then
+OsGrowSlashFsGetRootSource(){
+	if OsGrowSlashFsHasCommand findmnt; then
 		findmnt -n -o SOURCE /
 		return 0
 	fi
@@ -28,8 +24,8 @@ OsGrowSlashFsLinuxGetRootSource(){
 	awk '$2=="/" {print $1; exit}' /proc/mounts
 }
 
-OsGrowSlashFsLinuxGetFsType(){
-	if OsGrowSlashFsLinuxHasCommand findmnt; then
+OsGrowSlashFsGetFsType(){
+	if OsGrowSlashFsHasCommand findmnt; then
 		findmnt -n -o FSTYPE /
 		return 0
 	fi
@@ -38,12 +34,12 @@ OsGrowSlashFsLinuxGetFsType(){
 	awk '$2=="/" {print $3; exit}' /proc/mounts
 }
 
-OsGrowSlashFsLinuxResolveLvPath(){
+OsGrowSlashFsResolveLvPath(){
 	local SRC="$1"
 	local LV=""
 
-	if OsGrowSlashFsLinuxHasCommand lvs; then
-		LV="$(lvs --noheadings -o lv_path "$SRC" 2>/dev/null | OsGrowSlashFsLinuxTrim || true)"
+	if OsGrowSlashFsHasCommand lvs; then
+		LV="$(lvs --noheadings -o lv_path "$SRC" 2>/dev/null | awk '{$1=$1; print}' || true)"
 		if [ "$LV" != "" ]; then
 			echo "$LV"
 			return 0
@@ -53,12 +49,12 @@ OsGrowSlashFsLinuxResolveLvPath(){
 	readlink -f "$SRC" 2>/dev/null || echo "$SRC"
 }
 
-OsGrowSlashFsLinuxResolveVgName(){
+OsGrowSlashFsResolveVgName(){
 	local SRC="$1"
 	local VG=""
 
-	if OsGrowSlashFsLinuxHasCommand lvs; then
-		VG="$(lvs --noheadings -o vg_name "$SRC" 2>/dev/null | OsGrowSlashFsLinuxTrim || true)"
+	if OsGrowSlashFsHasCommand lvs; then
+		VG="$(lvs --noheadings -o vg_name "$SRC" 2>/dev/null | awk '{$1=$1; print}' || true)"
 		if [ "$VG" != "" ]; then
 			echo "$VG"
 			return 0
@@ -68,7 +64,7 @@ OsGrowSlashFsLinuxResolveVgName(){
 	echo ""
 }
 
-OsGrowSlashFsLinuxResolveFirstPvForVg(){
+OsGrowSlashFsResolveFirstPvForVg(){
 	local VG="$1"
 	local PV=""
 
@@ -77,18 +73,16 @@ OsGrowSlashFsLinuxResolveFirstPvForVg(){
 		return 0
 	fi
 
-	if OsGrowSlashFsLinuxHasCommand pvs; then
-		PV="$(pvs --noheadings -o pv_name,vg_name 2>/dev/null | awk -v vg="$VG" '$2==vg {print $1; exit}')"
-		PV="$(OsGrowSlashFsLinuxTrim "$PV")"
+	if OsGrowSlashFsHasCommand pvs; then
+		PV="$(pvs --noheadings -o pv_name,vg_name 2>/dev/null | awk -v vg="$VG" '$2==vg {print $1; exit}' | awk '{$1=$1; print}')"
 		if [ "$PV" != "" ]; then
 			echo "$PV"
 			return 0
 		fi
 	fi
 
-	if OsGrowSlashFsLinuxHasCommand pvdisplay; then
-		PV="$(pvdisplay -C --noheading -o pv_name,vg_name 2>/dev/null | awk -v vg="$VG" '$2==vg {print $1; exit}')"
-		PV="$(OsGrowSlashFsLinuxTrim "$PV")"
+	if OsGrowSlashFsHasCommand pvdisplay; then
+		PV="$(pvdisplay -C --noheading -o pv_name,vg_name 2>/dev/null | awk -v vg="$VG" '$2==vg {print $1; exit}' | awk '{$1=$1; print}')"
 		if [ "$PV" != "" ]; then
 			echo "$PV"
 			return 0
@@ -98,18 +92,18 @@ OsGrowSlashFsLinuxResolveFirstPvForVg(){
 	echo ""
 }
 
-OsGrowSlashFsLinuxResolveDiskAndPartNum(){
+OsGrowSlashFsResolveDiskAndPartNum(){
 	local DEV="$1"
 	local PKNAME=""
 	local PARTN=""
 
-	if ! OsGrowSlashFsLinuxHasCommand lsblk; then
+	if ! OsGrowSlashFsHasCommand lsblk; then
 		echo "|"
 		return 0
 	fi
 
-	PKNAME="$(lsblk -no PKNAME "$DEV" 2>/dev/null | head -n1 | OsGrowSlashFsLinuxTrim || true)"
-	PARTN="$(lsblk -no PARTN "$DEV" 2>/dev/null | head -n1 | OsGrowSlashFsLinuxTrim || true)"
+	PKNAME="$(lsblk -no PKNAME "$DEV" 2>/dev/null | head -n1 | awk '{$1=$1; print}' || true)"
+	PARTN="$(lsblk -no PARTN "$DEV" 2>/dev/null | head -n1 | awk '{$1=$1; print}' || true)"
 
 	if [ "$PKNAME" != "" ] && [ "$PARTN" != "" ]; then
 		echo "/dev/${PKNAME}|${PARTN}"
@@ -119,7 +113,7 @@ OsGrowSlashFsLinuxResolveDiskAndPartNum(){
 	echo "|"
 }
 
-OsGrowSlashFsLinuxAppendCommand(){
+OsGrowSlashFsAppendCommand(){
 	local COMMANDS_VALUE="$1"
 	local COMMAND_VALUE="$2"
 
@@ -130,7 +124,7 @@ OsGrowSlashFsLinuxAppendCommand(){
 	fi
 }
 
-OsGrowSlashFsLinux(){
+OsGrowSlashFs(){
 	local EXECUTE="$1"
 	local SUDO_PREFIX=""
 	local ROOT_SRC=""
@@ -148,12 +142,12 @@ OsGrowSlashFsLinux(){
 
 	set -e
 
-	if [ "$(id -u)" -ne 0 ] && OsGrowSlashFsLinuxHasCommand sudo; then
+	if [ "$(id -u)" -ne 0 ] && OsGrowSlashFsHasCommand sudo; then
 		SUDO_PREFIX="sudo "
 	fi
 
-	ROOT_SRC="$(OsGrowSlashFsLinuxGetRootSource 2>/dev/null || true)"
-	FS_TYPE="$(OsGrowSlashFsLinuxGetFsType 2>/dev/null || true)"
+	ROOT_SRC="$(OsGrowSlashFsGetRootSource 2>/dev/null || true)"
+	FS_TYPE="$(OsGrowSlashFsGetFsType 2>/dev/null || true)"
 
 	if [ "$ROOT_SRC" = "" ]; then
 		echo "⛔ ERROR: cannot determine root source" >&2
@@ -165,8 +159,8 @@ OsGrowSlashFsLinux(){
 			IS_LVM=true
 		;;
 		*)
-			if OsGrowSlashFsLinuxHasCommand lsblk; then
-				TYPE_HINT="$(lsblk -no TYPE "$ROOT_SRC" 2>/dev/null | head -n1 | OsGrowSlashFsLinuxTrim || true)"
+			if OsGrowSlashFsHasCommand lsblk; then
+				TYPE_HINT="$(lsblk -no TYPE "$ROOT_SRC" 2>/dev/null | head -n1 | awk '{$1=$1; print}' || true)"
 				if [ "$TYPE_HINT" = "lvm" ]; then
 					IS_LVM=true
 				fi
@@ -175,42 +169,42 @@ OsGrowSlashFsLinux(){
 	esac
 
 	if [ "$IS_LVM" = "true" ]; then
-		LV_PATH="$(OsGrowSlashFsLinuxResolveLvPath "$ROOT_SRC")"
-		VG_NAME="$(OsGrowSlashFsLinuxResolveVgName "$ROOT_SRC")"
-		PV_DEV="$(OsGrowSlashFsLinuxResolveFirstPvForVg "$VG_NAME")"
+		LV_PATH="$(OsGrowSlashFsResolveLvPath "$ROOT_SRC")"
+		VG_NAME="$(OsGrowSlashFsResolveVgName "$ROOT_SRC")"
+		PV_DEV="$(OsGrowSlashFsResolveFirstPvForVg "$VG_NAME")"
 		if [ "$PV_DEV" != "" ]; then
-			DISK_AND_PART="$(OsGrowSlashFsLinuxResolveDiskAndPartNum "$PV_DEV")"
+			DISK_AND_PART="$(OsGrowSlashFsResolveDiskAndPartNum "$PV_DEV")"
 			DISK_DEV="$(echo "$DISK_AND_PART" | cut -d'|' -f1)"
 			PART_NUM="$(echo "$DISK_AND_PART" | cut -d'|' -f2)"
 		fi
 	else
 		LV_PATH="$ROOT_SRC"
 		PV_DEV="$ROOT_SRC"
-		DISK_AND_PART="$(OsGrowSlashFsLinuxResolveDiskAndPartNum "$ROOT_SRC")"
+		DISK_AND_PART="$(OsGrowSlashFsResolveDiskAndPartNum "$ROOT_SRC")"
 		DISK_DEV="$(echo "$DISK_AND_PART" | cut -d'|' -f1)"
 		PART_NUM="$(echo "$DISK_AND_PART" | cut -d'|' -f2)"
 	fi
 
 	if [ "$DISK_DEV" != "" ] && [ "$PART_NUM" != "" ]; then
-		COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}growpart ${DISK_DEV} ${PART_NUM}")"
+		COMMANDS="$(OsGrowSlashFsAppendCommand "$COMMANDS" "${SUDO_PREFIX}growpart ${DISK_DEV} ${PART_NUM}")"
 	fi
 
 	if [ "$IS_LVM" = "true" ]; then
 		if [ "$PV_DEV" != "" ]; then
-			COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}pvresize ${PV_DEV}")"
+			COMMANDS="$(OsGrowSlashFsAppendCommand "$COMMANDS" "${SUDO_PREFIX}pvresize ${PV_DEV}")"
 		fi
 
-		COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}lvextend -l +100%FREE ${LV_PATH}")"
+		COMMANDS="$(OsGrowSlashFsAppendCommand "$COMMANDS" "${SUDO_PREFIX}lvextend -l +100%FREE ${LV_PATH}")"
 
 		case "$FS_TYPE" in
 			xfs)
-				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}xfs_growfs /")"
+				COMMANDS="$(OsGrowSlashFsAppendCommand "$COMMANDS" "${SUDO_PREFIX}xfs_growfs /")"
 			;;
 			ext2|ext3|ext4)
-				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}resize2fs ${LV_PATH}")"
+				COMMANDS="$(OsGrowSlashFsAppendCommand "$COMMANDS" "${SUDO_PREFIX}resize2fs ${LV_PATH}")"
 			;;
 			btrfs)
-				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}btrfs filesystem resize max /")"
+				COMMANDS="$(OsGrowSlashFsAppendCommand "$COMMANDS" "${SUDO_PREFIX}btrfs filesystem resize max /")"
 			;;
 			*)
 				echo "⛔ ERROR: unsupported filesystem for auto-grow: ${FS_TYPE:-<unknown>}" >&2
@@ -220,13 +214,13 @@ OsGrowSlashFsLinux(){
 	else
 		case "$FS_TYPE" in
 			xfs)
-				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}xfs_growfs /")"
+				COMMANDS="$(OsGrowSlashFsAppendCommand "$COMMANDS" "${SUDO_PREFIX}xfs_growfs /")"
 			;;
 			ext2|ext3|ext4)
-				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}resize2fs ${PV_DEV}")"
+				COMMANDS="$(OsGrowSlashFsAppendCommand "$COMMANDS" "${SUDO_PREFIX}resize2fs ${PV_DEV}")"
 			;;
 			btrfs)
-				COMMANDS="$(OsGrowSlashFsLinuxAppendCommand "$COMMANDS" "${SUDO_PREFIX}btrfs filesystem resize max /")"
+				COMMANDS="$(OsGrowSlashFsAppendCommand "$COMMANDS" "${SUDO_PREFIX}btrfs filesystem resize max /")"
 			;;
 			*)
 				echo "⛔ ERROR: unsupported filesystem for auto-grow: ${FS_TYPE:-<unknown>}" >&2
@@ -262,13 +256,13 @@ OsGrowSlashFsLinux(){
 	for CMD in growpart pvresize lvextend xfs_growfs resize2fs btrfs ; do
 		case " $COMMANDS " in
 			*" ${SUDO_PREFIX}${CMD} "*)
-				OsGrowSlashFsLinuxRequireCommand "$CMD"
+				OsGrowSlashFsRequireCommand "$CMD"
 			;;
 		esac
 	done
 
 	if [ "$SUDO_PREFIX" != "" ]; then
-		OsGrowSlashFsLinuxRequireCommand sudo
+		OsGrowSlashFsRequireCommand sudo
 	fi
 
 	echo "" >&2
@@ -286,13 +280,14 @@ case "$0" in
 		if [ "$1" = "--help" ] ; then
 			echo "Syntax: myx.common os/growSlashFs --execute" >&2
 			echo "    or: myx.common os/growSlashFs" >&2
+			echo "Grows root filesystem to fill all available disk/partition space (supports plain, LVM/ext2/ext3/ext4/xfs/btrfs)." >&2
 			exit 1
 		fi
 		set -e
 		if [ "$1" = "--execute" ] ; then
-			OsGrowSlashFsLinux --execute
+			OsGrowSlashFs --execute
 			exit $?
 		fi
-		OsGrowSlashFsLinux
+		OsGrowSlashFs
 	;;
 esac
