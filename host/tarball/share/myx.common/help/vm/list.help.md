@@ -11,5 +11,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common vm/list
+  myx.common vm/list
 ```

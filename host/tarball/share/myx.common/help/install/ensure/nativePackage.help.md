@@ -12,13 +12,13 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common install/ensure/nativePackage git
+  myx.common install/ensure/nativePackage git
 ```
 
 ```sh
-myx.common install/ensure/nativePackage git curl
+  myx.common install/ensure/nativePackage git curl
 ```
 
 ```sh
-myx.common install/ensure/nativePackage jq unzip
+  myx.common install/ensure/nativePackage jq unzip
 ```

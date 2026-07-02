@@ -33,9 +33,9 @@ Requirements:
 Examples:
 
 ```sh
-myx.common lib/installUser build "Build User" 1201 /home/build
+  myx.common lib/installUser build "Build User" 1201 /home/build
 ```
 
 ```sh
-myx.common lib/installUser deploy
+  myx.common lib/installUser deploy
 ```

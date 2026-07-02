@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common remove/myx.common-uninstall --yes
+  myx.common remove/myx.common-uninstall --yes
 ```

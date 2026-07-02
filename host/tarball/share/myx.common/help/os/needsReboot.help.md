@@ -37,9 +37,9 @@ Notes:
 Examples:
 
 ```sh
-myx.common os/needsReboot --print
+  myx.common os/needsReboot --print
 ```
 
 ```sh
-myx.common os/needsReboot --silent
+  myx.common os/needsReboot --silent
 ```

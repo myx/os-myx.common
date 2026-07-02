@@ -69,13 +69,13 @@ Options:
 Examples:
 
 ```sh
-myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-script "/usr/local/share/myx.common/include/data/console-myx.common-bootstrap"
+  myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-script "/usr/local/share/myx.common/include/data/console-myx.common-bootstrap"
 ```
 
 ```sh
-myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-command 'export PATH="$PWD/share/myx.common:$PATH"'
+  myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-command 'export PATH="$PWD/share/myx.common:$PATH"'
 ```
 
 ```sh
-myx.common lib/remoteContext --interactive --insert-path "$MY_APP/remote-tarball" --insert-command "$( RemoteScriptGenerator.sh --make )"
+  myx.common lib/remoteContext --interactive --insert-path "$MY_APP/remote-tarball" --insert-command "$( RemoteScriptGenerator.sh --make )"
 ```

@@ -37,13 +37,13 @@ Options:
 Examples:
 
 ```sh
-myx.common lib/replaceLine /etc/ssh/sshd_config "^Port *" "Port 7727"
+  myx.common lib/replaceLine /etc/ssh/sshd_config "^Port *" "Port 7727"
 ```
 
 ```sh
-myx.common lib/replaceLine /usr/local/etc/sudoers "^%wheel ALL=*" "%wheel ALL=(root) ALL"
+  myx.common lib/replaceLine /usr/local/etc/sudoers "^%wheel ALL=*" "%wheel ALL=(root) ALL"
 ```
 
 ```sh
-myx.common lib/replaceLine --create ./env/app.conf "^APP_MODE=" "APP_MODE=production"
+  myx.common lib/replaceLine --create ./env/app.conf "^APP_MODE=" "APP_MODE=production"
 ```

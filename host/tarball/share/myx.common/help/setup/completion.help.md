@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common setup/completion
+  myx.common setup/completion
 ```

@@ -17,13 +17,13 @@ Notes:
 Examples:
 
 ```sh
-myx.common which os/getCpuCount
+  myx.common which os/getCpuCount
 ```
 
 ```sh
-myx.common which --uname Darwin os/getCpuCount
+  myx.common which --uname Darwin os/getCpuCount
 ```
 
 ```sh
-myx.common which --uname FreeBSD os/getCpuCount
+  myx.common which --uname FreeBSD os/getCpuCount
 ```

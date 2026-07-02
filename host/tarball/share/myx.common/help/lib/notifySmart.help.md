@@ -18,5 +18,5 @@ Notes:
 Examples:
 
 ```sh
-myx.common help
+  myx.common help
 ```

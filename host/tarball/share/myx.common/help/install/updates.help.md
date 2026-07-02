@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common install/updates
+  myx.common install/updates
 ```

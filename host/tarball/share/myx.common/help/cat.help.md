@@ -18,13 +18,13 @@ Notes:
 Examples:
 
 ```sh
-myx.common cat os/getCpuCount
+  myx.common cat os/getCpuCount
 ```
 
 ```sh
-myx.common cat --full --uname Darwin os/getCpuCount os/getRamBytes
+  myx.common cat --full --uname Darwin os/getCpuCount os/getRamBytes
 ```
 
 ```sh
-myx.common cat --strip --uname FreeBSD os/getCpuCount
+  myx.common cat --strip --uname FreeBSD os/getCpuCount
 ```

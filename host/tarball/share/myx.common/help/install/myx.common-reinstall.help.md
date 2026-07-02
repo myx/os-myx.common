@@ -20,5 +20,5 @@ Behavior:
 Examples:
 
 ```sh
-myx.common install/myx.common-reinstall
+  myx.common install/myx.common-reinstall
 ```

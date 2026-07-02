@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common remove/completion
+  myx.common remove/completion
 ```

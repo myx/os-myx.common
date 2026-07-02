@@ -20,9 +20,9 @@ Notes:
 Examples:
 
 ```sh
-myx.common os/growSlashFs
+  myx.common os/growSlashFs
 ```
 
 ```sh
-myx.common os/growSlashFs --execute
+  myx.common os/growSlashFs --execute
 ```

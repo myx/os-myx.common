@@ -12,9 +12,9 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common myx/requireRoot
+  myx.common myx/requireRoot
 ```
 
 ```sh
-myx.common myx/requireRoot os/getCpuCount
+  myx.common myx/requireRoot os/getCpuCount
 ```

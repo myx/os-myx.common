@@ -11,9 +11,9 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common os/getUserHome
+  myx.common os/getUserHome
 ```
 
 ```sh
-myx.common os/getUserHome --user myx
+  myx.common os/getUserHome --user myx
 ```

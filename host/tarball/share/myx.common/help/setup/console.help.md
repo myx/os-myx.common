@@ -11,5 +11,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common setup/console
+  myx.common setup/console
 ```

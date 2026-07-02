@@ -60,9 +60,9 @@ Options:
 Examples:
 
 ```sh
-myx.common lib/prefix -v -e -2 mybuild.sh svc11.myserver.example.org
+  myx.common lib/prefix -v -e -2 mybuild.sh svc11.myserver.example.org
 ```
 
 ```sh
-myx.common lib/prefix -e -o "countdown" sh -c "for i in 1 2 3 4 5 ; do sleep .25; echo; done"
+  myx.common lib/prefix -e -o "countdown" sh -c "for i in 1 2 3 4 5 ; do sleep .25; echo; done"
 ```

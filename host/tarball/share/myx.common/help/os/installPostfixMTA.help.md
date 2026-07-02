@@ -19,5 +19,5 @@ Behavior:
 Examples:
 
 ```sh
-myx.common os/installPostfixMTA
+  myx.common os/installPostfixMTA
 ```

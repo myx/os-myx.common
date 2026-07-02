@@ -11,13 +11,13 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common lib/replaceText /tmp/example.txt old new
+  myx.common lib/replaceText /tmp/example.txt old new
 ```
 
 ```sh
-myx.common lib/replaceText --plain /tmp/example.txt old new
+  myx.common lib/replaceText --plain /tmp/example.txt old new
 ```
 
 ```sh
-myx.common lib/replaceText --regex /tmp/example.txt old new
+  myx.common lib/replaceText --regex /tmp/example.txt old new
 ```

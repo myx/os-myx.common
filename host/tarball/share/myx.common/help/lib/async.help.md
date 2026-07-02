@@ -41,13 +41,13 @@ Options:
 Examples:
 
 ```sh
-myx.common lib/async --elapsed -2 mybuild.sh svc11.myserver.example.org
+  myx.common lib/async --elapsed -2 mybuild.sh svc11.myserver.example.org
 ```
 
 ```sh
-myx.common lib/async --prefix-limit 16 -- echo os/getCpuCount
+  myx.common lib/async --prefix-limit 16 -- echo os/getCpuCount
 ```
 
 ```sh
-myx.common lib/async build-1 os/getCpuCount
+  myx.common lib/async build-1 os/getCpuCount
 ```

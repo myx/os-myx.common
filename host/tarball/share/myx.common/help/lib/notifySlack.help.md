@@ -19,13 +19,13 @@ Notes:
 Examples:
 
 ```sh
-myx.common lib/notifySlack --text "Deploy complete"
+  myx.common lib/notifySlack --text "Deploy complete"
 ```
 
 ```sh
-myx.common lib/notifySlack --text "Disk pressure on db01" --alert --emoji :warning:
+  myx.common lib/notifySlack --text "Disk pressure on db01" --alert --emoji :warning:
 ```
 
 ```sh
-myx.common lib/notifySlack --text "Backup finished" --logger --channel ops --user buildbot
+  myx.common lib/notifySlack --text "Backup finished" --logger --channel ops --user buildbot
 ```

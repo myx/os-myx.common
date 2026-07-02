@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common setup/screen
+  myx.common setup/screen
 ```

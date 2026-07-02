@@ -12,9 +12,9 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common setup/server
+  myx.common setup/server
 ```
 
 ```sh
-myx.common setup/server --postfix-mta
+  myx.common setup/server --postfix-mta
 ```

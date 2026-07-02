@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common install/freebsd
+  myx.common install/freebsd
 ```

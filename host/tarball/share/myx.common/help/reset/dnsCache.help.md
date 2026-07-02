@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common reset/dnsCache
+  myx.common reset/dnsCache
 ```

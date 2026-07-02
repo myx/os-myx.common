@@ -12,13 +12,13 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common tune/zfsQuarterCache
+  myx.common tune/zfsQuarterCache
 ```
 
 ```sh
-myx.common tune/zfsQuarterCache --upsert
+  myx.common tune/zfsQuarterCache --upsert
 ```
 
 ```sh
-myx.common tune/zfsQuarterCache --remove
+  myx.common tune/zfsQuarterCache --remove
 ```

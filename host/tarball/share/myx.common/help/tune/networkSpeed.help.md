@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common tune/networkSpeed
+  myx.common tune/networkSpeed
 ```

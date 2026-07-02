@@ -25,13 +25,13 @@ Requirements:
 Examples:
 
 ```sh
-myx.common lib/installWheelUser deploy "Deploy User"
+  myx.common lib/installWheelUser deploy "Deploy User"
 ```
 
 ```sh
-myx.common lib/installWheelUser demo myx
+  myx.common lib/installWheelUser demo myx
 ```
 
 ```sh
-myx.common lib/installWheelUser demo
+  myx.common lib/installWheelUser demo
 ```

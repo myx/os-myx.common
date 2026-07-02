@@ -16,9 +16,9 @@ Notes:
 Examples:
 
 ```sh
-myx.common lib/installEnsurePackage curl
+  myx.common lib/installEnsurePackage curl
 ```
 
 ```sh
-myx.common lib/installEnsurePackage curl jq
+  myx.common lib/installEnsurePackage curl jq
 ```

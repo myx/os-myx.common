@@ -17,13 +17,13 @@ Notes:
 Examples:
 
 ```sh
-myx.common git/cloneSync /tmp/example-repo https://github.com/example/example.git
+  myx.common git/cloneSync /tmp/example-repo https://github.com/example/example.git
 ```
 
 ```sh
-myx.common git/cloneSync --no-write /tmp/example-repo https://github.com/example/example.git main
+  myx.common git/cloneSync --no-write /tmp/example-repo https://github.com/example/example.git main
 ```
 
 ```sh
-myx.common git/cloneSync --no-push /tmp/example-repo https://github.com/example/example.git main
+  myx.common git/cloneSync --no-push /tmp/example-repo https://github.com/example/example.git main
 ```

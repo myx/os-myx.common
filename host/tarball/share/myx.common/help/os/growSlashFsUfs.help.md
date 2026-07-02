@@ -25,9 +25,9 @@ Requirements:
 Examples:
 
 ```sh
-myx.common os/growSlashFsUfs --execute
+  myx.common os/growSlashFsUfs --execute
 ```
 
 ```sh
-myx.common os/growSlashFsUfs ada0 s1 2 3
+  myx.common os/growSlashFsUfs ada0 s1 2 3
 ```

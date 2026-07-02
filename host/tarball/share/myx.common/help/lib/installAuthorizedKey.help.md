@@ -12,9 +12,9 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common lib/installAuthorizedKey deploy 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGexamplekey deploy@host'
+  myx.common lib/installAuthorizedKey deploy 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGexamplekey deploy@host'
 ```
 
 ```sh
-myx.common lib/installAuthorizedKey deploy 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGexamplekey deploy@host' --remove
+  myx.common lib/installAuthorizedKey deploy 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGexamplekey deploy@host' --remove
 ```

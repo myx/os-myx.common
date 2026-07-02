@@ -12,13 +12,13 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common lib/setLoaderConf kern.maxfiles 200000
+  myx.common lib/setLoaderConf kern.maxfiles 200000
 ```
 
 ```sh
-myx.common lib/setLoaderConf kern.maxfiles --grow 250000
+  myx.common lib/setLoaderConf kern.maxfiles --grow 250000
 ```
 
 ```sh
-myx.common lib/setLoaderConf kern.maxfiles --shrink 150000
+  myx.common lib/setLoaderConf kern.maxfiles --shrink 150000
 ```

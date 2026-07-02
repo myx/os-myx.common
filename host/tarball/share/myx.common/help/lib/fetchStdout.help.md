@@ -41,13 +41,13 @@ Environment:
 Examples:
 
 ```sh
-myx.common lib/fetchStdout https://example.com/index.html
+  myx.common lib/fetchStdout https://example.com/index.html
 ```
 
 ```sh
-myx.common lib/fetchStdout --local-cache /var/cache/myx.fetch --check-cache https://example.com/index.html
+  myx.common lib/fetchStdout --local-cache /var/cache/myx.fetch --check-cache https://example.com/index.html
 ```
 
 ```sh
-myx.common lib/fetchStdout --do-cache --local-cache /var/cache/myx.fetch https://example.com/index.html
+  myx.common lib/fetchStdout --do-cache --local-cache /var/cache/myx.fetch https://example.com/index.html
 ```

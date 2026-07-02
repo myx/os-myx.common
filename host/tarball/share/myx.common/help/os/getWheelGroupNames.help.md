@@ -11,5 +11,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common os/getWheelGroupNames
+  myx.common os/getWheelGroupNames
 ```

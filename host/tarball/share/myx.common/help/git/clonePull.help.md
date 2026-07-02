@@ -17,9 +17,9 @@ Notes:
 Examples:
 
 ```sh
-myx.common git/clonePull /tmp/example-repo https://github.com/example/example.git
+  myx.common git/clonePull /tmp/example-repo https://github.com/example/example.git
 ```
 
 ```sh
-myx.common git/clonePull --no-write /tmp/example-repo https://github.com/example/example.git main
+  myx.common git/clonePull --no-write /tmp/example-repo https://github.com/example/example.git main
 ```

@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common tune/networkProtect
+  myx.common tune/networkProtect
 ```

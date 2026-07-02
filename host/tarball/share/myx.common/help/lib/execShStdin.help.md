@@ -11,9 +11,9 @@ Usage notes:
 Examples:
 
 ```sh
-printf 'echo hello-from-stdin\n' | myx.common lib/execShStdin
+  printf 'echo hello-from-stdin\n' | myx.common lib/execShStdin
 ```
 
 ```sh
-printf 'echo "shell=$0"\n' | myx.common lib/execShStdin --bash
+  printf 'echo "shell=$0"\n' | myx.common lib/execShStdin --bash
 ```

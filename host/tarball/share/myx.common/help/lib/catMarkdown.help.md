@@ -41,13 +41,13 @@ to drop all ANSI formatting and produce plain text.
 Examples:
 
 ```sh
-myx.common lib/catMarkdown
+  myx.common lib/catMarkdown
 ```
 
 ```sh
-myx.common lib/catMarkdown --strip-all /tmp/example.txt
+  myx.common lib/catMarkdown --strip-all /tmp/example.txt
 ```
 
 ```sh
-myx.common lib/catMarkdown --strip-all --force-tty --basic-sed /tmp/example.txt
+  myx.common lib/catMarkdown --strip-all --force-tty --basic-sed /tmp/example.txt
 ```

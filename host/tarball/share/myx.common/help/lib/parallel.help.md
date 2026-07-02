@@ -45,13 +45,13 @@ Environment:
 Examples:
 
 ```sh
-myx.common lib/parallel os/getCpuCount
+  myx.common lib/parallel os/getCpuCount
 ```
 
 ```sh
-myx.common lib/parallel -v -w 8 os/getCpuCount
+  myx.common lib/parallel -v -w 8 os/getCpuCount
 ```
 
 ```sh
-myx.common lib/parallel --workers=6 -- os/getRamBytes
+  myx.common lib/parallel --workers=6 -- os/getRamBytes
 ```

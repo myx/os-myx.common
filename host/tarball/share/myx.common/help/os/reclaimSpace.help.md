@@ -25,5 +25,5 @@ Notes:
 Examples:
 
 ```sh
-myx.common os/reclaimSpace
+  myx.common os/reclaimSpace
 ```

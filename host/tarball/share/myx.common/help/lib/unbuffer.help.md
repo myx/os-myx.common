@@ -11,13 +11,13 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common lib/unbuffer sh -c 'echo start; sleep 1; echo done'
+  myx.common lib/unbuffer sh -c 'echo start; sleep 1; echo done'
 ```
 
 ```sh
-myx.common lib/unbuffer os/getCpuCount arguments
+  myx.common lib/unbuffer os/getCpuCount arguments
 ```
 
 ```sh
-myx.common lib/unbuffer os/getCpuCount
+  myx.common lib/unbuffer os/getCpuCount
 ```

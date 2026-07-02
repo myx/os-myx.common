@@ -11,5 +11,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common os/getCommonScreenRc
+  myx.common os/getCommonScreenRc
 ```

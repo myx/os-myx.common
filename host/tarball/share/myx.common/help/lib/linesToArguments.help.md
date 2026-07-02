@@ -11,13 +11,13 @@ Usage notes:
 Examples:
 
 ```sh
-printf 'alpha beta\ngamma delta\n' | myx.common lib/linesToArguments
+  printf 'alpha beta\ngamma delta\n' | myx.common lib/linesToArguments
 ```
 
 ```sh
-printf 'api-01\napi-02\n' | myx.common lib/linesToArguments -e 's/^/--target=/'
+  printf 'api-01\napi-02\n' | myx.common lib/linesToArguments -e 's/^/--target=/'
 ```
 
 ```sh
-myx.common lib/linesToArguments --act os/getCpuCount
+  myx.common lib/linesToArguments --act os/getCpuCount
 ```

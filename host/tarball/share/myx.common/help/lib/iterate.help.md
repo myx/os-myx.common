@@ -26,13 +26,13 @@ Options:
 Examples:
 
 ```sh
-myx.common lib/iterate --verbose -- os/getCpuCount
+  myx.common lib/iterate --verbose -- os/getCpuCount
 ```
 
 ```sh
-myx.common lib/iterate --quiet -- os/getRamBytes
+  myx.common lib/iterate --quiet -- os/getRamBytes
 ```
 
 ```sh
-myx.common lib/iterate os/getCpuCount
+  myx.common lib/iterate os/getCpuCount
 ```

@@ -11,5 +11,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common os/getRootHome
+  myx.common os/getRootHome
 ```

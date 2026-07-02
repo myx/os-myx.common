@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common reset/ipfw
+  myx.common reset/ipfw
 ```

@@ -19,9 +19,9 @@ Options:
 Examples:
 
 ```sh
-myx.common setup/ipfw-open
+  myx.common setup/ipfw-open
 ```
 
 ```sh
-myx.common setup/ipfw-open --force
+  myx.common setup/ipfw-open --force
 ```

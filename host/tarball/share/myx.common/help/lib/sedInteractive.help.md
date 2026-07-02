@@ -11,9 +11,9 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common lib/sedInteractive -e 's/[[:space:]]\+$//' < /tmp/input.txt
+  myx.common lib/sedInteractive -e 's/[[:space:]]\+$//' < /tmp/input.txt
 ```
 
 ```sh
-myx.common lib/sedInteractive -n -e '/ERROR/p' < /tmp/app.log
+  myx.common lib/sedInteractive -n -e '/ERROR/p' < /tmp/app.log
 ```

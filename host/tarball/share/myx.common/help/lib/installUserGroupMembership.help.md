@@ -12,9 +12,9 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common lib/installUserGroupMembership myx wheel
+  myx.common lib/installUserGroupMembership myx wheel
 ```
 
 ```sh
-myx.common lib/installUserGroupMembership myx wheel operator
+  myx.common lib/installUserGroupMembership myx wheel operator
 ```

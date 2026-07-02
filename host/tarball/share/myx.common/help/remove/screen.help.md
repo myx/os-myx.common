@@ -12,5 +12,5 @@ Usage notes:
 Examples:
 
 ```sh
-myx.common remove/screen
+  myx.common remove/screen
 ```
