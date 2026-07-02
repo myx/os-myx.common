@@ -52,7 +52,7 @@ TuneNetworkSpeed(){
 case "$0" in
 	*/myx.common/bin/tune/networkSpeed.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common tune/networkSpeed" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/tune/networkSpeed.help.include" >&2
 			exit 1
 		fi
 		set -e

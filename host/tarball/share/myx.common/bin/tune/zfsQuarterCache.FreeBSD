@@ -67,7 +67,7 @@ case "$0" in
 	*/myx.common/bin/tune/zfsQuarterCache.*) 
 		if [ "--help" = "$1" ] ; then
 			# TuneZfsQuarterCache --upsert
-			echo "Syntax: myx.common tune/zfsQuarterCache [--upsert/--remove]" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/tune/zfsQuarterCache.help.include" >&2
 			exit 1
 		fi
 		set -e

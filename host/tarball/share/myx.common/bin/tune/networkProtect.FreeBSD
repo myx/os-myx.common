@@ -32,7 +32,7 @@ TuneNetworkProtect(){
 case "$0" in
 	*/myx.common/bin/tune/networkProtect.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common tune/networkProtect" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/tune/networkProtect.help.include" >&2
 			exit 1
 		fi
 		set -e
