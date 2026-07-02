@@ -61,13 +61,13 @@ Supported OS: Linux, FreeBSD.
   Use --help to print detailed help for this command.
 
   ISO argument rules:
-  If <iso> starts with '/', it is treated as an absolute file path.
-  If <iso> does not start with '/', it is treated as a filename in the default ISO directory for the active system/backend.
+    If <iso> starts with '/', it is treated as an absolute file path.
+    If <iso> does not start with '/', it is treated as a filename in the default ISO directory for the active system/backend.
 
   Default ISO directories:
-  FreeBSD (vm-bhyve): /vms/.iso/
-  Linux (Proxmox backend): /var/lib/vz/template/iso/
-  Linux (libvirt backend): /var/lib/libvirt/images/
+    FreeBSD (vm-bhyve): /vms/.iso/
+    Linux (Proxmox backend): /var/lib/vz/template/iso/
+    Linux (libvirt backend): /var/lib/libvirt/images/
 
   Relative paths with '/' are not accepted. Use either filename-only or absolute path.
 
