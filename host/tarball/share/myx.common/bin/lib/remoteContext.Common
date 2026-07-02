@@ -2,6 +2,11 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
+# SHELL-NOTE: This command has two runtimes:
+#   1) local shell (this script, shebang says sh)
+#   2) remote shell (payload emitted here and executed via ssh)
+# Keep behavior in mind when changing syntax or shell builtins.
+
 if type RemoteContext >/dev/null 2>&1 ; then
 	return 0
 fi
@@ -22,37 +27,50 @@ RemoteContext(){
 			return 0
 		;;
 		--intern-one-liner-cat-for-script)
-			sed \
-				-e 's/^[[:space:]]*//' \
-				-e 's/[[:space:]]#.*$//' \
-				-e 's/[[:space:]]*$//' \
-				-e 's/^#.*$//' \
-				-e '/^$/d'  \
-				-e 's/\t/    /g'\
+			awk '
+				BEGIN { sqc = sprintf("%c", 39); }
+				function ltrim(s) { sub(/^[[:space:]]+/, "", s); return s; }
+				function rtrim(s) { sub(/[[:space:]]+$/, "", s); return s; }
+				function strip_comments(line, i, c, out, sq, dq, esc, prev) {
+					out = ""; sq = 0; dq = 0; esc = 0;
+					for (i = 1; i <= length(line); i++) {
+						c = substr(line, i, 1);
+						prev = "";
+						if (i > 1) prev = substr(line, i - 1, 1);
+						if (esc) { out = out c; esc = 0; continue; }
+						if (c == "\\") { out = out c; esc = 1; continue; }
+						if (!dq && c == sqc) { sq = !sq; out = out c; continue; }
+						if (!sq && c == "\"") { dq = !dq; out = out c; continue; }
+						if (!sq && !dq && c == "#" && (i == 1 || prev ~ /[[:space:]]/)) break;
+						out = out c;
+					}
+					return out;
+				}
+				{
+					gsub(/\t/, "    ");
+					line = strip_comments($0);
+					line = rtrim(line);
+					if (line ~ /^[[:space:]]*$/) next;
+					line = ltrim(line);
+					if (buf != "") {
+						if (buf ~ /\\$/) {
+							sub(/\\$/, "", buf);
+							buf = buf line;
+						} else {
+							print buf;
+							buf = line;
+						}
+					} else {
+						buf = line;
+					}
+				}
+				END { if (buf != "") print buf; }
+			' \
 			| sed -n \
 				-e ':a' \
 				-e 'N' \
 				-e '$!ba' \
-				-e 's/\\\n//g' \
 				-e 's/[[:space:]]*$//' \
-				-e 's/case\n/case /g' \
-				-e 's/then\n/then /g' \
-				-e 's/else\n/else /g' \
-				-e 's/elif\n/elif /g' \
-				-e 's/do\n/do /g' \
-				-e 's/;\n/; /g' \
-				-e 's/(\n/( /g' \
-				-e 's/{\n/{ /g' \
-				-e 's/\n/; /g' \
-				-e 'p' 
-			return 0
-			sed -n \
-				-e 's/^[[:space:]]*#.*$//' \
-				-e 's/[[:space:]][[:space:]]*#.*$//' \
-				-e '/^[[:space:]]*$/d' \
-				-e ':a' -e 'N' -e '$!ba' \
-				-e 's/\\\n//g' \
-				-e 's/^[[:space:]]*//; s/[[:space:]]*$//' \
 				-e 's/case\n/case /g' \
 				-e 's/then\n/then /g' \
 				-e 's/else\n/else /g' \
@@ -188,6 +206,8 @@ RemoteContext(){
 		;;
 
 		--do-ssh|--do-ssh-once)
+			# SHELL-NOTE: Remote bootstrap prefers bash and falls back to sh.
+			# Any emitted payload before explicit bash handoff must stay sh-safe.
 			local sshOptions=
 			[ "$1" = --do-ssh ] || sshOptions="$sshOptions -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 			[ -z "$interactive" ] || sshOptions="$sshOptions -tt"
@@ -212,6 +232,8 @@ RemoteContext(){
 		;;
 
 		--do-ssh|--do-ssh-once)
+			# SHELL-NOTE: Duplicate option arm; first --do-ssh branch above already handles this.
+			# In current flow this branch is effectively dead/legacy.
 			local sshOptions=
 			[ "$1" = --do-ssh ] || sshOptions="$sshOptions -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 			[ -z "$interactive" ] || sshOptions="$sshOptions -tt"
@@ -241,6 +263,8 @@ RemoteContext(){
 		;;
 	esac done
 
+	# SHELL-NOTE: Uses [[ ... ]] test which is not POSIX sh.
+	# With strict /bin/sh implementations this can fail locally.
 	if [ -z "$force" ] && [[ -t 1 ]]; then
 		echo "Local: ⛔ ERROR: RemoteContext: This script generates a payload that must be piped into a remote shell. Use --force to proceed or add a pipe." >&2
 		exit 1
@@ -446,7 +470,7 @@ RemoteContext(){
 		#echo 'exec bash --noprofile --rcfile "$IMAGE_UNPACK_DIR/console.rc" -i < /dev/tty > /dev/tty 2>&1'
 		#echo 'exec script -q /dev/null bash --noprofile --rcfile "$IMAGE_UNPACK_DIR/console.rc" -i'
 
-		if [ -z "$force" ] || [[ ! -t 1 ]]; then
+		if [ -z "$force" ] || [ ! -t 1 ]; then
 			set -e
 			exec 0</dev/tty
 			stty sane
