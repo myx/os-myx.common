@@ -86,9 +86,7 @@ OsInstallPostfixMTA(){
 case "$0" in
 	*/myx.common/bin/os/installPostfixMTA.*)
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/installPostfixMTA" >&2
-			echo "Requires: root user." >&2
-			echo "Effect: stops sendmail if running, sets compatibility_level=2, enables and restarts postfix." >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/os/installPostfixMTA.help.include" >&2
 			exit 1
 		fi
 		set -e

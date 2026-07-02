@@ -1,0 +1,5 @@
+echo '📘 Syntax: myx.common os/growSlashFsUfs --yes' >&2
+echo '📘 Syntax: myx.common os/growSlashFsUfs --execute' >&2
+echo '📘 Syntax: myx.common os/growSlashFsUfs <disk-name> <slice-name> [<ufs-partition-index> [<swap-partition-index>]]' >&2
+echo '📘 Syntax: myx.common os/growSlashFsUfs --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/growSlashFsUfs.help.md" >&2

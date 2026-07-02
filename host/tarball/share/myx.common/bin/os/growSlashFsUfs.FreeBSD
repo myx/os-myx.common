@@ -110,11 +110,7 @@ OsGrowSlashFsUfs(){
 case "$0" in
 	*/myx.common/bin/os/growSlashFsUfs.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/growSlashFsUfs --yes" >&2
-			echo "    or: myx.common os/growSlashFsUfs --execute" >&2
-			echo "    or: myx.common os/growSlashFsUfs diskName sliceName [ufs-partition-index [swap-partition-index]]" >&2
-			echo "Requires: root user." >&2
-			echo "Executes immediately: partition resize + growfs (FreeBSD UFS only)." >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/os/growSlashFsUfs.help.include" >&2
 			exit 1
 		fi
 		set -e

@@ -77,7 +77,7 @@ SetupUserCompletion(){
 case "$0" in
 	*/myx.common/bin/setup/completion.Common) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common setup/completion [--host]" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/setup/completion.help.include" >&2
 			exit 1
 		fi
 		set -e
