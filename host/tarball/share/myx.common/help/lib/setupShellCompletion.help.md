@@ -1,8 +1,12 @@
 # SetupShellCompletion ( myx.common lib/setupShellCompletion )
 
+Register shell completion command.
+
+Supported OS: Linux, FreeBSD, Darwin.
+
 Install, update, or remove shell completion hooks for a utility command.
 
-centralizes completion setup logic for bash/csh/zsh rc files so scripts can
+Centralizes completion setup logic for bash/csh/zsh rc files so scripts can
 provision completion in one call.
 
 Arguments:

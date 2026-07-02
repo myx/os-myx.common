@@ -1,16 +1,20 @@
+# RemoteContext ( myx.common lib/remoteContext )
 
-  Arguments:
+Build/execute remote shell context script.
+
+Supported OS: Linux, FreeBSD, Darwin.
+
+Arguments:
 
 	--insert-tarball <tarball-path>
 
-				Will insert contents of given local tar file to be extracted into remote's temp directory 
+				Will insert contents of given local tar file to be extracted into remote's temp directory
 				used as root.
 
 	--insert-path <path>
 	--insert-path <base-path>:<relative-path>
 
-				Will insert contents of given directory into relative path of remote's temp directory 
-				used as root.
+				Will insert contents of given directory into relative path of remote's temp directory
 
 	--insert-script <script-source-path>
 
@@ -19,10 +23,10 @@
 
 	--insert-command <script-source>
 
-				Will insert the script text provided in <script-source> argument into executable rc-script 
+				Will insert the script text provided in <script-source> argument into executable rc-script
 				that will execute after all directories are unpacked.
 
-  Options:
+Options:
 
 	--verbose, -v
 
@@ -46,13 +50,13 @@
 
 	--use-bzip2, --bz2
 
-				Use `bzip2` compression. (Default is `gzip`; `bzip2` may not be available on pristine 
-				Linux systems.)
+				Use `bzip2` compression. (Default is `gzip`; `bzip2` may not be available on pristine
+				linux systems.)
 
 	--use-xz, --xz
 
-				Use `xz` compression. (Default is `gzip`; `xz` may not be available on pristine MacOS, 
-				Linux or FreeBSD systems.)
+				Use `xz` compression. (Default is `gzip`; `xz` may not be available on pristine MacOS,
+				linux or FreeBSD systems.)
 
 	--use-gzip, --gzip
 
@@ -62,13 +66,13 @@
 
 				Adds `myx.common` files and inserts commands to make sure it is found in 'PATH' variable.
 
-  Examples:
+Examples:
 
-	myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-script "/usr/local/share/myx.common/include/data/console-myx.common-bootstrap" 
+	myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-script "/usr/local/share/myx.common/include/data/console-myx.common-bootstrap"
 
-	myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-command 'export PATH="$PWD/share/myx.common:$PATH"' 
+	myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-command 'export PATH="$PWD/share/myx.common:$PATH"'
 
-	myx.common lib/remoteContext --interactive --insert-path "$MY_APP/remote-tarball" --insert-command "$( RemoteScriptGenerator.sh --make )" 
+	myx.common lib/remoteContext --interactive --insert-path "$MY_APP/remote-tarball" --insert-command "$( RemoteScriptGenerator.sh --make )"
 
 	myx.common lib/remoteContext -i --myx.common | ssh host-22 bash
 

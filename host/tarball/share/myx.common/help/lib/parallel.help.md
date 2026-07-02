@@ -1,23 +1,28 @@
+# Parallel ( myx.common lib/parallel )
 
-  Arguments:
+Run command for stdin items in parallel.
+
+Supported OS: Linux, FreeBSD, Darwin.
+
+Arguments:
 
     <command> [...<command-argument>]
 
             The command to execute in parallel, providing extra arguments from stdin
-            lines. 
-            
+            lines.
+
             Note: Works best with long-running (1 second or longer) tasks. Not that
             efficient to run something tiny.
 
             The special feature is that this utility in includable into shell scripts
             and allows running local shell context functions is parallel (see example).
 
-  Options:
+Options:
 
     -v
     --verbose
 
-            Adds a line or text before and after execution, so you see commands that 
+            Adds a line or text before and after execution, so you see commands that
             do not output anything.
 
     -w <number>
@@ -31,15 +36,14 @@
             Multiply current worker count limit by 2, 3 or 4. These options pair
             well with the use of ENV_PARALLEL_WORKER_COUNT environment variable.
 
-
-  Environment:
+Environment:
 
     ENV_PARALLEL_WORKER_COUNT
-            if --workers is not specified, the value of this environment variable 
+            if --workers is not specified, the value of this environment variable
             is used as default. If unset - '4' workers will be used.
 
-  Examples:
+Examples:
 
-    ls -1d {source.txt,output.txt} 2>/dev/null | myx.common lib/parallel cat
+    Ls -1d {source.txt,output.txt} 2>/dev/null | myx.common lib/parallel cat
 
     . "$(myx.common which lib/parallel)"; Parallel -w 16 MyContextFunction --check-item <( cat my-list.txt )

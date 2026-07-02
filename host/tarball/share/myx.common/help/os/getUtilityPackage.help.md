@@ -1,8 +1,12 @@
 # GetUtilityPackage ( myx.common os/getUtilityPackage )
 
+Map utility name to package name.
+
+Supported OS: Linux, FreeBSD, Darwin.
+
 Resolve package name(s) for utility commands on the current platform.
 
-install helpers use this mapping to keep package-manager operations
+Install helpers use this mapping to keep package-manager operations
 platform-neutral.
 
 Arguments:

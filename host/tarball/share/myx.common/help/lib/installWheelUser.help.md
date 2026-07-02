@@ -1,8 +1,12 @@
 # InstallWheelUser ( myx.common lib/installWheelUser )
 
+Create admin-capable user account.
+
+Supported OS: Linux, FreeBSD, Darwin.
+
 Create/update a user and grant membership in administrative wheel/sudo groups.
 
-combines user creation and admin group assignment in one idempotent helper.
+Combines user creation and admin group assignment in one idempotent helper.
 
 Arguments:
 
@@ -16,7 +20,7 @@ Arguments:
 
 Requirements:
 
-  root privileges.
+  Root privileges.
 
 Examples:
 

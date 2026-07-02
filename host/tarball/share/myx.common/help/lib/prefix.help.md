@@ -1,5 +1,10 @@
+# Prefix ( myx.common lib/prefix )
 
-  Arguments:
+Prefix command output lines.
+
+Supported OS: Linux, FreeBSD, Darwin.
+
+Arguments:
 
     <prefix-text>
 
@@ -20,7 +25,7 @@
 
             The command to execute with it's output prefixed.
 
-  Options:
+Options:
 
     -v
     --verbose
@@ -36,14 +41,14 @@
     -o
     --stdout
 
-            By default, only 'stderr' is preffixed. Use `-o` option to prefix command's 
+            By default, only 'stderr' is preffixed. Use `-o` option to prefix command's
             'stdout' as well.
 
     -a
     --async
 
             Starts process in backgroud allowing to start multiple prefixed processes, and
-            then use `wait` at the point you want stop until they all finished. Equivalent 
+            then use `wait` at the point you want stop until they all finished. Equivalent
             to adding code ` </dev/null &` to `myx.common lib/prefix` command.
 
     -l <number>
@@ -52,7 +57,7 @@
             Limit the length of prefixes (useful when prefix gets from the command arguments
             to a number of characters specified in the following argument).
 
-  Examples:
+Examples:
 
     myx.common lib/prefix -v -e -2 mybuild.sh svc11.myserver.example.org
 

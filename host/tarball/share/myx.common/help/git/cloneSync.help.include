@@ -1,5 +1,3 @@
 echo '📘 Syntax: myx.common git/cloneSync [--no-write/--no-push] dst_path repo_url [branch]' >&2
 echo '📘 Syntax: myx.common git/cloneSync --help' >&2
-echo "    If 'branch' argument is not set, 'master' will be used as default." >&2
-echo "    '--no-push' implies '--no-write' and is equivalent to: 'myx.common git/clonePull'." >&2
 [ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/git/cloneSync.help.md" >&2

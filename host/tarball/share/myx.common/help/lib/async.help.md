@@ -1,5 +1,10 @@
+# Async ( myx.common lib/async )
 
-  Arguments:
+Run a command asynchronously and prefix each output line for easier concurrent logs.
+
+Supported OS: Linux, FreeBSD, Darwin.
+
+Arguments:
 
     <prefix-text>
 
@@ -17,7 +22,7 @@
 
                 The command to execute asyncronously with it's output prefixed.
 
-  Options:
+Options:
 
     --verbose, -v
 
@@ -33,6 +38,6 @@
                 Limit the length of prefixes (useful when prefix gets from the command arguments
                 to a number of characters specified in the following argument).
 
-  Examples:
+Examples:
 
     myx.common lib/async -e -2 mybuild.sh svc11.myserver.example.org ; ... ; wait

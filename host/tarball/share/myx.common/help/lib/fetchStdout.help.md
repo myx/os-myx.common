@@ -1,4 +1,10 @@
-  Arguments:
+# FetchStdout ( myx.common lib/fetchStdout )
+
+Fetch URL content to stdout with optional cache.
+
+Supported OS: Linux, FreeBSD, Darwin.
+
+Arguments:
 
     <URL>
 
@@ -13,25 +19,25 @@
 
                 Note: This utility for fetching git repos, check: `git/clonePull` command.
 
-  Options:
+Options:
 
     --local-cache <directory-path>
 
-                Use given directory as a root of (read-only, pre-cooked) cache. The path to 
-                each resource in cache directory is URL with protocol preffix (e.g. https://) 
+                Use given directory as a root of (read-only, pre-cooked) cache. The path to
+                each resource in cache directory is URL with protocol preffix (e.g. https://)
                 cut.
 
     --do-cache
 
-                Allows caching of fetched resources to a (read-write, live) cache directory. 
+                Allows caching of fetched resources to a (read-write, live) cache directory.
 				The path to each resource in cache directory is URL with protocol preffix (e.g. https://) removed.
 
-  Environment:
+Environment:
 
     ENV_FETCH_LOCAL_CACHE
-                if --local-cache option is not specified, the value of this environment variable 
+                if --local-cache option is not specified, the value of this environment variable
                 is used as default. If unset - no cache is used to fetch resources.
 
-  Examples:
+Examples:
 
 	myx.common lib/fetchStdout https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2 | tar -xjvf - -C "$tempFolder"

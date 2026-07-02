@@ -1,6 +1,3 @@
 echo '📘 Syntax: myx.common lib/notifySmart --alert|--audit|--track|--debug [--user <user-name>] [--emoji <emoji>] --text <message>' >&2
 echo '📘 Syntax: myx.common lib/notifySmart --help' >&2
-echo "Note:" >&2
-echo "  This command will write the message to stderr and system logging utility." >&2
-echo "  If there is SLACK_TOKEN environment variable set, it will try sending Slack message as well." >&2
 [ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/notifySmart.help.md" >&2

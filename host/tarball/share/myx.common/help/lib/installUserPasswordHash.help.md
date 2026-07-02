@@ -1,8 +1,12 @@
 # InstallUserPasswordHash ( myx.common lib/installUserPasswordHash )
 
+Set user password hash.
+
+Supported OS: Linux, FreeBSD.
+
 Set password hash for an existing local user.
 
-automates non-interactive account password provisioning from deployment scripts.
+Automates non-interactive account password provisioning from deployment scripts.
 
 Arguments:
 
@@ -16,7 +20,7 @@ Arguments:
 
 Requirements:
 
-  root privileges.
+  Root privileges.
 
 Examples:
 

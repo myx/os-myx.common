@@ -1,12 +1,16 @@
 # ReclaimSpace ( myx.common os/reclaimSpace )
 
+Clean caches/logs to reclaim disk space.
+
+Supported OS: Linux, FreeBSD.
+
 Run platform-specific cleanup tasks to free disk space.
 
-collects common cache/log cleanup operations into one command for maintenance flows.
+Collects common cache/log cleanup operations into one command for maintenance flows.
 
 Requirements:
 
-  root privileges.
+  Root privileges.
 
 Behavior:
 
@@ -15,4 +19,9 @@ Behavior:
 
 Examples:
 
-  sudo myx.common os/reclaimSpace
+  Sudo myx.common os/reclaimSpace
+
+Notes:
+
+  Actions: clean /tmp, apt cache, apt autoremove, journal vacuum
+  actions: clean /tmp, freebsd-update cache, pkg cache, pkg autoremove

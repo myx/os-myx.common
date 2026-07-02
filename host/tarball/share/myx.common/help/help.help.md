@@ -1,15 +1,17 @@
 # Help ( myx.common help )
 
-Show command-level help for myx.common utilities.
+Display command-level help for myx.common utilities.
 
-this command is the primary discoverability entrypoint for all subcommands and
+Supported OS: Linux, FreeBSD, Darwin.
+
+This command is the primary discoverability entrypoint for all subcommands and
 platform-specific variants.
 
 Notes:
 
-  for a given myx.common command, this prints command help or usage data.
-  use --bare (with no <command>) for unformatted command name listing.
-  use --uname to request help for a specific target OS variant.
+  For a given myx.common command, this prints command help or usage data.
+  Use --bare (with no <command>) for unformatted command name listing.
+  Use --uname to request help for a specific target OS variant.
 
 Arguments:
 

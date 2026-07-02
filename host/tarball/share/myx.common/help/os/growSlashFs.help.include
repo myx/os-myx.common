@@ -1,8 +1,4 @@
 echo '📘 Syntax: myx.common os/growSlashFs' >&2
 echo '📘 Syntax: myx.common os/growSlashFs --execute' >&2
 echo '📘 Syntax: myx.common os/growSlashFs --help' >&2
-echo "Grows root filesystem to fill all available disk/partition space (plain or LVM; ext2/ext3/ext4/xfs/btrfs)." >&2
-echo "Default: preview mode (prints detected values and planned command)." >&2
-echo "Execute: pass --execute to run planned command chain." >&2
-echo "Requires tools as needed: findmnt, lsblk, growpart, pvresize/lvextend, resize2fs/xfs_growfs/btrfs." >&2
 [ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/growSlashFs.help.md" >&2

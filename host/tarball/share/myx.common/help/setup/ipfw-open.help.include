@@ -1,6 +1,3 @@
 echo '📘 Syntax: myx.common setup/ipfw-open [--force]' >&2
 echo '📘 Syntax: myx.common setup/ipfw-open --help' >&2
-echo "Options: " >&2
-echo "   --force    will rewrite the /usr/local/etc/ipfw.sh (otherwise it is" >&2
-echo "              written only when this file is empty or doesn't exist)" >&2
 [ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/setup/ipfw-open.help.md" >&2

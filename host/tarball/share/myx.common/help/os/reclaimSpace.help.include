@@ -1,5 +1,3 @@
 echo '📘 Syntax: myx.common os/reclaimSpace' >&2
 echo '📘 Syntax: myx.common os/reclaimSpace --help' >&2
-echo "Actions: clean /tmp, apt cache, apt autoremove, journal vacuum" >&2
-echo "Actions: clean /tmp, freebsd-update cache, pkg cache, pkg autoremove" >&2
 [ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/reclaimSpace.help.md" >&2

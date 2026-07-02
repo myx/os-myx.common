@@ -1,8 +1,12 @@
 # NeedsReboot ( myx.common os/needsReboot )
 
+Check whether reboot is required.
+
+Supported OS: Linux, FreeBSD.
+
 Check reboot requirement state and optionally trigger reboot.
 
-provides a portable interface for update workflows that need reboot gating.
+Provides a portable interface for update workflows that need reboot gating.
 
 Options:
 
@@ -30,3 +34,7 @@ Examples:
 
   myx.common os/needsReboot --print
   myx.common os/needsReboot --silent
+
+Notes:
+
+  Exit: 0=reboot-required, 1=up-to-date, 2=invalid-args

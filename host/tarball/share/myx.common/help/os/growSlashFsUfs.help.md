@@ -2,7 +2,9 @@
 
 Grow FreeBSD UFS root filesystem to consume additional disk space.
 
-encapsulates gpart + growfs sequence required after disk expansion.
+Supported OS: FreeBSD.
+
+Encapsulates gpart + growfs sequence required after disk expansion.
 
 Arguments:
 
@@ -18,7 +20,7 @@ Options:
 
 Requirements:
 
-  root privileges.
+  Root privileges.
 
 Examples:
 

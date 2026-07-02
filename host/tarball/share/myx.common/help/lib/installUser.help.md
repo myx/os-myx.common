@@ -1,8 +1,12 @@
 # InstallUser ( myx.common lib/installUser )
 
+Create or update local user account.
+
+Supported OS: Linux, FreeBSD.
+
 Create or update a local system user and home directory.
 
-unifies user provisioning flow across Linux and FreeBSD scripts.
+Unifies user provisioning flow across Linux and FreeBSD scripts.
 
 Arguments:
 
@@ -24,7 +28,7 @@ Arguments:
 
 Requirements:
 
-  root privileges.
+  Root privileges.
 
 Examples:
 

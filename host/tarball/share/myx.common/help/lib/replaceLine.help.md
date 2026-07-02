@@ -1,8 +1,12 @@
 # ReplaceLine ( myx.common lib/replaceLine )
 
+Replace matching line in a file.
+
+Supported OS: Linux, FreeBSD, Darwin.
+
 Replace or enforce a single configuration line in a text file.
 
-this helper is intended for idempotent config updates in scripts, so running it
+This helper is intended for idempotent config updates in scripts, so running it
 multiple times keeps the same final line without duplicating entries.
 
 Behavior:
