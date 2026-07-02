@@ -1,0 +1,4 @@
+echo '📘 Syntax: myx.common os/needsReboot [--silent|--print|--reboot|--no-reboot]' >&2
+echo '📘 Syntax: myx.common os/needsReboot --help' >&2
+echo "Exit: 0=reboot-required, 1=up-to-date, 2=invalid-args" >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/needsReboot.help.md" >&2

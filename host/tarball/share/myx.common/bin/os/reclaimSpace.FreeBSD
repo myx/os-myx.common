@@ -27,9 +27,7 @@ OsReclaimSpace(){
 case "$0" in
 	*/myx.common/bin/os/reclaimSpace.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/reclaimSpace" >&2
-			echo "Requires: root user" >&2
-			echo "Actions: clean /tmp, freebsd-update cache, pkg cache, pkg autoremove" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/os/reclaimSpace.help.include" >&2
 			exit 1
 		fi
 		set -e
