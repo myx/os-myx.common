@@ -30,7 +30,7 @@ OsGetUserHome(){
 case "$0" in
 	*/myx.common/bin/os/getUserHome.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/getUserHome [--user username]" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/os/getUserHome.help.include" >&2
 			exit 1
 		fi
 		[ -z "$1" ] && echo "/home" && exit 0;

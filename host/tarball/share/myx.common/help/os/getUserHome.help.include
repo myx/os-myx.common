@@ -1,0 +1,3 @@
+echo '📘 Syntax: myx.common os/getUserHome [--user username]' >&2
+echo '📘 Syntax: myx.common os/getUserHome --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/getUserHome.help.md" >&2

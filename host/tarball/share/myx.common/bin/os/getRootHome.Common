@@ -13,7 +13,7 @@ OsGetRootHome(){
 case "$0" in
 	*/myx.common/bin/os/getRootHome.Common) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/getRootHome" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/os/getRootHome.help.include" >&2
 			exit 1
 		fi
 		set -e

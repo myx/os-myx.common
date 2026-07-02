@@ -1,0 +1,3 @@
+echo '📘 Syntax: myx.common os/getCpuCount' >&2
+echo '📘 Syntax: myx.common os/getCpuCount --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/getCpuCount.help.md" >&2

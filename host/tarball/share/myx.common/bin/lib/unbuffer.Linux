@@ -9,7 +9,7 @@ Unbuffer(){
 case "$0" in
 	*/myx.common/bin/lib/unbuffer.*) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/unbuffer  command [... arguments]" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/unbuffer.help.include" >&2
 			exit 1
 		fi
 		set -e

@@ -1,0 +1,4 @@
+echo '📘 Syntax: myx.common os/getWheelGroupName' >&2
+echo '📘 Syntax: myx.common os/getWheelGroupName --help' >&2
+echo "Returns: array of os-dependent wheel/admin/sudo user group (first group of os/getWheelGroupNames)" >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/getWheelGroupName.help.md" >&2

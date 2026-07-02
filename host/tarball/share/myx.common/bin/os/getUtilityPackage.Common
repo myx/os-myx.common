@@ -51,9 +51,7 @@ OsGetUtilityPackage(){
 case "$0" in
 	*/myx.common/bin/os/getUtilityPackage.Common) 
 		if [ -z "$1" -o "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/getUtilityPackage [--no-default] utility_name" >&2
-			echo "Syntax: myx.common os/getUtilityPackage --list-basic-packages" >&2
-			echo "Syntax: myx.common os/getUtilityPackage --list-basic-utilities" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/os/getUtilityPackage.help.include" >&2
 			exit 1
 		fi
 		set -e

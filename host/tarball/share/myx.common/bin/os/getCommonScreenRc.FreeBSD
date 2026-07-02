@@ -10,7 +10,7 @@ OsGetCommonScreenRc(){
 case "$0" in
 	*/myx.common/bin/os/getCommonScreenRc.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/getCommonScreenRc" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/os/getCommonScreenRc.help.include" >&2
 			exit 1
 		fi
 		# set -e

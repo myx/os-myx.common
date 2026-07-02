@@ -18,8 +18,7 @@ OsGetWheelGroupName(){
 case "$0" in
 	*/myx.common/bin/os/getWheelGroupName.Common) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common os/getWheelGroupName" >&2
-			echo "Returns: array of os-dependent wheel/admin/sudo user group (first group of os/getWheelGroupNames)" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/os/getWheelGroupName.help.include" >&2
 			exit 1
 		fi
 		set -e
