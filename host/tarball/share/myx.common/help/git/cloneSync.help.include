@@ -1,3 +1,4 @@
 echo '📘 Syntax: myx.common git/cloneSync [--no-write/--no-push] dst_path repo_url [branch]' >&2
 echo '📘 Syntax: myx.common git/cloneSync --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/git/cloneSync.help.md" >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/git/cloneSync.help.md" >&2

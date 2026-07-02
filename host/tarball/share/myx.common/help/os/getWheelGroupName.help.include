@@ -1,3 +1,4 @@
 echo '📘 Syntax: myx.common os/getWheelGroupName' >&2
 echo '📘 Syntax: myx.common os/getWheelGroupName --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/getWheelGroupName.help.md" >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/os/getWheelGroupName.help.md" >&2

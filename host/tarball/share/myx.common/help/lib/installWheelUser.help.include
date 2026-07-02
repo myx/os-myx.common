@@ -1,3 +1,4 @@
 echo '📘 Syntax: myx.common lib/installWheelUser <username> [<user-title>]' >&2
 echo '📘 Syntax: myx.common lib/installWheelUser --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/installWheelUser.help.md" >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/lib/installWheelUser.help.md" >&2

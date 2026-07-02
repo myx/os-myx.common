@@ -1,3 +1,4 @@
 echo '📘 Syntax: myx.common lib/installUser <username> [<user-title> [<uid-or-gid> [<home-path>]]]' >&2
 echo '📘 Syntax: myx.common lib/installUser --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/installUser.help.md" >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/lib/installUser.help.md" >&2

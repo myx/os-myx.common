@@ -1,3 +1,4 @@
 echo '📘 Syntax: myx.common lib/replaceLine [--create] <file> <from-regexp> <to-value>' >&2
 echo '📘 Syntax: myx.common lib/replaceLine --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/replaceLine.help.md" >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/lib/replaceLine.help.md" >&2

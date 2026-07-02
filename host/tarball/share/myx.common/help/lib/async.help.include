@@ -1,4 +1,5 @@
 echo '📘 Syntax: myx.common lib/async [<option> ...] <prefix-spec> <command> [<command-argument> ...]' >&2
 echo '📘 Syntax: myx.common lib/async [--verbose] [--elapsed] [--prefix-limit <number>] --|-1|-2|-3|<prefix-text> <command> [<command-argument> ...]' >&2
 echo '📘 Syntax: myx.common lib/async --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/async.help.md" >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/lib/async.help.md" >&2

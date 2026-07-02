@@ -1,3 +1,4 @@
 echo '📘 Syntax: myx.common os/needsReboot [--silent|--print|--reboot|--no-reboot]' >&2
 echo '📘 Syntax: myx.common os/needsReboot --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/needsReboot.help.md" >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/os/needsReboot.help.md" >&2

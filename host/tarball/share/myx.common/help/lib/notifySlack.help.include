@@ -1,3 +1,4 @@
 echo '📘 Syntax: myx.common lib/notifySlack --text <text> [--logger] [--bearer <token-bearer>] [--channel <channel>|--alert|--audit|--track|--debug] [--user <user-name>] [--emoji <emoji>]' >&2
 echo '📘 Syntax: myx.common lib/notifySlack --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/notifySlack.help.md" >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/lib/notifySlack.help.md" >&2

@@ -2,4 +2,5 @@ echo '📘 Syntax: myx.common os/getUtilityPackage [--no-default] <utility-name>
 echo '📘 Syntax: myx.common os/getUtilityPackage --list-basic-packages' >&2
 echo '📘 Syntax: myx.common os/getUtilityPackage --list-basic-utilities' >&2
 echo '📘 Syntax: myx.common os/getUtilityPackage --help' >&2
-[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/os/getUtilityPackage.help.md" >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/os/getUtilityPackage.help.md" >&2
