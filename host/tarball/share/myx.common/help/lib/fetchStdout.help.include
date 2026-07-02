@@ -1,4 +1,5 @@
-echo '📘 Syntax: myx.common lib/fetchStdout URL' >&2
-echo '📘 Syntax: myx.common lib/fetchStdout [--local-cache <cache-root> [--check-cache]] URL' >&2
+echo '📘 Syntax: myx.common lib/fetchStdout <url>' >&2
+echo '📘 Syntax: myx.common lib/fetchStdout [--local-cache <cache-root>] [--check-cache] <url>' >&2
+echo '📘 Syntax: myx.common lib/fetchStdout [--do-cache] [--local-cache <cache-root>|--local-cache=<cache-root>] <url>' >&2
 echo '📘 Syntax: myx.common lib/fetchStdout --help' >&2
 [ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/fetchStdout.help.md" >&2

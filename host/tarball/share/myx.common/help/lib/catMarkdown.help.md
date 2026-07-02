@@ -27,9 +27,10 @@ to drop all ANSI formatting and produce plain text.
 	myx.common lib/catMarkdown --strip-all ~/my-stuff/README.md
 
 	# Generate non-md version of something
+	cat "README.md" | myx.common lib/catMarkdown --strip-all > "README.txt"
+
 	| tee "README.md" | myx.common lib/catMarkdown --strip-all > "README.txt"
 
 	# On file that supposed to exist
 	myx.common lib/catMarkdown "${MYXROOT:-/usr/local/share/myx.common}/help/lib/catMarkdown.help.md"
 	myx.common lib/catMarkdown "${MYXROOT:-/usr/local/share/myx.common}/help/lib/catMarkdown.help.md" | cat
-

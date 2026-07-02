@@ -34,5 +34,4 @@
 
   Examples:
 
-	myx.common lib/fetchStdout https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2 | tar -xjvf - -C "$tempFolder" 
-
+	myx.common lib/fetchStdout https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2 | tar -xjvf - -C "$tempFolder"
