@@ -34,7 +34,7 @@ InstallUpdates(){
 case "$0" in
 	*/myx.common/bin/install/updates.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common install/updates" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/install/updates.help.include" >&2
 			exit 1
 		fi
 		set -e

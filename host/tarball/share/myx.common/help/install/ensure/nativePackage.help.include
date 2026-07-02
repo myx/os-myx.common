@@ -1,0 +1,4 @@
+echo '📘 Syntax: myx.common install/ensure/nativePackage native_package_name [native_package_name2 [...]]' >&2
+echo '📘 Syntax: myx.common install/ensure/nativePackage --help' >&2
+echo "        myx.common install/ensure/nativePackage --list-installed" >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/install/ensure/nativePackage.help.md" >&2

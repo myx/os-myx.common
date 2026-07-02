@@ -726,7 +726,7 @@ exec $doDryRun qemu-system-x86_64 \
 case "$0" in
 	*/myx.common/bin/install/freebsd.*) 
 		if [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common install/freebsd" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/install/freebsd.help.include" >&2
 			exit 1
 		fi
 		set -e
