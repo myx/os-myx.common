@@ -5,12 +5,19 @@ Install system updates.
 Supported OS: Linux, Darwin.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common install/updates
-```
+	# Install system updates
+	`myx.common install/updates`

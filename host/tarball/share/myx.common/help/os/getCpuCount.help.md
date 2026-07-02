@@ -4,12 +4,19 @@ Print CPU core count.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common os/getCpuCount
-```
+	# Print CPU core count
+	`myx.common os/getCpuCount`

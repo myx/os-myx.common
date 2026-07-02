@@ -5,16 +5,24 @@ Apply server-side host setup.
 Supported OS: Linux, FreeBSD, Darwin.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  --postfix-mta
+
+      Option supported by this command.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common setup/server
-```
+	# Apply server-side host setup
+	`myx.common setup/server`
 
-```sh
-  myx.common setup/server --postfix-mta
-```
+	# Apply server-side host setup
+	`myx.common setup/server --postfix-mta`

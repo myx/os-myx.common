@@ -4,22 +4,40 @@ Clone or fast-forward pull a repository.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Usage notes:
+##  Arguments:
+
+  <dst_path>
+
+      Destination path.
+
+  <repo_url>
+
+      Repository URL.
+
+  <branch>
+
+      Branch name.
+
+##  Options:
+
+  --no-write
+
+      Option supported by this command.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
 
-Notes:
+##  Notes:
 
   If 'branch' argument is not set, 'master' will be used.
   Should be equivalent to: 'myx.common git/cloneSync --no-push'.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common git/clonePull /tmp/example-repo https://github.com/example/example.git
-```
+	# Clone or synchronize repository content
+	`myx.common git/clonePull /tmp/example-repo https://github.com/example/example.git`
 
-```sh
-  myx.common git/clonePull --no-write /tmp/example-repo https://github.com/example/example.git main
-```
+	# Clone or synchronize repository content
+	`myx.common git/clonePull --no-write /tmp/example-repo https://github.com/example/example.git main`

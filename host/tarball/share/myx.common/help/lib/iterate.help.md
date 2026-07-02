@@ -4,7 +4,7 @@ Run command for each stdin line sequentially.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Arguments:
+##  Arguments:
 
     <command> [...<command-argument>]
 
@@ -15,7 +15,7 @@ Arguments:
             be used as a drop-in replacement alternative for `lib/parallel` while
             keeping the general structure of the code intact.
 
-Options:
+##  Options:
 
     -v
     --verbose
@@ -23,16 +23,13 @@ Options:
             Adds a line or text before and after execution, so you see commands that
             do not output anything.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/iterate --verbose -- os/getCpuCount
-```
+	# Run with verbose output
+	`myx.common lib/iterate --verbose -- os/getCpuCount`
 
-```sh
-  myx.common lib/iterate --quiet -- os/getRamBytes
-```
+	# Run with reduced output
+	`myx.common lib/iterate --quiet -- os/getRamBytes`
 
-```sh
-  myx.common lib/iterate os/getCpuCount
-```
+	# Run command for each stdin line sequentially
+	`myx.common lib/iterate os/getCpuCount`

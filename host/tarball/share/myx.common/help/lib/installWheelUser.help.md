@@ -8,7 +8,7 @@ Create/update a user and grant membership in administrative wheel/sudo groups.
 
 Combines user creation and admin group assignment in one idempotent helper.
 
-Arguments:
+##  Arguments:
 
   <username>
 
@@ -18,20 +18,21 @@ Arguments:
 
       Optional descriptive user title/gecos.
 
-Requirements:
+##  Options:
+
+  None.
+
+##  Requirements:
 
   Root privileges.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/installWheelUser deploy "Deploy User"
-```
+	# Apply lib/installWheelUser with provided arguments
+	`myx.common lib/installWheelUser deploy "Deploy User"`
 
-```sh
-  myx.common lib/installWheelUser demo myx
-```
+	# Apply lib/installWheelUser with provided arguments
+	`myx.common lib/installWheelUser demo myx`
 
-```sh
-  myx.common lib/installWheelUser demo
-```
+	# Apply lib/installWheelUser with provided arguments
+	`myx.common lib/installWheelUser demo`

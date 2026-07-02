@@ -8,7 +8,7 @@ Create or update a local system user and home directory.
 
 Unifies user provisioning flow across Linux and FreeBSD scripts.
 
-Arguments:
+##  Arguments:
 
   <username>
 
@@ -26,16 +26,18 @@ Arguments:
 
       Optional home directory path.
 
-Requirements:
+##  Options:
+
+  None.
+
+##  Requirements:
 
   Root privileges.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/installUser build "Build User" 1201 /home/build
-```
+	# Apply lib/installUser with provided arguments
+	`myx.common lib/installUser build "Build User" 1201 /home/build`
 
-```sh
-  myx.common lib/installUser deploy
-```
+	# Apply lib/installUser with provided arguments
+	`myx.common lib/installUser deploy`

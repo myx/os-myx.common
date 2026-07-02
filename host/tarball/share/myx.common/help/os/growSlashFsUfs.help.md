@@ -6,28 +6,26 @@ Supported OS: FreeBSD.
 
 Encapsulates gpart + growfs sequence required after disk expansion.
 
-Arguments:
+##  Arguments:
 
   <disk-name> <slice-name> [<ufs-partition-index> [<swap-partition-index>]]
 
       Manual device selectors when auto values are not desired.
 
-Options:
+##  Options:
 
   --yes, --execute
 
       Execute immediately instead of dry syntax/help mode.
 
-Requirements:
+##  Requirements:
 
   Root privileges.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common os/growSlashFsUfs --execute
-```
+	# Grow FreeBSD UFS root filesystem to consume additional disk space
+	`myx.common os/growSlashFsUfs --execute`
 
-```sh
-  myx.common os/growSlashFsUfs ada0 s1 2 3
-```
+	# Grow FreeBSD UFS root filesystem to consume additional disk space
+	`myx.common os/growSlashFsUfs ada0 s1 2 3`

@@ -4,17 +4,24 @@ Print primary admin group name.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
 
-Notes:
+##  Notes:
 
   Returns: array of os-dependent wheel/admin/sudo user group (first group of os/getWheelGroupNames)
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common os/getWheelGroupName
-```
+	# Print primary admin group name
+	`myx.common os/getWheelGroupName`

@@ -5,20 +5,28 @@ Install package if missing.
 Supported OS: Linux, FreeBSD, Darwin.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  <utility_name>
+
+      Utility name to install.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Notes:
+##  Notes:
 
   Supported utility names:
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/installEnsurePackage curl
-```
+	# Apply lib/installEnsurePackage with provided arguments
+	`myx.common lib/installEnsurePackage curl`
 
-```sh
-  myx.common lib/installEnsurePackage curl jq
-```
+	# Apply lib/installEnsurePackage with provided arguments
+	`myx.common lib/installEnsurePackage curl jq`

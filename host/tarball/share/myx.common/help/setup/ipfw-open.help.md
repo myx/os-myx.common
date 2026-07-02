@@ -5,23 +5,28 @@ Open selected firewall services.
 Supported OS: FreeBSD.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  --force
+
+      Rewrite /usr/local/etc/ipfw.sh.
+      By default, the file is written only when it is missing or empty.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
 
-Notes:
+##  Notes:
 
-Options:
-  --force    will rewrite the /usr/local/etc/ipfw.sh (otherwise it is
-  Written only when this file is empty or doesn't exist)
+##  Examples:
 
-Examples:
+	# Open selected firewall services
+	`myx.common setup/ipfw-open`
 
-```sh
-  myx.common setup/ipfw-open
-```
-
-```sh
-  myx.common setup/ipfw-open --force
-```
+	# Force apply and overwrite existing state
+	`myx.common setup/ipfw-open --force`

@@ -4,12 +4,19 @@ Apply client-side workstation setup.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common setup/client
-```
+	# Apply client-side workstation setup
+	`myx.common setup/client`

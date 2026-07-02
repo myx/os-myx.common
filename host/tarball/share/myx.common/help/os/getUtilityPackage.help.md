@@ -9,13 +9,13 @@ Resolve package name(s) for utility commands on the current platform.
 Install helpers use this mapping to keep package-manager operations
 platform-neutral.
 
-Arguments:
+##  Arguments:
 
   <utility-name>
 
       Utility command name to resolve into native package name.
 
-Options:
+##  Options:
 
   --no-default
 
@@ -29,16 +29,13 @@ Options:
 
       Print baseline utility names used by package mapping.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common os/getUtilityPackage rsync
-```
+	# Map utility name to package name
+	`myx.common os/getUtilityPackage rsync`
 
-```sh
-  myx.common os/getUtilityPackage --no-default foo
-```
+	# Map utility name to package name
+	`myx.common os/getUtilityPackage --no-default foo`
 
-```sh
-  myx.common os/getUtilityPackage --list-basic-packages
-```
+	# Map utility name to package name
+	`myx.common os/getUtilityPackage --list-basic-packages`

@@ -4,7 +4,7 @@ Run a command asynchronously and prefix each output line for easier concurrent l
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Arguments:
+##  Arguments:
 
     <prefix-text>
 
@@ -22,7 +22,7 @@ Arguments:
 
                 The command to execute asyncronously with it's output prefixed.
 
-Options:
+##  Options:
 
     --verbose, -v
 
@@ -38,16 +38,13 @@ Options:
                 Limit the length of prefixes (useful when prefix gets from the command arguments
                 to a number of characters specified in the following argument).
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/async --elapsed -2 mybuild.sh svc11.myserver.example.org
-```
+	# Prefix output with elapsed time
+	`myx.common lib/async --elapsed -2 mybuild.sh svc11.myserver.example.org`
 
-```sh
-  myx.common lib/async --prefix-limit 16 -- echo os/getCpuCount
-```
+	# Limit prefix width
+	`myx.common lib/async --prefix-limit 16 -- echo os/getCpuCount`
 
-```sh
-  myx.common lib/async build-1 os/getCpuCount
-```
+	# Run a command asynchronously and prefix each output line for easier concurrent logs
+	`myx.common lib/async build-1 os/getCpuCount`

@@ -5,12 +5,21 @@ Uninstall myx.common files.
 Supported OS: Linux, FreeBSD, Darwin.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  --yes
+
+      Option supported by this command.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common remove/myx.common-uninstall --yes
-```
+	# Uninstall myx.common files
+	`myx.common remove/myx.common-uninstall --yes`

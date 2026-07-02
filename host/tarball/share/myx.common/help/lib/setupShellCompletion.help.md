@@ -9,13 +9,13 @@ Install, update, or remove shell completion hooks for a utility command.
 Centralizes completion setup logic for bash/csh/zsh rc files so scripts can
 provision completion in one call.
 
-Arguments:
+##  Arguments:
 
   <utility-name>
 
       Command name that should receive completion.
 
-Options:
+##  Options:
 
   --command <list-command>
 
@@ -29,16 +29,13 @@ Options:
 
       Remove completion entries created by this helper.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/setupShellCompletion myx.common --command "myx.common help --bare"
-```
+	# Register shell completion command
+	`myx.common lib/setupShellCompletion myx.common --command "myx.common help --bare"`
 
-```sh
-  myx.common lib/setupShellCompletion my-tool --directory ./commands
-```
+	# Register shell completion command
+	`myx.common lib/setupShellCompletion my-tool --directory ./commands`
 
-```sh
-  myx.common lib/setupShellCompletion myx.common --remove
-```
+	# Remove previously configured value
+	`myx.common lib/setupShellCompletion myx.common --remove`

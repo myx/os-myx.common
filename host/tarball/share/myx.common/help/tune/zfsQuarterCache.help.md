@@ -5,20 +5,31 @@ Set ZFS ARC to quarter of RAM.
 Supported OS: FreeBSD.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  --upsert
+
+      Create or update setting.
+
+  --remove
+
+      Remove previously configured state.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common tune/zfsQuarterCache
-```
+	# Set ZFS ARC to quarter of RAM
+	`myx.common tune/zfsQuarterCache`
 
-```sh
-  myx.common tune/zfsQuarterCache --upsert
-```
+	# Set ZFS ARC to quarter of RAM
+	`myx.common tune/zfsQuarterCache --upsert`
 
-```sh
-  myx.common tune/zfsQuarterCache --remove
-```
+	# Remove previously configured value
+	`myx.common tune/zfsQuarterCache --remove`

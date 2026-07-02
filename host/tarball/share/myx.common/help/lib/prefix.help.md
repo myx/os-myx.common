@@ -4,7 +4,7 @@ Prefix command output lines.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Arguments:
+##  Arguments:
 
     <prefix-text>
 
@@ -25,7 +25,7 @@ Arguments:
 
             The command to execute with it's output prefixed.
 
-Options:
+##  Options:
 
     -v
     --verbose
@@ -57,12 +57,10 @@ Options:
             Limit the length of prefixes (useful when prefix gets from the command arguments
             to a number of characters specified in the following argument).
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/prefix -v -e -2 mybuild.sh svc11.myserver.example.org
-```
+	# Run with verbose output
+	`myx.common lib/prefix -v -e -2 mybuild.sh svc11.myserver.example.org`
 
-```sh
-  myx.common lib/prefix -e -o "countdown" sh -c "for i in 1 2 3 4 5 ; do sleep .25; echo; done"
-```
+	# Prefix command output lines
+	`myx.common lib/prefix -e -o "countdown" sh -c "for i in 1 2 3 4 5 ; do sleep .25; echo; done"`

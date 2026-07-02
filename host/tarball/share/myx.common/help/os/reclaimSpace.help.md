@@ -8,7 +8,15 @@ Run platform-specific cleanup tasks to free disk space.
 
 Collects common cache/log cleanup operations into one command for maintenance flows.
 
-Requirements:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Requirements:
 
   Root privileges.
 
@@ -17,13 +25,12 @@ Behavior:
   Linux: apt cache cleanup, autoremove, /tmp cleanup, journal vacuum.
   FreeBSD: pkg autoremove/clean, /tmp cleanup, freebsd-update cache cleanup.
 
-Notes:
+##  Notes:
 
   Actions: clean /tmp, apt cache, apt autoremove, journal vacuum
   actions: clean /tmp, freebsd-update cache, pkg cache, pkg autoremove
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common os/reclaimSpace
-```
+	# Clean caches/logs to reclaim disk space
+	`myx.common os/reclaimSpace`

@@ -5,16 +5,22 @@ Assert script is running as root.
 Supported OS: Linux, FreeBSD, Darwin.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common myx/requireRoot
-```
+	# Assert script is running as root
+	`myx.common myx/requireRoot`
 
-```sh
-  myx.common myx/requireRoot os/getCpuCount
-```
+	# Assert script is running as root
+	`myx.common myx/requireRoot os/getCpuCount`

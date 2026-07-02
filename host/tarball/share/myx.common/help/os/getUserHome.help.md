@@ -4,16 +4,25 @@ Print user home path.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+
+##  Options:
+
+  --user
+
+      Set target user.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common os/getUserHome
-```
+	# Print user home path
+	`myx.common os/getUserHome`
 
-```sh
-  myx.common os/getUserHome --user myx
-```
+	# Run for a specific user
+	`myx.common os/getUserHome --user myx`

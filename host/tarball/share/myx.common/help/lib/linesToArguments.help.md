@@ -4,20 +4,29 @@ Convert input lines to shell arguments.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Usage notes:
+##  Arguments:
+
+  <command>
+
+      Command path to inspect (for example: os/getCpuCount).
+
+##  Options:
+
+  --act
+
+      Use command output as input source.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  printf 'alpha beta\ngamma delta\n' | myx.common lib/linesToArguments
-```
+	# Convert stdin lines to escaped argument list
+	`printf 'alpha beta\ngamma delta\n' | myx.common lib/linesToArguments`
 
-```sh
-  printf 'api-01\napi-02\n' | myx.common lib/linesToArguments -e 's/^/--target=/'
-```
+	# Convert input lines to shell arguments
+	`printf 'api-01\napi-02\n' | myx.common lib/linesToArguments -e 's/^/--target=/'`
 
-```sh
-  myx.common lib/linesToArguments --act os/getCpuCount
-```
+	# Convert stdin lines into escaped shell arguments
+	`myx.common lib/linesToArguments --act os/getCpuCount`

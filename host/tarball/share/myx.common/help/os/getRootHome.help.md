@@ -4,12 +4,19 @@ Print root home path.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common os/getRootHome
-```
+	# Print root home path
+	`myx.common os/getRootHome`

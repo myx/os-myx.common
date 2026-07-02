@@ -5,12 +5,19 @@ Apply base machine setup.
 Supported OS: Linux, FreeBSD, Darwin.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common setup/machine
-```
+	# Apply base machine setup
+	`myx.common setup/machine`

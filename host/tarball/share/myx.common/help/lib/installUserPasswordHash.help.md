@@ -8,7 +8,7 @@ Set password hash for an existing local user.
 
 Automates non-interactive account password provisioning from deployment scripts.
 
-Arguments:
+##  Arguments:
 
   <username>
 
@@ -18,12 +18,15 @@ Arguments:
 
       Hash value accepted by target platform usermod/pw tooling.
 
-Requirements:
+##  Options:
+
+  None.
+
+##  Requirements:
 
   Root privileges.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/installUserPasswordHash deploy '$6$.'
-```
+	# Apply lib/installUserPasswordHash with provided arguments
+	`myx.common lib/installUserPasswordHash deploy '$6$.'`

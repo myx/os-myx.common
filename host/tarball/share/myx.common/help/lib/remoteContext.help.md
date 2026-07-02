@@ -4,7 +4,7 @@ Build/execute remote shell context script.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Arguments:
+##  Arguments:
 
 	--insert-tarball <tarball-path>
 
@@ -26,7 +26,7 @@ Arguments:
 				Will insert the script text provided in <script-source> argument into executable rc-script
 				that will execute after all directories are unpacked.
 
-Options:
+##  Options:
 
 	--verbose, -v
 
@@ -66,16 +66,13 @@ Options:
 
 				Adds `myx.common` files and inserts commands to make sure it is found in 'PATH' variable.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-script "/usr/local/share/myx.common/include/data/console-myx.common-bootstrap"
-```
+	# Open interactive remote session context
+	`myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-script "/usr/local/share/myx.common/include/data/console-myx.common-bootstrap"`
 
-```sh
-  myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-command 'export PATH="$PWD/share/myx.common:$PATH"'
-```
+	# Open interactive remote session context
+	`myx.common lib/remoteContext --interactive --insert-path "/usr/local/:share/myx.common" --insert-command 'export PATH="$PWD/share/myx.common:$PATH"'`
 
-```sh
-  myx.common lib/remoteContext --interactive --insert-path "$MY_APP/remote-tarball" --insert-command "$( RemoteScriptGenerator.sh --make )"
-```
+	# Open interactive remote session context
+	`myx.common lib/remoteContext --interactive --insert-path "$MY_APP/remote-tarball" --insert-command "$( RemoteScriptGenerator.sh --make )"`

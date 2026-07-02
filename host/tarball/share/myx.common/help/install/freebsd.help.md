@@ -5,12 +5,19 @@ Run FreeBSD host bootstrap install.
 Supported OS: Linux.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common install/freebsd
-```
+	# Run FreeBSD host bootstrap install
+	`myx.common install/freebsd`

@@ -8,7 +8,11 @@ Check reboot requirement state and optionally trigger reboot.
 
 Provides a portable interface for update workflows that need reboot gating.
 
-Options:
+##  Arguments:
+
+  None.
+
+##  Options:
 
   --silent
 
@@ -30,16 +34,17 @@ Output:
 
   Reboot or Latest (suppressed with --silent).
 
-Notes:
+##  Notes:
 
-  Exit: 0=reboot-required, 1=up-to-date, 2=invalid-args
+  Exit codes:
+  - `0`: reboot-required
+  - `1`: up-to-date
+  - `2`: invalid-args
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common os/needsReboot --print
-```
+	# Force printing current status
+	`myx.common os/needsReboot --print`
 
-```sh
-  myx.common os/needsReboot --silent
-```
+	# Suppress normal status output
+	`myx.common os/needsReboot --silent`

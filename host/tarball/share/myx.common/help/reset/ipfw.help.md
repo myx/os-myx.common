@@ -5,12 +5,19 @@ Reset firewall rules.
 Supported OS: FreeBSD.
 Requires root privileges.
 
-Usage notes:
+##  Arguments:
+
+  None.
+
+##  Options:
+
+  None.
+
+##  Usage notes:
 
   Use --help to print detailed help for this command.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common reset/ipfw
-```
+	# Reset firewall rules
+	`myx.common reset/ipfw`

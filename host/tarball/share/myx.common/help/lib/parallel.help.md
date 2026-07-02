@@ -4,7 +4,7 @@ Run command for stdin items in parallel.
 
 Supported OS: Linux, FreeBSD, Darwin.
 
-Arguments:
+##  Arguments:
 
     <command> [...<command-argument>]
 
@@ -17,7 +17,7 @@ Arguments:
             The special feature is that this utility in includable into shell scripts
             and allows running local shell context functions is parallel (see example).
 
-Options:
+##  Options:
 
     -v
     --verbose
@@ -36,22 +36,19 @@ Options:
             Multiply current worker count limit by 2, 3 or 4. These options pair
             well with the use of ENV_PARALLEL_WORKER_COUNT environment variable.
 
-Environment:
+##  Environment:
 
     ENV_PARALLEL_WORKER_COUNT
             if --workers is not specified, the value of this environment variable
             is used as default. If unset - '4' workers will be used.
 
-Examples:
+##  Examples:
 
-```sh
-  myx.common lib/parallel os/getCpuCount
-```
+	# Run command for stdin items in parallel
+	`myx.common lib/parallel os/getCpuCount`
 
-```sh
-  myx.common lib/parallel -v -w 8 os/getCpuCount
-```
+	# Run with verbose output
+	`myx.common lib/parallel -v -w 8 os/getCpuCount`
 
-```sh
-  myx.common lib/parallel --workers=6 -- os/getRamBytes
-```
+	# Control parallel worker count
+	`myx.common lib/parallel --workers=6 -- os/getRamBytes`
