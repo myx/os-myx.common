@@ -71,9 +71,7 @@ SetupShellCompletion(){
 case "$0" in
 	*/myx.common/bin/lib/setupShellCompletion.Common) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --command <list_command>" >&2
-			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --directory <list_directory>" >&2
-			echo "Syntax: myx.common lib/setupShellCompletion <utility_name> --remove" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/setupShellCompletion.help.include" >&2
 			exit 1
 		fi
 		set -e

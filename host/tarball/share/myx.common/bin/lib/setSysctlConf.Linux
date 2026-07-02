@@ -50,7 +50,7 @@ SetSysctlConf(){
 case "$0" in
 	*/myx.common/bin/lib/setSysctlConf.*) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/setSysctlConf parameter [--grow/--shrink] value" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/setSysctlConf.help.include" >&2
 			exit 1
 		fi
 		set -e

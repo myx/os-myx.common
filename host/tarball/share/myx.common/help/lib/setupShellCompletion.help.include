@@ -1,0 +1,5 @@
+echo '📘 Syntax: myx.common lib/setupShellCompletion <utility-name> --command <list-command>' >&2
+echo '📘 Syntax: myx.common lib/setupShellCompletion <utility-name> --directory <list-directory>' >&2
+echo '📘 Syntax: myx.common lib/setupShellCompletion <utility-name> --remove' >&2
+echo '📘 Syntax: myx.common lib/setupShellCompletion --help' >&2
+[ "$1" != '--help' ] || cat "${MYXROOT:=/usr/local/share/myx.common}/help/lib/setupShellCompletion.help.md" >&2

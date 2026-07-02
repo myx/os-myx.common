@@ -49,7 +49,7 @@ SetLoaderConf(){
 case "$0" in
 	*/myx.common/bin/lib/setLoaderConf.*) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "Syntax: myx.common lib/setLoaderConf parameter [--grow/--shrink] value" >&2
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/setLoaderConf.help.include" >&2
 			exit 1
 		fi
 		set -e
