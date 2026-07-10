@@ -668,3 +668,22 @@ or
 - Syntax (Linux): myx.common vm/list
 - Root (FreeBSD): not required
 - Syntax (FreeBSD): myx.common vm/list
+
+## Adding or Changing a Command
+
+Each command lives at `share/myx.common/bin/<category>/<name>.<Variant>`,
+where `<Variant>` is one of:
+
+- `Common` — cross-platform default implementation.
+- `Darwin` / `FreeBSD` / `Linux` — OS-specific override.
+- `Abstract` — template only, carries a "should be overridden per OS"
+  comment; never picked by the dispatcher directly.
+
+`bin/myx.common` resolves `myx.common <category>/<name> [args]` in this
+order: `<name>.$(uname -s)` (OS override) → `<name>.Common` (default) →
+`include/obsolete/user/bin/<name>` (legacy fallback).
+
+Each command has a help pair mirroring the `bin/` tree under `help/`, e.g.
+`bin/lib/catMarkdown.Common` ↔ `help/lib/catMarkdown.help.include` +
+`.help.md`. The `.help.include` prints `📘 Syntax:` line(s) and, on
+`--help`, renders the paired `.help.md` via `myx.common lib/catMarkdown`.
