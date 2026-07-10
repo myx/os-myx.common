@@ -221,6 +221,7 @@ RemoteContext(){
 				command -v sh >/dev/null && exec sh -s
 			' <"$fifo" &
 			remoteSshPid="$!"
+			trap '[ -z "$remoteSshPid" ] || kill "$remoteSshPid" 2>/dev/null' EXIT INT TERM
 			exec 1> "$fifo"
 			rm "$fifo"
 			if ! kill -0 "$remoteSshPid" 2>/dev/null; then
@@ -483,7 +484,7 @@ RemoteContext(){
 			exec 0</dev/tty
 			stty sane
 			if true; then
-				trap "stty \"$(stty -g)\"" EXIT; stty raw; cat ; exit 0
+				trap "stty \"$(stty -g)\"; kill \"$remoteSshPid\" 2>/dev/null" EXIT; stty raw; cat ; exit 0
 			elif command -v stdbuf >/dev/null; then
 				echo 'Attaching tty (stdbuf)...' >&2
 				exec stdbuf -o0 bash -c 'trap "stty \"$(stty -g)\"" EXIT; stty raw; cat'
@@ -500,6 +501,7 @@ RemoteContext(){
 	}
 
 	if [ -n "$remoteSshPid" ]; then
+		trap - EXIT INT TERM
 		exec 1>&9
 		wait "$remoteSshPid" || exit 1
 	fi
