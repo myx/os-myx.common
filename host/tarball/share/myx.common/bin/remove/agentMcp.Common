@@ -1,0 +1,93 @@
+#!/usr/bin/env sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+#
+# SHELL-NOTE: Removes the myx.common MCP server entry registered by
+# `myx.common setup/agentMcp` from ~/.claude.json. Idempotent: a no-op
+# (success) if the entry isn't present. Same byte-range splice + backup +
+# validate approach as setup/agentMcp - see that file for the rationale.
+
+RemoveAgentMcp(){
+	local claudeConfig="${HOME:?RemoveAgentMcp: HOME is not set}/.claude.json"
+	local root="${MYXROOT:-/usr/local/share/myx.common}"
+	local awkEditFile="$root/include/data/agentMcpConfigEdit.awk"
+
+	[ -f "$awkEditFile" ] || { echo "⛔ ERROR: RemoveAgentMcp: missing resource file $awkEditFile" >&2; return 1; }
+	[ -f "$claudeConfig" ] || { echo "ℹ️  $claudeConfig not found - nothing to remove" >&2; return 0; }
+	[ -r "$claudeConfig" ] && [ -w "$claudeConfig" ] || { echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig is not readable/writable" >&2; return 1; }
+
+	local facts
+	facts="$(LC_ALL=C awk -v RS='\0' -f "$awkEditFile" "$claudeConfig")"
+	case "$facts" in
+		*NOTJSON*|*PARSE_ERROR*)
+			echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig doesn't parse as a JSON object - refusing to touch it" >&2
+			return 1
+		;;
+		*MCPSERVERS_NOT_OBJECT*)
+			echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig has a top-level \"mcpServers\" that isn't a JSON object - refusing to touch it" >&2
+			return 1
+		;;
+	esac
+	eval "$facts"
+
+	if [ "$MCPSERVERS_FOUND" != "1" ] || [ "$ENTRY_FOUND" != "1" ]; then
+		echo "ℹ️  myx.common MCP server is not registered in $claudeConfig - nothing to remove" >&2
+		return 0
+	fi
+
+	local newContentFile
+	newContentFile="$(mktemp "${TMPDIR:-/tmp}/myx.common.agentMcp.remove.XXXXXX")" || return 1
+
+	if [ "$ENTRY_HAD_TRAILING_COMMA" = "1" ]; then
+		{
+			head -c $((ENTRY_KEY_START - 1)) "$claudeConfig"
+			tail -c +"$ENTRY_PAIR_END_WITH_COMMA" "$claudeConfig"
+		} > "$newContentFile"
+	elif [ "$ENTRY_PRECEDING_COMMA_POS" != "0" ]; then
+		{
+			head -c $((ENTRY_PRECEDING_COMMA_POS - 1)) "$claudeConfig"
+			tail -c +"$ENTRY_PAIR_END_NO_COMMA" "$claudeConfig"
+		} > "$newContentFile"
+	else
+		{
+			head -c $((ENTRY_KEY_START - 1)) "$claudeConfig"
+			tail -c +"$ENTRY_PAIR_END_NO_COMMA" "$claudeConfig"
+		} > "$newContentFile"
+	fi
+
+	local validation
+	validation="$(LC_ALL=C awk -v RS='\0' -v mode=validate -f "$awkEditFile" "$newContentFile")"
+	if [ "$validation" != "VALID" ]; then
+		echo "⛔ ERROR: RemoveAgentMcp: generated config failed validation ($validation) - not touching $claudeConfig" >&2
+		rm -f "$newContentFile"
+		return 1
+	fi
+
+	# NOTE: same transient-backup convention as ReplaceLine (lib/replaceLine)
+	# - .bak exists only for the duration of the write, removed on success,
+	# left behind as a recovery copy only if something fails mid-write.
+	# Writing directly into $claudeConfig (not a mktemp-and-mv swap) also
+	# means its mode/ownership are never touched.
+	local backup="$claudeConfig.bak"
+	cp -p "$claudeConfig" "$backup" || { echo "⛔ ERROR: RemoveAgentMcp: couldn't create backup $backup" >&2; rm -f "$newContentFile"; return 1; }
+	if cat "$newContentFile" > "$claudeConfig"; then
+		rm -f "$backup" "$newContentFile"
+	else
+		echo "⛔ ERROR: RemoveAgentMcp: couldn't write $claudeConfig - original preserved at $backup" >&2
+		rm -f "$newContentFile"
+		return 1
+	fi
+
+	echo "✅ Removed myx.common MCP server entry from $claudeConfig" >&2
+}
+
+case "$0" in
+	*/myx.common/bin/remove/agentMcp.Common)
+		if [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/remove/agentMcp.help.include" >&2
+			exit 1
+		fi
+		set -e
+		RemoveAgentMcp
+	;;
+esac

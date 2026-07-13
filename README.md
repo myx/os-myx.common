@@ -74,11 +74,13 @@ or
 - `myx.common os/installPostfixMTA` — install and enable Postfix MTA [FreeBSD]
 - `myx.common os/needsReboot` — check whether reboot is required [Linux, FreeBSD]
 - `myx.common os/reclaimSpace` — clean caches/logs to reclaim disk space [Linux, FreeBSD]
+- `myx.common remove/agentMcp` — remove the myx.common MCP server registration from ~/.claude.json [Linux, FreeBSD, Darwin]
 - `myx.common remove/completion` — remove shell completion hooks [Linux, FreeBSD, Darwin]
 - `myx.common remove/myx.common-uninstall` — uninstall myx.common files [Linux, FreeBSD, Darwin]
 - `myx.common remove/screen` — remove screen setup artifacts [Linux, FreeBSD, Darwin]
 - `myx.common reset/dnsCache` — flush DNS resolver cache [Darwin]
 - `myx.common reset/ipfw` — reset firewall rules [FreeBSD]
+- `myx.common setup/agentMcp` — register myx.common as an MCP server for AI agent hosts (e.g. Claude Code) [Linux, FreeBSD, Darwin]
 - `myx.common setup/bhyve` — configure bhyve virtualization host [FreeBSD]
 - `myx.common setup/client` — apply client-side workstation setup [Linux, FreeBSD, Darwin]
 - `myx.common setup/completion` — install shell completion hooks [Linux, FreeBSD, Darwin]
@@ -545,6 +547,12 @@ or
 - Root (FreeBSD): required
 - Syntax (FreeBSD): myx.common os/reclaimSpace
 
+### `myx.common remove/agentMcp`
+- Platforms: Linux, FreeBSD, Darwin
+- Summary: remove the myx.common MCP server registration from ~/.claude.json.
+- Root (Common): not required
+- Syntax (Common): myx.common remove/agentMcp
+
 ### `myx.common remove/completion`
 - Platforms: Linux, FreeBSD, Darwin
 - Summary: remove shell completion hooks.
@@ -574,6 +582,12 @@ or
 - Summary: reset firewall rules.
 - Root (FreeBSD): required
 - Syntax (FreeBSD): myx.common reset/ipfw
+
+### `myx.common setup/agentMcp`
+- Platforms: Linux, FreeBSD, Darwin
+- Summary: register myx.common as an MCP server for AI agent hosts (e.g. Claude Code).
+- Root (Common): not required
+- Syntax (Common): myx.common setup/agentMcp
 
 ### `myx.common setup/bhyve`
 - Platforms: FreeBSD

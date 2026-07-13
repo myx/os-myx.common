@@ -1,0 +1,117 @@
+#!/usr/bin/env sh
+
+##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
+#
+# SHELL-NOTE: Registers the myx.common MCP integration stub
+# (include/data/agentMcpServer.sh) as a user-scope MCP server in
+# ~/.claude.json, so an AI agent host (Claude Code) can use this machine's
+# myx.common tooling. Edits ~/.claude.json surgically (byte-range splice via
+# head/tail, located by include/data/agentMcpConfigEdit.awk) - never a full
+# parse/rewrite of that file. Always backs up first and validates the
+# result parses as JSON before replacing the original. Idempotent:
+# re-running just confirms/updates the one entry it owns.
+
+SetupAgentMcp(){
+	local claudeConfig="${HOME:?SetupAgentMcp: HOME is not set}/.claude.json"
+	local root="${MYXROOT:-/usr/local/share/myx.common}"
+	local myxCommonBin="${root%/share/myx.common}/bin/myx.common"
+	local serverScript="$root/include/data/agentMcpServer.sh"
+	local awkEditFile="$root/include/data/agentMcpConfigEdit.awk"
+	local awkEscapeFile="$root/include/data/agentMcpJsonEscape.awk"
+
+	[ -x "$myxCommonBin" ] || { echo "⛔ ERROR: SetupAgentMcp: can't resolve myx.common executable from MYXROOT ($root)" >&2; return 1; }
+	[ -x "$serverScript" ] || { echo "⛔ ERROR: SetupAgentMcp: missing or non-executable $serverScript" >&2; return 1; }
+	[ -f "$awkEditFile" ] && [ -f "$awkEscapeFile" ] || { echo "⛔ ERROR: SetupAgentMcp: missing resource files under $root/include/data" >&2; return 1; }
+	[ -f "$claudeConfig" ] || { echo "⛔ ERROR: SetupAgentMcp: $claudeConfig not found - nothing to register into" >&2; return 1; }
+	[ -r "$claudeConfig" ] && [ -w "$claudeConfig" ] || { echo "⛔ ERROR: SetupAgentMcp: $claudeConfig is not readable/writable" >&2; return 1; }
+
+	local escapedScript entryValueJson
+	escapedScript="$(printf '%s' "$serverScript" | LC_ALL=C awk -f "$awkEscapeFile")"
+	entryValueJson="$(printf '{"command": "%s"}' "$escapedScript")"
+
+	local facts
+	facts="$(LC_ALL=C awk -v RS='\0' -f "$awkEditFile" "$claudeConfig")"
+	case "$facts" in
+		*NOTJSON*|*PARSE_ERROR*)
+			echo "⛔ ERROR: SetupAgentMcp: $claudeConfig doesn't parse as a JSON object - refusing to touch it" >&2
+			return 1
+		;;
+		*MCPSERVERS_NOT_OBJECT*)
+			echo "⛔ ERROR: SetupAgentMcp: $claudeConfig has a top-level \"mcpServers\" that isn't a JSON object - refusing to touch it" >&2
+			return 1
+		;;
+	esac
+	eval "$facts"
+
+	local newContentFile
+	newContentFile="$(mktemp "${TMPDIR:-/tmp}/myx.common.agentMcp.setup.XXXXXX")" || return 1
+
+	if [ "$MCPSERVERS_FOUND" = "1" ] && [ "$ENTRY_FOUND" = "1" ]; then
+		local currentValue
+		currentValue="$(dd if="$claudeConfig" bs=1 skip=$((ENTRY_VALUE_START - 1)) count=$((ENTRY_VALUE_END - ENTRY_VALUE_START)) 2>/dev/null)"
+		if [ "$currentValue" = "$entryValueJson" ]; then
+			echo "✅ myx.common MCP server already registered in $claudeConfig (command: $serverScript)" >&2
+			rm -f "$newContentFile"
+			return 0
+		fi
+		{
+			head -c $((ENTRY_VALUE_START - 1)) "$claudeConfig"
+			printf '%s' "$entryValueJson"
+			tail -c +"$ENTRY_VALUE_END" "$claudeConfig"
+		} > "$newContentFile"
+	elif [ "$MCPSERVERS_FOUND" = "1" ]; then
+		local sep=","
+		[ "$MCPSERVERS_IS_EMPTY" = "1" ] && sep=""
+		{
+			head -c $((MCPSERVERS_FIRST_KEY_START - 1)) "$claudeConfig"
+			printf '"myx.common": %s%s' "$entryValueJson" "$sep"
+			tail -c +"$MCPSERVERS_FIRST_KEY_START" "$claudeConfig"
+		} > "$newContentFile"
+	else
+		local sep=","
+		[ "$ROOT_IS_EMPTY" = "1" ] && sep=""
+		{
+			head -c $((ROOT_FIRST_KEY_START - 1)) "$claudeConfig"
+			printf '"mcpServers": {"myx.common": %s}%s' "$entryValueJson" "$sep"
+			tail -c +"$ROOT_FIRST_KEY_START" "$claudeConfig"
+		} > "$newContentFile"
+	fi
+
+	local validation
+	validation="$(LC_ALL=C awk -v RS='\0' -v mode=validate -f "$awkEditFile" "$newContentFile")"
+	if [ "$validation" != "VALID" ]; then
+		echo "⛔ ERROR: SetupAgentMcp: generated config failed validation ($validation) - not touching $claudeConfig" >&2
+		rm -f "$newContentFile"
+		return 1
+	fi
+
+	# NOTE: same transient-backup convention as ReplaceLine (lib/replaceLine)
+	# - .bak exists only for the duration of the write, removed on success,
+	# left behind as a recovery copy only if something fails mid-write.
+	# Writing directly into $claudeConfig (not a mktemp-and-mv swap) also
+	# means its mode/ownership are never touched.
+	local backup="$claudeConfig.bak"
+	cp -p "$claudeConfig" "$backup" || { echo "⛔ ERROR: SetupAgentMcp: couldn't create backup $backup" >&2; rm -f "$newContentFile"; return 1; }
+	if cat "$newContentFile" > "$claudeConfig"; then
+		rm -f "$backup" "$newContentFile"
+	else
+		echo "⛔ ERROR: SetupAgentMcp: couldn't write $claudeConfig - original preserved at $backup" >&2
+		rm -f "$newContentFile"
+		return 1
+	fi
+
+	echo "✅ Registered myx.common MCP server in $claudeConfig" >&2
+	echo "   command: $serverScript" >&2
+	echo "   Restart your MCP host (e.g. Claude Code) to pick it up." >&2
+}
+
+case "$0" in
+	*/myx.common/bin/setup/agentMcp.Common)
+		if [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/setup/agentMcp.help.include" >&2
+			exit 1
+		fi
+		set -e
+		SetupAgentMcp
+	;;
+esac

@@ -52,3 +52,19 @@ myx.distro-* uses the same `type X >/dev/null 2>&1 || . file` idiom, but
 resolves the path via `myx.common which lib/X` (one subprocess, but
 OS-aware) rather than hardcoding `.Common` — a stricter version of the same
 pattern. See `myx.distro-*` CLAUDE.md's Dispatchers section.
+
+## `bin/` (public command) vs `include/` (internal resource/stub)
+
+Not every shell script under `share/myx.common/` is a dispatchable command.
+`include/data/` also holds standalone scripts that need a stable absolute
+path for some *external* system to invoke directly, but are not themselves
+a public/completable myx.common command — e.g. `include/data/agentMcpServer.sh`,
+an MCP (Model Context Protocol) stdio server for AI agent hosts, registered
+by `setup/agentMcp` at its own direct path rather than via
+`myx.common lib/agentMcpServer`. It deliberately has no help pair, no
+README entry, and doesn't appear in `myx.common help --bare` — a curious
+human finding it and running it directly just gets a hanging JSON-RPC
+listener, which is accepted as fine since it's integration plumbing, not
+API surface. "Needs a stable dispatcher-independent path" and "is a public
+command" are separate, independently-decidable properties; don't assume
+every script that must live at a fixed path belongs under `bin/`.

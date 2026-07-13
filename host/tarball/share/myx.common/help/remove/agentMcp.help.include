@@ -1,0 +1,4 @@
+echo '📘 Syntax: myx.common remove/agentMcp' >&2
+echo '📘 Syntax: myx.common remove/agentMcp --help' >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/remove/agentMcp.help.md" >&2
