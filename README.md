@@ -46,8 +46,7 @@ or
 - `myx.common lib/linesToArguments` — convert input lines to shell arguments
 - `myx.common lib/notifySlack` — send notification to Slack
 - `myx.common lib/notifySmart` — send notification through available channel
-- `myx.common lib/out` — prefixed status output helper
-- `myx.common lib/out.status` — status-line output helper
+- `myx.common lib/out` — colored status/error/info terminal output helper
 - `myx.common lib/parallel` — run command for stdin items in parallel
 - `myx.common lib/prefix` — prefix command output lines
 - `myx.common lib/remoteContext` — build/execute remote shell context script
@@ -330,15 +329,9 @@ or
 
 ### `myx.common lib/out`
 - Platforms: Linux, FreeBSD, Darwin
-- Summary: prefixed status output helper.
+- Summary: colored status/error/info terminal output helper.
 - Root (Common): not required
-- Syntax (Common): not explicitly declared in script output; check script help include/body
-
-### `myx.common lib/out.status`
-- Platforms: Linux, FreeBSD, Darwin
-- Summary: status-line output helper.
-- Root (Common): not required
-- Syntax (Common): not explicitly declared in script output; check script help include/body
+- Syntax (Common): myx.common lib/out status|error|info|example|syntax|valuechange|message|nextrelease [args...]
 
 ### `myx.common lib/parallel`
 - Platforms: Linux, FreeBSD, Darwin

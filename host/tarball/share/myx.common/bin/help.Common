@@ -44,13 +44,20 @@ Help(){
 
 	echo "'myx.common' script commands:" >&2
 	for ITEM in $FINDREZ ; do
+		# ITEM is already the bare command name - the sed above already
+		# stripped the trailing .Common/.$UNAME suffix. Do NOT re-trim with
+		# ${ITEM%.*}: that assumes the only dot left is a leftover suffix,
+		# but command names can genuinely contain a dot themselves (e.g.
+		# install/myx.common-reinstall), and %.* silently truncates those
+		# to a shorter, wrong, non-existent command name.
+		#
 		# A .$UNAME file only means this OS has its own implementation on
 		# hand, not that other OSes lack one - tag with the OS name only
 		# when there's no .Common fallback (the command only works here).
 		if [ -x "$MYXROOT/bin/$ITEM.Common" ]; then
-			echo "${ITEM%.*}" "common"
+			echo "$ITEM" "common"
 		else
-			echo "${ITEM%.*}" "$UNAME-specific"
+			echo "$ITEM" "$UNAME-specific"
 		fi
 	done \
 	| column -t \
