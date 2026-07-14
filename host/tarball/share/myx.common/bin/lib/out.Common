@@ -2,17 +2,21 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 
-set -e
+. "${0%/*}/../../include/out.sh"
 
-. ${0%/*}/../../include/out.sh
+Out(){
+	set -e
+	local CMD="$1"
+	shift
+	"out.$CMD" "$@"
+}
 
-CMD="$1"
-
-if [ -z "$CMD" ] ; then \
-	echo "lib/out [status] [green] msg...
-	exit 1
-fi
-
-shift
-
-out "$CMD" "$@"
+case "$0" in
+	*/myx.common/bin/lib/out.Common)
+		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/out.help.include" >&2
+			exit 1
+		fi
+		Out "$@"
+	;;
+esac

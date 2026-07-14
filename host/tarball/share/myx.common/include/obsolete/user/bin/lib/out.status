@@ -1,0 +1,8 @@
+#!/bin/sh
+
+case "$0" in
+	*/bin/lib/out.status)
+		set -e
+		exec "$(myx.common which lib/out)" status "$@"
+	;;
+esac
