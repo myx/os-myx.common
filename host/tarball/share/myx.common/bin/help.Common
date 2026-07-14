@@ -43,11 +43,14 @@ Help(){
 	)"
 
 	echo "'myx.common' script commands:" >&2
-	for ITEM in $FINDREZ ; do 
-		if [ -x "$MYXROOT/bin/$ITEM.$UNAME" ]; then
-			echo "${ITEM%.*}" "$UNAME-specific"
-		else
+	for ITEM in $FINDREZ ; do
+		# A .$UNAME file only means this OS has its own implementation on
+		# hand, not that other OSes lack one - tag with the OS name only
+		# when there's no .Common fallback (the command only works here).
+		if [ -x "$MYXROOT/bin/$ITEM.Common" ]; then
 			echo "${ITEM%.*}" "common"
+		else
+			echo "${ITEM%.*}" "$UNAME-specific"
 		fi
 	done \
 	| column -t \
