@@ -11,8 +11,8 @@
 # subprocess by that host (e.g. Claude Code) - not for interactive human use.
 #
 # Speaks JSON-RPC 2.0 over stdin/stdout, newline-delimited, hand-rolled (no
-# jq/python dependency) using the sibling awk resources in this directory
-# (agentMcpJsonEscape.awk, agentMcpJsonParseRequest.awk).
+# jq/python dependency) using the sibling resources in this directory
+# (agentMcpJsonEscape.awk, agentMcpJsonParseRequest.awk, agentMcpTools.json).
 #
 # Exposes two tools to the connected agent:
 #   myx_common_help - discover commands (wraps `myx.common help`)
@@ -34,7 +34,13 @@ if [ -z "$MYXROOT" ]; then
 	export MYXROOT MYXUNIX=${MYXUNIX:-$(uname -s)}
 fi
 
-AGENT_MCP_TOOLS_JSON='[{"name":"myx_common_help","description":"Discover myx.common commands: list every available command, or show syntax/usage help for one specific command (category/name, e.g. lib/remoteContext or os/getCpuCount). Call with no arguments first to see what exists.","inputSchema":{"type":"object","properties":{"command":{"type":"string","description":"Command to show help for, e.g. os/getCpuCount or git/clonePull. Omit to list all available commands."}}}},{"name":"myx_common_run","description":"Execute a myx.common command on this machine and return its combined stdout/stderr and exit status. Use myx_common_help first to discover available commands and their syntax. Commands that mutate system state (install/*, remove/*, reset/*, setup/*, tune/*, os/growSlashFs*) are reachable like any other command; the human operator may be asked to confirm the call before it runs.","inputSchema":{"type":"object","properties":{"command":{"type":"string","description":"Command name, e.g. os/getCpuCount or git/clonePull."},"args":{"type":"array","items":{"type":"string"},"description":"Positional arguments/flags to pass to the command, in order."},"stdin":{"type":"string","description":"Text to feed to the command standard input, for commands that read stdin (e.g. lib/iterate, lib/parallel)."}},"required":["command"]}}]'
+# Tool definitions are static (no dynamic values), so they live in their
+# own real .json file (agentMcpTools.json, sibling to the awk resources
+# below) rather than an embedded shell literal - editable/diffable/lintable
+# as actual JSON. The wire format is newline-delimited JSON-RPC (see header
+# comment above), so the file's own newlines must be stripped before use -
+# JSON itself doesn't care about the whitespace either way.
+AGENT_MCP_TOOLS_JSON="$(tr -d '\n' < "$MYXROOT/include/data/agentMcpTools.json")"
 
 AgentMcpJsonEscape(){
 	LC_ALL=C awk -f "$MYXROOT/include/data/agentMcpJsonEscape.awk"
@@ -61,17 +67,20 @@ AgentMcpSendError(){
 
 AgentMcpHandleToolsCall(){
 	local reqDir="$1" id="$2"
-	local toolName cmd argsCount i contentText exitCode isError escText resultJson
+	local toolName cmd unameArg argsCount i contentText exitCode isError escText resultJson
 
 	toolName="$(cat "$reqDir/tool_name" 2>/dev/null || true)"
 
 	case "$toolName" in
 		myx_common_help)
 			cmd="$(cat "$reqDir/arg_command" 2>/dev/null || true)"
+			unameArg="$(cat "$reqDir/arg_uname" 2>/dev/null || true)"
+			set --
+			[ -z "$unameArg" ] || set -- --uname "$unameArg"
 			if [ -n "$cmd" ]; then
-				contentText="$("$MYX_COMMON_BIN" help "$cmd" 2>&1)"
+				contentText="$("$MYX_COMMON_BIN" help "$@" "$cmd" 2>&1)"
 			else
-				contentText="$("$MYX_COMMON_BIN" help 2>&1)"
+				contentText="$("$MYX_COMMON_BIN" help "$@" 2>&1)"
 			fi
 			# NOTE: `myx.common help ...` conventionally exits 1 even when it
 			# successfully displayed help text - that's not a real failure,

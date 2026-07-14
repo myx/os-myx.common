@@ -12,89 +12,89 @@ or
 
 ## Commands
 
-- `myx.common cat` — print myx.common command sources with markdown-aware formatting [Linux, FreeBSD, Darwin]
-- `myx.common help` — show myx.common help [Linux, FreeBSD, Darwin]
-- `myx.common which` — locate myx.common command script path [Linux, FreeBSD, Darwin]
-- `myx.common git/clonePull` — clone or fast-forward pull a repository [Linux, FreeBSD, Darwin]
-- `myx.common git/cloneSync` — synchronize repository with optional push [Linux, FreeBSD, Darwin]
+- `myx.common cat` — print myx.common command sources with markdown-aware formatting
+- `myx.common help` — show myx.common help
+- `myx.common which` — locate myx.common command script path
+- `myx.common git/clonePull` — clone or fast-forward pull a repository
+- `myx.common git/cloneSync` — synchronize repository with optional push
 - `myx.common install/acmcms` — install acmcms components [FreeBSD]
 - `myx.common install/ae3` — install ae3 components [FreeBSD]
 - `myx.common install/brew` — install Homebrew and baseline tools [Darwin]
-- `myx.common install/ensure/nativePackage` — ensure native package is installed [Linux, FreeBSD, Darwin]
-- `myx.common install/ensure/utilBashRsyncScreenSudo` — ensure bash rsync screen sudo are installed [Linux, FreeBSD, Darwin]
+- `myx.common install/ensure/nativePackage` — ensure native package is installed
+- `myx.common install/ensure/utilBashRsyncScreenSudo` — ensure bash rsync screen sudo are installed
 - `myx.common install/ensure/utilDhcpIpfwPublicDns` — ensure DHCP/IPFW/Public-DNS tooling [FreeBSD]
-- `myx.common install/ensure/utilGoGitNano` — ensure Go Git Nano are installed [Linux, FreeBSD, Darwin]
-- `myx.common install/ensure/utilNodeYarnGit` — ensure Node Yarn Git are installed [Linux, FreeBSD, Darwin]
+- `myx.common install/ensure/utilGoGitNano` — ensure Go Git Nano are installed
+- `myx.common install/ensure/utilNodeYarnGit` — ensure Node Yarn Git are installed
 - `myx.common install/farmanager` — install Far Manager on macOS [Darwin]
 - `myx.common install/freebsd` — run FreeBSD host bootstrap install [Linux]
-- `myx.common install/git` — install Git [Linux, FreeBSD, Darwin]
-- `myx.common install/java` — install Java runtime/tools [Linux, FreeBSD, Darwin]
+- `myx.common install/git` — install Git
+- `myx.common install/java` — install Java runtime/tools
 - `myx.common install/monit` — install Monit [FreeBSD]
-- `myx.common install/myx.common-reinstall` — reinstall myx.common from upstream [Linux, FreeBSD, Darwin]
-- `myx.common install/updates` — install system updates [Linux, FreeBSD, Darwin]
-- `myx.common lib/catMarkdown` — render markdown as plain terminal text [Linux, FreeBSD, Darwin]
-- `myx.common lib/execShStdin` — execute shell script from stdin [Linux, FreeBSD, Darwin]
-- `myx.common lib/fetchStdout` — fetch URL content to stdout with optional cache [Linux, FreeBSD, Darwin]
-- `myx.common lib/installAuthorizedKey` — install SSH key for a user [Linux, FreeBSD, Darwin]
-- `myx.common lib/installEnsurePackage` — install package if missing [Linux, FreeBSD, Darwin]
-- `myx.common lib/installRootAuthorizedKey` — install SSH key for root user [Linux, FreeBSD, Darwin]
-- `myx.common lib/installUser` — create or update local user account [Linux, FreeBSD]
-- `myx.common lib/installUserGroupMembership` — ensure user membership in groups [Linux, FreeBSD]
-- `myx.common lib/installUserPasswordHash` — set user password hash [Linux, FreeBSD]
-- `myx.common lib/installWheelUser` — create admin-capable user account [Linux, FreeBSD, Darwin]
-- `myx.common lib/iterate` — run command for each stdin line sequentially [Linux, FreeBSD, Darwin]
-- `myx.common lib/linesToArguments` — convert input lines to shell arguments [Linux, FreeBSD, Darwin]
-- `myx.common lib/notifySlack` — send notification to Slack [Linux, FreeBSD, Darwin]
-- `myx.common lib/notifySmart` — send notification through available channel [Linux, FreeBSD, Darwin]
-- `myx.common lib/out` — prefixed status output helper [Linux, FreeBSD, Darwin]
-- `myx.common lib/out.status` — status-line output helper [Linux, FreeBSD, Darwin]
-- `myx.common lib/parallel` — run command for stdin items in parallel [Linux, FreeBSD, Darwin]
-- `myx.common lib/prefix` — prefix command output lines [Linux, FreeBSD, Darwin]
-- `myx.common lib/remoteContext` — build/execute remote shell context script [Linux, FreeBSD, Darwin]
-- `myx.common lib/replaceLine` — replace matching line in a file [Linux, FreeBSD, Darwin]
-- `myx.common lib/replaceText` — replace text in a file [Linux, FreeBSD, Darwin]
-- `myx.common lib/sedInteractive` — sed wrapper for interactive/stream mode [Linux, FreeBSD, Darwin]
-- `myx.common lib/sedLineReader` — line-buffered sed wrapper [Linux, FreeBSD, Darwin]
+- `myx.common install/myx.common-reinstall` — reinstall myx.common from upstream
+- `myx.common install/updates` — install system updates
+- `myx.common lib/catMarkdown` — render markdown as plain terminal text
+- `myx.common lib/execShStdin` — execute shell script from stdin
+- `myx.common lib/fetchStdout` — fetch URL content to stdout with optional cache
+- `myx.common lib/installAuthorizedKey` — install SSH key for a user
+- `myx.common lib/installEnsurePackage` — install package if missing
+- `myx.common lib/installRootAuthorizedKey` — install SSH key for root user
+- `myx.common lib/installUser` — create or update local user account
+- `myx.common lib/installUserGroupMembership` — ensure user membership in groups
+- `myx.common lib/installUserPasswordHash` — set user password hash
+- `myx.common lib/installWheelUser` — create admin-capable user account
+- `myx.common lib/iterate` — run command for each stdin line sequentially
+- `myx.common lib/linesToArguments` — convert input lines to shell arguments
+- `myx.common lib/notifySlack` — send notification to Slack
+- `myx.common lib/notifySmart` — send notification through available channel
+- `myx.common lib/out` — prefixed status output helper
+- `myx.common lib/out.status` — status-line output helper
+- `myx.common lib/parallel` — run command for stdin items in parallel
+- `myx.common lib/prefix` — prefix command output lines
+- `myx.common lib/remoteContext` — build/execute remote shell context script
+- `myx.common lib/replaceLine` — replace matching line in a file
+- `myx.common lib/replaceText` — replace text in a file
+- `myx.common lib/sedInteractive` — sed wrapper for interactive/stream mode
+- `myx.common lib/sedLineReader` — line-buffered sed wrapper
 - `myx.common lib/setLoaderConf` — set key/value in loader.conf [FreeBSD]
-- `myx.common lib/setSysctlConf` — set key/value in sysctl.conf [Linux, FreeBSD]
-- `myx.common lib/setupShellCompletion` — register shell completion command [Linux, FreeBSD, Darwin]
-- `myx.common lib/unbuffer` — run command with unbuffered output [Linux, FreeBSD, Darwin]
-- `myx.common os/getCommonScreenRc` — print default system screenrc path [Linux, FreeBSD, Darwin]
-- `myx.common os/getCpuCount` — print CPU core count [Linux, FreeBSD, Darwin]
-- `myx.common os/getRamBytes` — print total RAM bytes [Linux, FreeBSD, Darwin]
-- `myx.common os/getRootHome` — print root home path [Linux, FreeBSD, Darwin]
-- `myx.common os/getUserHome` — print user home path [Linux, FreeBSD, Darwin]
-- `myx.common os/getUtilityPackage` — map utility name to package name [Linux, FreeBSD, Darwin]
-- `myx.common os/getWheelGroupName` — print primary admin group name [Linux, FreeBSD, Darwin]
-- `myx.common os/getWheelGroupNames` — print admin group names list [Linux, FreeBSD, Darwin]
+- `myx.common lib/setSysctlConf` — set key/value in sysctl.conf
+- `myx.common lib/setupShellCompletion` — register shell completion command
+- `myx.common lib/unbuffer` — run command with unbuffered output
+- `myx.common os/getCommonScreenRc` — print default system screenrc path
+- `myx.common os/getCpuCount` — print CPU core count
+- `myx.common os/getRamBytes` — print total RAM bytes
+- `myx.common os/getRootHome` — print root home path
+- `myx.common os/getUserHome` — print user home path
+- `myx.common os/getUtilityPackage` — map utility name to package name
+- `myx.common os/getWheelGroupName` — print primary admin group name
+- `myx.common os/getWheelGroupNames` — print admin group names list
 - `myx.common os/growSlashFs` — grow Linux root filesystem [Linux]
 - `myx.common os/growSlashFs.1` — grow Linux root filesystem (variant 1) [Linux]
 - `myx.common os/growSlashFs.2` — grow Linux root filesystem (variant 2) [Linux]
 - `myx.common os/growSlashFsUfs` — grow FreeBSD UFS root filesystem [FreeBSD]
 - `myx.common os/installPostfixMTA` — install and enable Postfix MTA [FreeBSD]
-- `myx.common os/needsReboot` — check whether reboot is required [Linux, FreeBSD]
-- `myx.common os/reclaimSpace` — clean caches/logs to reclaim disk space [Linux, FreeBSD]
-- `myx.common remove/agentMcp` — remove the myx.common MCP server registration from ~/.claude.json [Linux, FreeBSD, Darwin]
-- `myx.common remove/completion` — remove shell completion hooks [Linux, FreeBSD, Darwin]
-- `myx.common remove/myx.common-uninstall` — uninstall myx.common files [Linux, FreeBSD, Darwin]
-- `myx.common remove/screen` — remove screen setup artifacts [Linux, FreeBSD, Darwin]
+- `myx.common os/needsReboot` — check whether reboot is required
+- `myx.common os/reclaimSpace` — clean caches/logs to reclaim disk space
+- `myx.common remove/agentMcp` — remove the myx.common MCP server registration from ~/.claude.json
+- `myx.common remove/completion` — remove shell completion hooks
+- `myx.common remove/myx.common-uninstall` — uninstall myx.common files
+- `myx.common remove/screen` — remove screen setup artifacts
 - `myx.common reset/dnsCache` — flush DNS resolver cache [Darwin]
 - `myx.common reset/ipfw` — reset firewall rules [FreeBSD]
-- `myx.common setup/agentMcp` — register myx.common as an MCP server for AI agent hosts (e.g. Claude Code) [Linux, FreeBSD, Darwin]
+- `myx.common setup/agentMcp` — register myx.common as an MCP server for AI agent hosts (e.g. Claude Code)
 - `myx.common setup/bhyve` — configure bhyve virtualization host [FreeBSD]
-- `myx.common setup/client` — apply client-side workstation setup [Linux, FreeBSD, Darwin]
-- `myx.common setup/completion` — install shell completion hooks [Linux, FreeBSD, Darwin]
-- `myx.common setup/console` — apply console environment setup [Linux, FreeBSD, Darwin]
+- `myx.common setup/client` — apply client-side workstation setup
+- `myx.common setup/completion` — install shell completion hooks
+- `myx.common setup/console` — apply console environment setup
 - `myx.common setup/ipfw-open` — open selected firewall services [FreeBSD]
-- `myx.common setup/machine` — apply base machine setup [Linux, FreeBSD, Darwin]
-- `myx.common setup/screen` — install screen configuration [Linux, FreeBSD, Darwin]
-- `myx.common setup/server` — apply server-side host setup [Linux, FreeBSD, Darwin]
-- `myx.common tune/networkProtect` — apply conservative network hardening [Linux, FreeBSD]
-- `myx.common tune/networkSpeed` — apply performance-oriented network tuning [Linux, FreeBSD]
+- `myx.common setup/machine` — apply base machine setup
+- `myx.common setup/screen` — install screen configuration
+- `myx.common setup/server` — apply server-side host setup
+- `myx.common tune/networkProtect` — apply conservative network hardening
+- `myx.common tune/networkSpeed` — apply performance-oriented network tuning
 - `myx.common tune/zfsQuarterCache` — set ZFS ARC to quarter of RAM [FreeBSD]
-- `myx.common user/requireRoot` — assert script is running as root [Linux, FreeBSD, Darwin]
-- `myx.common vm/create` — create or update VM configuration [FreeBSD]
-- `myx.common vm/list` — list configured VMs [Linux, FreeBSD]
+- `myx.common user/requireRoot` — assert script is running as root
+- `myx.common vm/create` — create or update VM configuration
+- `myx.common vm/list` — list configured VMs
 
 ## Command details
 
@@ -207,9 +207,8 @@ or
 - Platforms: Linux, FreeBSD, Darwin
 - Summary: install Java runtime/tools.
 - Root (Common): required
-- Syntax (Common): not explicitly declared in script output; check script help include/body
-- Root (Darwin): not required
-- Syntax (Darwin): not explicitly declared in script output; check script help include/body
+- Syntax (Common): myx.common install/java
+- Syntax (Common): myx.common install/java --help
 
 ### `myx.common install/monit`
 - Platforms: FreeBSD
@@ -670,7 +669,7 @@ or
 - Syntax (Common): myx.common user/requireRoot [command_name]
 
 ### `myx.common vm/create`
-- Platforms: FreeBSD
+- Platforms: Linux, FreeBSD
 - Summary: create or update VM configuration.
 - Root (FreeBSD): not required
 - Syntax (FreeBSD): 

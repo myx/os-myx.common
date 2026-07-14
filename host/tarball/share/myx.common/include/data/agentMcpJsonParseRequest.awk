@@ -9,6 +9,7 @@
 #   outDir/id                  - raw JSON token for "id" (echoed back as-is)
 #   outDir/tool_name           - params.name (tools/call)
 #   outDir/arg_command         - params.arguments.command (decoded string)
+#   outDir/arg_uname           - params.arguments.uname (decoded string)
 #   outDir/arg_stdin           - params.arguments.stdin (decoded string)
 #   outDir/arg_args_count      - params.arguments.args array length
 #   outDir/arg_args_<N>        - params.arguments.args[N] (decoded string)
@@ -108,6 +109,7 @@ function emitLeaf(path, raw, val,   f, idx) {
 	}
 	else if (path == "params.name") { f = outDir "/tool_name"; print val > f; close(f) }
 	else if (path == "params.arguments.command") { f = outDir "/arg_command"; print val > f; close(f) }
+	else if (path == "params.arguments.uname") { f = outDir "/arg_uname"; print val > f; close(f) }
 	else if (path == "params.arguments.stdin") { f = outDir "/arg_stdin"; print val > f; close(f) }
 	else if (path == "params.arguments.args.__count") { f = outDir "/arg_args_count"; print val > f; close(f) }
 	else if (index(path, "params.arguments.args.") == 1) {

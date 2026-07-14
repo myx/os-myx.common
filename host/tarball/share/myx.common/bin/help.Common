@@ -24,9 +24,12 @@ Help(){
 	fi
 	
 	if [ -n "$1" ] && myx.common which --uname "$UNAME" "$1" >/dev/null; then
-		set -e
-		myx.common "$1" --help
-		return 0
+		# Help text is shared across OS variants (one help/<cmd>.help.include
+		# per command, not per-OS) - source it directly rather than
+		# re-executing "myx.common $1 --help", which would re-resolve
+		# against the *live* host's OS and lose the requested --uname.
+		( helpInclude="$MYXROOT/help/$1.help.include"; set -- --help; . "$helpInclude" )
+		exit 1
 	fi
 
 	# list all available commands

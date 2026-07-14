@@ -13,7 +13,13 @@ Requires root privileges.
 
   --postfix-mta
 
-      Option supported by this command.
+      FreeBSD only. Installs and enables Postfix MTA (myx.common os/installPostfixMTA).
+
+##  OS-Specifics:
+
+  --postfix-mta:
+    FreeBSD: installs and enables Postfix MTA.
+    Linux, Darwin: accepted but silently ignored, no effect.
 
 ##  Usage notes:
 

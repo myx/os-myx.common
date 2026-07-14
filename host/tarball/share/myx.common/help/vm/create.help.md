@@ -6,10 +6,12 @@ Supported OS: Linux, FreeBSD.
 
 ##  Arguments:
 
-  {--freebsd|--linux|--ubuntu-lvm}
+  {--freebsd|--linux|--ubuntu-lvm|--uefi}
 
       Required VM profile selector.
       Chooses the VM template/boot strategy.
+
+      --uefi is FreeBSD only.
 
       Linux only: Backend (Proxmox+ZFS or libvirt+LVM) is selected automatically or via environment.
 
@@ -56,6 +58,25 @@ Supported OS: Linux, FreeBSD.
       Override libvirt LVM pool name used for VM disk volumes.
       When unset, the first active logical pool reported by virsh is used.
 
+##  OS-Specifics:
+
+  Root privileges:
+    Linux: required.
+    FreeBSD: not required.
+
+  Profile selector:
+    --uefi is FreeBSD only, not available on Linux.
+
+  Backend (Linux only):
+    Proxmox (qm/pvesm) is used if available; otherwise libvirt+LVM.
+    Override via MYX_VM_ENGINE=libvirt.
+    FreeBSD always uses vm-bhyve; there is no backend choice.
+
+  Default ISO directories:
+    FreeBSD (vm-bhyve): /vms/.iso/
+    Linux (Proxmox backend): /var/lib/vz/template/iso/
+    Linux (libvirt backend): /var/lib/libvirt/images/
+
 ##  Usage notes:
 
   Use --help to print detailed help for this command.
@@ -63,11 +84,6 @@ Supported OS: Linux, FreeBSD.
   ISO argument rules:
     If <iso> starts with '/', it is treated as an absolute file path.
     If <iso> does not start with '/', it is treated as a filename in the default ISO directory for the active system/backend.
-
-  Default ISO directories:
-    FreeBSD (vm-bhyve): /vms/.iso/
-    Linux (Proxmox backend): /var/lib/vz/template/iso/
-    Linux (libvirt backend): /var/lib/libvirt/images/
 
   Relative paths with '/' are not accepted. Use either filename-only or absolute path.
 

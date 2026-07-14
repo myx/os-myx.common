@@ -1,0 +1,43 @@
+[
+  {
+    "name": "myx_common_help",
+    "description": "Discover myx.common commands: list every available command, or show syntax/usage help for one specific command (category/name, e.g. lib/remoteContext or os/getCpuCount). Call with no arguments first to see what exists.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Command to show help for, e.g. os/getCpuCount or git/clonePull. Omit to list all available commands."
+        },
+        "uname": {
+          "type": "string",
+          "enum": ["Darwin", "FreeBSD", "Linux"],
+          "description": "Show commands/help as they exist on a different OS than this host is running. Omit to use this host's own OS."
+        }
+      }
+    }
+  },
+  {
+    "name": "myx_common_run",
+    "description": "Execute a myx.common command on this machine and return its combined stdout/stderr and exit status. Use myx_common_help first to discover available commands and their syntax. Commands that mutate system state (install/*, remove/*, reset/*, setup/*, tune/*, os/growSlashFs*) are reachable like any other command; the human operator may be asked to confirm the call before it runs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Command name, e.g. os/getCpuCount or git/clonePull."
+        },
+        "args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Positional arguments/flags to pass to the command, in order."
+        },
+        "stdin": {
+          "type": "string",
+          "description": "Text to feed to the command standard input, for commands that read stdin (e.g. lib/iterate, lib/parallel)."
+        }
+      },
+      "required": ["command"]
+    }
+  }
+]

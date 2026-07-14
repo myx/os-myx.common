@@ -1,0 +1,4 @@
+echo '📘 Syntax: myx.common install/java' >&2
+echo '📘 Syntax: myx.common install/java --help' >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/install/java.help.md" >&2
