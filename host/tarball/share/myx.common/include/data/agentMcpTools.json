@@ -35,6 +35,15 @@
         "stdin": {
           "type": "string",
           "description": "Text to feed to the command standard input, for commands that read stdin (e.g. lib/iterate, lib/parallel)."
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Kill the command if it hasn't finished after this many seconds. Omit for no timeout (the command runs to completion, however long that takes)."
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Extra environment variables to set for this invocation only (e.g. MYX_VM_ENGINE for vm/create). Names must be valid POSIX identifiers ([A-Za-z_][A-Za-z0-9_]*); invalid names are silently ignored."
         }
       },
       "required": ["command"]

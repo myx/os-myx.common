@@ -8,14 +8,29 @@
 #   outDir/has_id              - "1" if a top-level "id" was present
 #   outDir/id                  - raw JSON token for "id" (echoed back as-is)
 #   outDir/tool_name           - params.name (tools/call)
+#   outDir/uri                 - params.uri (resources/read, decoded string)
+#   outDir/cancel_request_id   - params.requestId (notifications/cancelled,
+#                                 raw JSON token, matched against outDir/id
+#                                 format written for the original request)
 #   outDir/arg_command         - params.arguments.command (decoded string)
 #   outDir/arg_uname           - params.arguments.uname (decoded string)
 #   outDir/arg_stdin           - params.arguments.stdin (decoded string)
+#   outDir/arg_timeout         - params.arguments.timeout (raw number token)
 #   outDir/arg_args_count      - params.arguments.args array length
 #   outDir/arg_args_<N>        - params.arguments.args[N] (decoded string)
+#   outDir/arg_env_count       - number of valid params.arguments.env entries
+#   outDir/arg_env_name_<N>    - Nth env var name (only emitted if it matches
+#                                 the POSIX identifier shape [A-Za-z_][A-Za-z0-9_]*;
+#                                 non-conforming keys are silently skipped)
+#   outDir/arg_env_val_<N>     - Nth env var value (decoded string)
 # Any other field is parsed (to keep position tracking correct) but
 # silently discarded. Not a general-purpose JSON parser: only understands
 # the flat/one-level-nested shapes MCP tool-call messages actually use.
+
+# envEntryCount must start as a real "0", not awk's uninitialized "" -
+# concatenating "" into a filename ("arg_env_name_" with no index) instead
+# of "arg_env_name_0" would silently break the first entry.
+BEGIN { envEntryCount = 0; }
 
 function skipws(   c) {
 	while (p <= n) {
@@ -61,7 +76,7 @@ function parseString(   c, out, hex, code, hex2, code2, cp) {
 	out = ""
 	while (p <= n) {
 		c = substr(s, p, 1)
-		if (c == "\"") { p++; break }
+		if (c == "\"") { p++; break; }
 		if (c == "\\") {
 			p++
 			c = substr(s, p, 1)
@@ -102,19 +117,31 @@ function parseString(   c, out, hex, code, hex2, code2, cp) {
 }
 
 function emitLeaf(path, raw, val,   f, idx) {
-	if (path == "method") { f = outDir "/method"; print val > f; close(f) }
+	if (path == "method") { f = outDir "/method"; print val > f; close(f); }
 	else if (path == "id") {
 		f = outDir "/id"; print raw > f; close(f)
 		f = outDir "/has_id"; print "1" > f; close(f)
 	}
-	else if (path == "params.name") { f = outDir "/tool_name"; print val > f; close(f) }
-	else if (path == "params.arguments.command") { f = outDir "/arg_command"; print val > f; close(f) }
-	else if (path == "params.arguments.uname") { f = outDir "/arg_uname"; print val > f; close(f) }
-	else if (path == "params.arguments.stdin") { f = outDir "/arg_stdin"; print val > f; close(f) }
-	else if (path == "params.arguments.args.__count") { f = outDir "/arg_args_count"; print val > f; close(f) }
+	else if (path == "params.name") { f = outDir "/tool_name"; print val > f; close(f); }
+	else if (path == "params.uri") { f = outDir "/uri"; print val > f; close(f); }
+	else if (path == "params.requestId") { f = outDir "/cancel_request_id"; print raw > f; close(f); }
+	else if (path == "params.arguments.command") { f = outDir "/arg_command"; print val > f; close(f); }
+	else if (path == "params.arguments.uname") { f = outDir "/arg_uname"; print val > f; close(f); }
+	else if (path == "params.arguments.stdin") { f = outDir "/arg_stdin"; print val > f; close(f); }
+	else if (path == "params.arguments.timeout") { f = outDir "/arg_timeout"; print val > f; close(f); }
+	else if (path == "params.arguments.args.__count") { f = outDir "/arg_args_count"; print val > f; close(f); }
 	else if (index(path, "params.arguments.args.") == 1) {
 		idx = substr(path, length("params.arguments.args.") + 1)
 		f = outDir "/arg_args_" idx; print val > f; close(f)
+	}
+	else if (index(path, "params.arguments.env.") == 1) {
+		idx = substr(path, length("params.arguments.env.") + 1)
+		if (idx ~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
+			f = outDir "/arg_env_name_" envEntryCount; print idx > f; close(f)
+			f = outDir "/arg_env_val_" envEntryCount; print val > f; close(f)
+			envEntryCount++
+			f = outDir "/arg_env_count"; print envEntryCount > f; close(f)
+		}
 	}
 }
 
@@ -154,7 +181,7 @@ function parseValue(path,   c, startp, val, raw) {
 function parseObject(path,   key, keypath, c) {
 	p++ # skip {
 	skipws()
-	if (substr(s, p, 1) == "}") { p++; return }
+	if (substr(s, p, 1) == "}") { p++; return; }
 	while (1) {
 		skipws()
 		key = parseString()
@@ -164,8 +191,8 @@ function parseObject(path,   key, keypath, c) {
 		parseValue(keypath)
 		skipws()
 		c = substr(s, p, 1)
-		if (c == ",") { p++; continue }
-		else if (c == "}") { p++; break }
+		if (c == ",") { p++; continue; }
+		else if (c == "}") { p++; break; }
 		else break
 	}
 }
@@ -174,17 +201,17 @@ function parseArray(path,   idx, c) {
 	p++ # skip [
 	skipws()
 	idx = 0
-	if (substr(s, p, 1) == "]") { p++; emitLeaf(path ".__count", idx, idx); return }
+	if (substr(s, p, 1) == "]") { p++; emitLeaf(path ".__count", idx, idx); return; }
 	while (1) {
 		parseValue(path "." idx)
 		idx++
 		skipws()
 		c = substr(s, p, 1)
-		if (c == ",") { p++; continue }
-		else if (c == "]") { p++; break }
+		if (c == ",") { p++; continue; }
+		else if (c == "]") { p++; break; }
 		else break
 	}
 	emitLeaf(path ".__count", idx, idx)
 }
 
-{ s = $0; n = length(s); p = 1; parseValue("") }
+{ s = $0; n = length(s); p = 1; parseValue(""); }
