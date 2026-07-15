@@ -37,7 +37,7 @@ GitCloneSync(){
 			git push -u origin "${specificBranch:-master}"
 		fi
 
-		# check switch branch (todo: need to check and commit current local changes to previous branch?)
+		# check switch branch
 		local clonedBranch= ; if [ -n "$specificBranch" ] && [ -d ".git" ] && clonedBranch=$( git rev-parse --abbrev-ref HEAD ) ; then
 			if [ "$clonedBranch" != "$specificBranch" ] ; then
 				echo "GitCloneSync: 🔀 Switch branches: $clonedBranch -> ${specificBranch}..." >&2

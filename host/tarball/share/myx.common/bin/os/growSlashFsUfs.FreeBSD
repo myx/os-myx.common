@@ -80,7 +80,9 @@ OsGrowSlashFsUfs(){
 		swapoff -a || :
 		gpart delete -i $SWAP $PART
 		
-		## TODO: calculate new size and check that it is bigger than current
+		## resize is best-effort (`|| :` below): if there's no room to grow, the
+		## resize is a no-op and the swap partition below just reclaims whatever
+		## space remains, so no explicit bounds check is needed here
 		local SIZE_AVL="`OsGrowSlashFsUfsFreeSize $PART`"
 		echo "Free size: ${SIZE_AVL}G" >&2
 
