@@ -67,8 +67,6 @@ or
 - `myx.common os/getWheelGroupName` — print primary admin group name
 - `myx.common os/getWheelGroupNames` — print admin group names list
 - `myx.common os/growSlashFs` — grow Linux root filesystem [Linux]
-- `myx.common os/growSlashFs.1` — grow Linux root filesystem (variant 1) [Linux]
-- `myx.common os/growSlashFs.2` — grow Linux root filesystem (variant 2) [Linux]
 - `myx.common os/growSlashFsUfs` — grow FreeBSD UFS root filesystem [FreeBSD]
 - `myx.common os/installPostfixMTA` — install and enable Postfix MTA [FreeBSD]
 - `myx.common os/needsReboot` — check whether reboot is required
@@ -498,18 +496,6 @@ or
 - Summary: grow Linux root filesystem.
 - Root (Linux): required
 - Syntax (Linux): myx.common os/growSlashFs --execute
-
-### `myx.common os/growSlashFs.1`
-- Platforms: Linux
-- Summary: grow Linux root filesystem (variant 1).
-- Root (Linux): depends on mode
-- Syntax (Linux): myx.common os/growSlashFsLinux --yes
-
-### `myx.common os/growSlashFs.2`
-- Platforms: Linux
-- Summary: grow Linux root filesystem (variant 2).
-- Root (Linux): depends on mode
-- Syntax (Linux): not explicitly declared in script output; check script help include/body
 
 ### `myx.common os/growSlashFsUfs`
 - Platforms: FreeBSD
