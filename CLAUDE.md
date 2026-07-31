@@ -68,3 +68,46 @@ listener, which is accepted as fine since it's integration plumbing, not
 API surface. "Needs a stable dispatcher-independent path" and "is a public
 command" are separate, independently-decidable properties; don't assume
 every script that must live at a fixed path belongs under `bin/`.
+
+## `include/data/*.awk` — reusable JSON-parsing engine, copy don't reinvent
+
+`agentMcpJsonParseRequest.awk` (MCP JSON-RPC message fields) and `agentSlackMessagesFormat.awk`
+(added 2026-07-21, Slack `conversations.history`/`conversations.replies` message fields — consumed by
+`myx.distro-system`'s `DistroAgentsTools.fn.sh --sweep-read-incoming-comms`, see that repo's own
+CLAUDE.md) share the exact same recursive-descent JSON parsing engine (`skipws`/`hex2dec`/`utf8enc`/
+`parseString`/`parseValue`/`parseObject`/`parseArray`) byte-for-byte — only each file's own `emitLeaf`
+function differs, tailored to the specific flat/one-level-nested field shape that caller actually needs.
+Neither is a general-purpose JSON parser (both say so in their own header comments) — they understand
+exactly the shapes their one real caller produces. If a third consumer needs to pull specific fields out
+of a small, predictable JSON shape from awk (no `jq`/`python3` dependency), copy the parsing engine
+verbatim from one of these two files and write a new `emitLeaf` — don't hand-roll a fresh parser, and
+don't reach for `jq`/`python3 -c` as a substitute when this engine already exists and does the job with
+zero external dependencies (the actual reason it exists: `agentMcpServer.sh` and `DistroAgentsTools.fn.sh`
+both need to run in environments where a JSON dependency can't be assumed present).
+
+## `bin/mail/*` — credential handling and curl gotchas
+
+New "mail" category (`bin/mail/send.Common`, `bin/mail/receive.Common`, added
+2026-07-16) sends/lists email over authenticated SMTPS/IMAPS via curl — no
+Gmail-specific logic beyond its defaults, `MAIL_SMTP_HOST`/`MAIL_IMAP_HOST`
+etc. work against any implicit-TLS server. Both commands share the same
+credential resolution: `MAIL_APP_PASSWORD` env var first, else `myx.common
+lib/readKeychainSecret` (`MAIL_ACCOUNT`/`MAIL_KEYCHAIN_SERVICE`, defaulting to
+the magic-team mailbox — see README for the full option list).
+
+`lib/readKeychainSecret.Darwin` has no `.Common` fallback on purpose — it's
+Darwin-only by design, same shape as `install/brew.Darwin` or
+`reset/dnsCache.Darwin`, not a gap to fill in.
+
+Two curl gotchas worth knowing before touching either script again:
+- The credential is passed to curl only via `curl -K -` (config directives
+  on stdin) — never argv, never a file. If you ever need `curl --verbose`
+  output for debugging auth, capture it to a file and inspect only
+  `<`-prefixed (server) lines; `>`-prefixed (client) lines contain the
+  base64 `AUTH PLAIN` exchange and are not safe to eyeball or
+  grep-filter — the password already leaked into chat once this way.
+- `receive.Common` fetches one message at a time via curl's native
+  `imaps://host/INBOX;MAILINDEX=<n>;SECTION=...` URL form. A single custom
+  multi-message `FETCH range (...)` request was tried first and abandoned —
+  curl only prints the `* N FETCH (...) {size}` summary tag lines for that
+  form and silently drops the actual payload.

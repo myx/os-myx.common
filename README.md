@@ -58,6 +58,8 @@ or
 - `myx.common lib/setSysctlConf` — set key/value in sysctl.conf
 - `myx.common lib/setupShellCompletion` — register shell completion command
 - `myx.common lib/unbuffer` — run command with unbuffered output
+- `myx.common mail/receive` — list recent INBOX messages (Date/From/Subject)
+- `myx.common mail/send` — send an email (body piped via stdin)
 - `myx.common os/getCommonScreenRc` — print default system screenrc path
 - `myx.common os/getCpuCount` — print CPU core count
 - `myx.common os/getRamBytes` — print total RAM bytes
@@ -410,6 +412,18 @@ or
 - Syntax (Common): myx.common lib/unbuffer  command [... arguments]
 - Root (Linux): not required
 - Syntax (Linux): myx.common lib/unbuffer  command [... arguments]
+
+### `myx.common mail/receive`
+- Platforms: Linux, FreeBSD, Darwin
+- Summary: list recent INBOX messages (Date/From/Subject), most recent first.
+- Root (Common): not required
+- Syntax (Common): myx.common mail/receive [count]
+
+### `myx.common mail/send`
+- Platforms: Linux, FreeBSD, Darwin
+- Summary: send an email; message body piped via stdin.
+- Root (Common): not required
+- Syntax (Common): myx.common mail/send <to-address> <subject>   (body piped via stdin)
 
 ### `myx.common os/getCommonScreenRc`
 - Platforms: Linux, FreeBSD, Darwin
