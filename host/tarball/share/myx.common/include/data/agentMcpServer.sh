@@ -32,15 +32,18 @@
 # so the request loop stays free to read/act on the next line - a
 # notifications/cancelled for the in-flight call (see
 # AgentMcpHandleCancelled), a ping, another fast method - instead of
-# blocking for the whole duration. Single-in-flight by design: only one
-# myx_common_run can be running at a time; a second call while one is
-# already running gets an immediate "busy" error rather than being queued
-# or run in parallel.
+# blocking for the whole duration. Concurrent calls are allowed: each
+# in-flight myx_common_run is tracked by its own request id under
+# $AGENT_MCP_REQ_BASE/inflight/<id>, so multiple calls can run at once
+# without contending with each other - except a second call sharing the
+# exact same request id as one already in flight, which still gets an
+# immediate "busy" error (see the same-id gate in
+# AgentMcpHandleToolsCall's myx_common_run case).
 #
 # Known limitations (accepted, not bugs):
-#  - Cancellation and the "busy" check are PID-based (same TERM-then-KILL
-#    pattern as the timeout feature below), so share its grandchild /
-#    PID-reuse caveats.
+#  - Cancellation and the same-id "busy" check are PID-based (same
+#    TERM-then-KILL pattern as the timeout feature below), so share its
+#    grandchild / PID-reuse caveats.
 #  - Response lines (synchronous methods and the async myx_common_run
 #    result alike) are serialized through a tiny mkdir-based mutex
 #    (AgentMcpStdoutLock/Unlock) so two writers can never interleave
@@ -89,6 +92,21 @@ AgentMcpJsonParseRequest(){
 	local line="$1" outDir="$2"
 	mkdir -p "$outDir" || return 1
 	printf '%s\n' "$line" | LC_ALL=C awk -v outDir="$outDir" -f "$MYXROOT/include/data/agentMcpJsonParseRequest.awk"
+}
+
+# Derives a filesystem-safe key from a JSON-RPC id (the id itself is only
+# ever echoed back verbatim in JSON-RPC response bodies elsewhere) before
+# it's used as an inflight-tracking filename component under
+# $AGENT_MCP_REQ_BASE/inflight/. The raw id token round-tripped by
+# AgentMcpJsonParseRequest is untrusted - JSON-RPC 2.0 permits string ids,
+# so the raw token can contain "/", "..", quotes, or other characters
+# unsafe in a path segment. cksum(1) is POSIX and produces a pure
+# digit/space string on every one of Darwin/FreeBSD/Linux, so this is
+# portable and collision-resistant without a hand-rolled allow-list; it
+# only needs to be stable within this one running server process, never
+# across processes or machines.
+AgentMcpSafeId(){
+	printf '%s' "$1" | cksum | tr -s ' ' '_'
 }
 
 # Tiny mkdir-based mutex around stdout writes - mkdir is atomic on every
@@ -197,23 +215,40 @@ AgentMcpRunWithTimeout(){
 # Runs myx_common_run entirely in the background so the main request loop
 # stays free to read the next line - a notifications/cancelled for this
 # same request (see AgentMcpHandleCancelled), a ping, another fast method
-# - instead of blocking for the whole duration. $AGENT_MCP_REQ_BASE/
-# inflight_pid + inflight_id track the one job this design allows to be
-# running at a time (see the busy-check in AgentMcpHandleToolsCall's
-# myx_common_run case).
+# - instead of blocking for the whole duration. Each job's PID is tracked
+# under $AGENT_MCP_REQ_BASE/inflight/<id>, keyed by this request's own
+# id, so concurrent myx_common_run calls no longer contend with each
+# other.
 AgentMcpRunMyxCommonRunAsync(){
-	local asyncReqDir="$1" id="$2"
-	shift 2
+	local asyncReqDir="$1" id="$2" safeId="$3"
+	shift 3
 	# $@ = [envpair... MYX_COMMON_BIN cmd arg...], assembled by the caller.
 
 	(
-		local contentText exitCode isError escText resultJson timeoutArg
+		local contentText exitCode isError escText resultJson timeoutArg mergeOutputs outFile errFile
 
 		timeoutArg="$(cat "$asyncReqDir/arg_timeout" 2>/dev/null || true)"
 		case "$timeoutArg" in ''|*[!0-9]*) timeoutArg="" ;; esac
+		mergeOutputs="$(cat "$asyncReqDir/arg_merge_outputs" 2>/dev/null || true)"
+
 		if [ -n "$timeoutArg" ]; then
 			contentText="$(AgentMcpRunWithTimeout "$asyncReqDir" "$timeoutArg" "$@")"
 			exitCode=$?
+		elif [ "$mergeOutputs" = "false" ]; then
+			outFile="$asyncReqDir/split_out"
+			errFile="$asyncReqDir/split_err"
+			if [ -f "$asyncReqDir/arg_stdin" ]; then
+				env "$@" < "$asyncReqDir/arg_stdin" > "$outFile" 2> "$errFile"
+			else
+				env "$@" < /dev/null > "$outFile" 2> "$errFile"
+			fi
+			exitCode=$?
+			contentText="stdout:
+$(cat "$outFile" 2>/dev/null)
+
+stderr:
+$(cat "$errFile" 2>/dev/null)"
+			rm -f "$outFile" "$errFile"
 		elif [ -f "$asyncReqDir/arg_stdin" ]; then
 			contentText="$(env "$@" < "$asyncReqDir/arg_stdin" 2>&1)"
 			exitCode=$?
@@ -234,41 +269,46 @@ AgentMcpRunMyxCommonRunAsync(){
 		resultJson="$(printf '{"content":[{"type":"text","text":"%s"}],"isError":%s}' "$escText" "$isError")"
 		AgentMcpSendResult "$id" "$resultJson"
 
-		# Only clear tracking if this job is still the one tracked - a
-		# notifications/cancelled that raced in concurrently already cleared
-		# it (and already killed this job), so this send raced past a TERM
-		# but still completed; harmless, the client already stopped
-		# expecting a response for a cancelled id and will just ignore it.
-		if [ "$(cat "$AGENT_MCP_REQ_BASE/inflight_id" 2>/dev/null || true)" = "$id" ]; then
-			rm -f "$AGENT_MCP_REQ_BASE/inflight_pid" "$AGENT_MCP_REQ_BASE/inflight_id"
-		fi
+		# Remove this job's own per-id tracking file unconditionally on
+		# completion - safe because each in-flight job now has its own
+		# uniquely keyed file (no shared scalar pair to race over between
+		# unrelated jobs), and idempotent (rm -f) if a concurrent
+		# notifications/cancelled already removed it first; harmless either
+		# way, the client already stopped expecting a response for a
+		# cancelled id and will just ignore this send.
+		rm -f "$AGENT_MCP_REQ_BASE/inflight/$safeId"
 		rm -rf "$asyncReqDir"
 	) &
 
-	printf '%s' "$!" > "$AGENT_MCP_REQ_BASE/inflight_pid"
-	printf '%s' "$id" > "$AGENT_MCP_REQ_BASE/inflight_id"
+	# Atomic-create idiom: write to a private tmp file then rename into
+	# place - mv(1) within the same directory is atomic on every POSIX
+	# filesystem, so a concurrent reader (AgentMcpHandleCancelled or the
+	# same-id busy-check) never observes a partially-written PID.
+	printf '%s' "$!" > "$AGENT_MCP_REQ_BASE/inflight/$safeId.tmp"
+	mv -f "$AGENT_MCP_REQ_BASE/inflight/$safeId.tmp" "$AGENT_MCP_REQ_BASE/inflight/$safeId"
 }
 
-# Handles notifications/cancelled for the one possible in-flight
-# myx_common_run job (single-in-flight by design - see
-# AgentMcpRunMyxCommonRunAsync). A notification has no id and expects no
-# response either way; this only does something if the cancelled
-# requestId matches the currently-tracked in-flight job. TERM is sent
+# Handles notifications/cancelled for one specific in-flight
+# myx_common_run job, looked up directly by its request id under
+# $AGENT_MCP_REQ_BASE/inflight/<id>. A notification has no id and expects
+# no response either way; this only does something if the cancelled
+# requestId matches a currently-tracked in-flight job. TERM is sent
 # immediately and tracking is cleared right away (so a new myx_common_run
 # isn't needlessly held "busy" waiting for the old one to actually die);
 # the KILL escalation runs in its own detached background check so this
 # function - and the main loop right after it - never blocks on it.
 AgentMcpHandleCancelled(){
-	local cancelReqDir="$1" cancelId inflightId inflightPid
+	local cancelReqDir="$1" cancelId safeId inflightFile inflightPid
 
 	cancelId="$(cat "$cancelReqDir/cancel_request_id" 2>/dev/null || true)"
 	[ -n "$cancelId" ] || return 0
 
-	inflightId="$(cat "$AGENT_MCP_REQ_BASE/inflight_id" 2>/dev/null || true)"
-	inflightPid="$(cat "$AGENT_MCP_REQ_BASE/inflight_pid" 2>/dev/null || true)"
-	[ -n "$inflightPid" ] && [ "$cancelId" = "$inflightId" ] || return 0
+	safeId="$(AgentMcpSafeId "$cancelId")"
+	inflightFile="$AGENT_MCP_REQ_BASE/inflight/$safeId"
+	inflightPid="$(cat "$inflightFile" 2>/dev/null || true)"
+	[ -n "$inflightPid" ] || return 0
 
-	rm -f "$AGENT_MCP_REQ_BASE/inflight_pid" "$AGENT_MCP_REQ_BASE/inflight_id"
+	rm -f "$inflightFile"
 	kill -TERM "$inflightPid" 2>/dev/null
 	(
 		sleep 1
@@ -278,7 +318,7 @@ AgentMcpHandleCancelled(){
 
 AgentMcpHandleToolsCall(){
 	local reqDir="$1" id="$2"
-	local toolName cmd unameArg argsCount envCount i contentText exitCode isError escText resultJson envName envVal asyncReqDir
+	local toolName cmd unameArg argsCount envCount i contentText exitCode isError escText resultJson envName envVal asyncReqDir safeId comment
 
 	toolName="$(cat "$reqDir/tool_name" 2>/dev/null || true)"
 
@@ -304,6 +344,8 @@ AgentMcpHandleToolsCall(){
 				AgentMcpSendError "$id" -32602 "myx_common_run requires a non-empty 'command' argument"
 				return 0
 			fi
+			comment="$(cat "$reqDir/arg_comment" 2>/dev/null || true)"
+			[ -z "$comment" ] || echo "myx.common agentMcp: $cmd - $comment" >&2
 			argsCount="$(cat "$reqDir/arg_args_count" 2>/dev/null || true)"
 			case "$argsCount" in ''|*[!0-9]*) argsCount=0 ;; esac
 			envCount="$(cat "$reqDir/arg_env_count" 2>/dev/null || true)"
@@ -327,12 +369,16 @@ AgentMcpHandleToolsCall(){
 				i=$((i + 1))
 			done
 
-			# Single myx_common_run in flight at a time (see
-			# AgentMcpRunMyxCommonRunAsync's header comment) - reject a second
-			# concurrent call rather than queueing or running it in parallel, so
-			# cancellation/tracking never has to reason about more than one job.
-			if [ -f "$AGENT_MCP_REQ_BASE/inflight_pid" ] && kill -0 "$(cat "$AGENT_MCP_REQ_BASE/inflight_pid" 2>/dev/null)" 2>/dev/null; then
-				AgentMcpSendError "$id" -32000 "Another myx_common_run is already in progress; wait for it to finish or send notifications/cancelled for it first"
+			# Each in-flight myx_common_run is tracked under its own request id
+			# (see AgentMcpRunMyxCommonRunAsync's header comment), so different
+			# ids run concurrently without contending with each other. A second
+			# call sharing the exact same request id as one already in flight is
+			# still rejected here rather than queued or run in parallel, so a
+			# single id's own cancellation/tracking never has to reason about
+			# more than one job for itself.
+			safeId="$(AgentMcpSafeId "$id")"
+			if [ -f "$AGENT_MCP_REQ_BASE/inflight/$safeId" ] && kill -0 "$(cat "$AGENT_MCP_REQ_BASE/inflight/$safeId" 2>/dev/null)" 2>/dev/null; then
+				AgentMcpSendError "$id" -32000 "Another myx_common_run with this same request id is already in progress; wait for it to finish or send notifications/cancelled for it first"
 				return 0
 			fi
 
@@ -345,7 +391,7 @@ AgentMcpHandleToolsCall(){
 			asyncReqDir="$AGENT_MCP_REQ_BASE/async.$AGENT_MCP_ASYNC_SEQ"
 			rm -rf "$asyncReqDir"
 			mv "$reqDir" "$asyncReqDir"
-			AgentMcpRunMyxCommonRunAsync "$asyncReqDir" "$id" "$@"
+			AgentMcpRunMyxCommonRunAsync "$asyncReqDir" "$id" "$safeId" "$@"
 			return 0
 		;;
 		*)
@@ -475,6 +521,26 @@ AgentMcpServerLoop(){
 	local reqDir LINE
 	AGENT_MCP_REQ_BASE="$(mktemp -d "${TMPDIR:-/tmp}/myx.common.agentMcp.XXXXXX")" || return 1
 	AGENT_MCP_STDOUT_LOCK="$AGENT_MCP_REQ_BASE/stdout.lock"
+	# Per-request-id myx_common_run tracking files live under here (see
+	# AgentMcpRunMyxCommonRunAsync) - created once up front so the first
+	# tracked job never races its own directory into existence.
+	mkdir -p "$AGENT_MCP_REQ_BASE/inflight" || return 1
+	# Startup diagnostic, stderr only - stdout is the JSON-RPC wire itself
+	# (the host parses every stdout line as a message, so nothing else may
+	# ever be written there). Makes this run's scratch layout directly
+	# visible for debugging instead of only discoverable by reading source
+	# or hitting a bug.
+	# One session-id var, folded from whichever host actually set one -
+	# CLAUDE_CODE_SESSION_ID is the only confirmed one of the three today;
+	# COPILOT_SESSION_ID/GROK_SESSION_ID are undocumented/unconfirmed
+	# placeholder names, harmless no-ops if unset, picked up automatically
+	# if a future host version ever sets them - no per-host branching, one
+	# flat fallback chain, one flat presence check below.
+	callerSessionId="${CLAUDE_CODE_SESSION_ID:-${COPILOT_SESSION_ID:-$GROK_SESSION_ID}}"
+	callerInfo="pid=$$"
+	[ -z "$CLAUDE_PID" ] || callerInfo="$callerInfo caller_pid=$CLAUDE_PID"
+	[ -z "$callerSessionId" ] || callerInfo="$callerInfo caller_session=$callerSessionId"
+	echo "myx.common agentMcp: $callerInfo AGENT_MCP_REQ_BASE=$AGENT_MCP_REQ_BASE (inflight/ ready)" >&2
 	AGENT_MCP_ASYNC_SEQ=0
 	trap 'rm -rf "$AGENT_MCP_REQ_BASE"' EXIT INT TERM
 

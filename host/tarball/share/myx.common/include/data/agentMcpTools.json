@@ -44,6 +44,14 @@
           "type": "object",
           "additionalProperties": { "type": "string" },
           "description": "Extra environment variables to set for this invocation only (e.g. MYX_VM_ENGINE for vm/create). Names must be valid POSIX identifiers ([A-Za-z_][A-Za-z0-9_]*); invalid names are silently ignored."
+        },
+        "comment": {
+          "type": "string",
+          "description": "Optional short description of what this call is trying to achieve. Printed to the MCP server process's own stderr only (never part of the JSON-RPC response) - visible only if/where the connected MCP host surfaces this server's stderr."
+        },
+        "mergeOutputs": {
+          "type": "boolean",
+          "description": "Default true: stdout/stderr combined into one text block in true chronological order (today's behavior). Set to false to get stdout and stderr back as two separately labeled sections instead - loses true relative ordering between the two streams (a hard fd-level limitation, not a bug), but keeps them distinguishable. Ignored when timeout is also set (timeout path stays merged)."
         }
       },
       "required": ["command"]

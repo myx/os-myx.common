@@ -16,6 +16,10 @@
 #   outDir/arg_uname           - params.arguments.uname (decoded string)
 #   outDir/arg_stdin           - params.arguments.stdin (decoded string)
 #   outDir/arg_timeout         - params.arguments.timeout (raw number token)
+#   outDir/arg_comment         - params.arguments.comment (decoded string)
+#   outDir/arg_merge_outputs   - params.arguments.mergeOutputs ("true"/"false")
+#   outDir/client_name         - params.clientInfo.name (initialize; decoded string)
+#   outDir/client_version      - params.clientInfo.version (initialize; decoded string)
 #   outDir/arg_args_count      - params.arguments.args array length
 #   outDir/arg_args_<N>        - params.arguments.args[N] (decoded string)
 #   outDir/arg_env_count       - number of valid params.arguments.env entries
@@ -125,6 +129,8 @@ function emitLeaf(path, raw, val,   f, idx) {
 	else if (path == "params.name") { f = outDir "/tool_name"; print val > f; close(f); }
 	else if (path == "params.uri") { f = outDir "/uri"; print val > f; close(f); }
 	else if (path == "params.requestId") { f = outDir "/cancel_request_id"; print raw > f; close(f); }
+	else if (path == "params.clientInfo.name") { f = outDir "/client_name"; print val > f; close(f); }
+	else if (path == "params.clientInfo.version") { f = outDir "/client_version"; print val > f; close(f); }
 	else if (path == "params.arguments.command") { f = outDir "/arg_command"; print val > f; close(f); }
 	else if (path == "params.arguments.uname") { f = outDir "/arg_uname"; print val > f; close(f); }
 	else if (path == "params.arguments.stdin") { f = outDir "/arg_stdin"; print val > f; close(f); }
