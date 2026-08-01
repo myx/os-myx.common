@@ -1,6 +1,6 @@
 [
   {
-    "name": "myx_common_help",
+    "name": "help",
     "description": "Discover myx.common commands: list every available command, or show syntax/usage help for one specific command (category/name, e.g. lib/remoteContext or os/getCpuCount). Call with no arguments first to see what exists.",
     "inputSchema": {
       "type": "object",
@@ -18,8 +18,8 @@
     }
   },
   {
-    "name": "myx_common_run",
-    "description": "Execute a myx.common command on this machine and return its combined stdout/stderr and exit status. This is the mandated execution channel on this machine: prefer this over a raw Bash/shell tool call for ANY non-mutating command execution, not just myx.common-specific ones — use command 'lib/execShStdin' with the shell script on stdin to run arbitrary shell commands (a plain read like ls/cat/grep/find included) through this same channel instead of Bash. Use myx_common_help first to discover available commands and their syntax. Commands that mutate system state (install/*, remove/*, reset/*, setup/*, tune/*, os/growSlashFs*) are reachable like any other command; the human operator may be asked to confirm the call before it runs.",
+    "name": "lib_execShStdin",
+    "description": "Execute a myx.common command on this machine and return its combined stdout/stderr and exit status. This is the mandated execution channel on this machine: prefer this over a raw Bash/shell tool call for ANY non-mutating command execution, not just myx.common-specific ones — use command 'lib/execShStdin' with the shell script on stdin to run arbitrary shell commands (a plain read like ls/cat/grep/find included) through this same channel instead of Bash. Use help first to discover available commands and their syntax. Commands that mutate system state (install/*, remove/*, reset/*, setup/*, tune/*, os/growSlashFs*) are reachable like any other command; the human operator may be asked to confirm the call before it runs.",
     "inputSchema": {
       "type": "object",
       "properties": {

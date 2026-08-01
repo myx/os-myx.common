@@ -323,7 +323,7 @@ AgentMcpHandleToolsCall(){
 	toolName="$(cat "$reqDir/tool_name" 2>/dev/null || true)"
 
 	case "$toolName" in
-		myx_common_help)
+		help)
 			cmd="$(cat "$reqDir/arg_command" 2>/dev/null || true)"
 			unameArg="$(cat "$reqDir/arg_uname" 2>/dev/null || true)"
 			set --
@@ -338,10 +338,10 @@ AgentMcpHandleToolsCall(){
 			# so this tool never reports isError based on exit status.
 			exitCode=0
 		;;
-		myx_common_run)
+		lib_execShStdin)
 			cmd="$(cat "$reqDir/arg_command" 2>/dev/null || true)"
 			if [ -z "$cmd" ]; then
-				AgentMcpSendError "$id" -32602 "myx_common_run requires a non-empty 'command' argument"
+				AgentMcpSendError "$id" -32602 "lib_execShStdin requires a non-empty 'command' argument"
 				return 0
 			fi
 			comment="$(cat "$reqDir/arg_comment" 2>/dev/null || true)"
@@ -378,7 +378,7 @@ AgentMcpHandleToolsCall(){
 			# more than one job for itself.
 			safeId="$(AgentMcpSafeId "$id")"
 			if [ -f "$AGENT_MCP_REQ_BASE/inflight/$safeId" ] && kill -0 "$(cat "$AGENT_MCP_REQ_BASE/inflight/$safeId" 2>/dev/null)" 2>/dev/null; then
-				AgentMcpSendError "$id" -32000 "Another myx_common_run with this same request id is already in progress; wait for it to finish or send notifications/cancelled for it first"
+				AgentMcpSendError "$id" -32000 "Another lib_execShStdin call with this same request id is already in progress; wait for it to finish or send notifications/cancelled for it first"
 				return 0
 			fi
 
