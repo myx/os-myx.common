@@ -3,13 +3,33 @@
 # Locates (or, in validate mode, sanity-checks) a specific nested key inside
 # a JSON config file, WITHOUT a general parse/rewrite of the whole
 # structure - used by setup/agentMcp and remove/agentMcp to surgically
-# splice the top-level "mcpServers"."myx.common" entry in ~/.claude.json via
-# byte offsets (head -c / tail -c), leaving every other byte untouched.
+# splice the "myx" entry at ~/.claude.json's
+# projects["<cwd>"].mcpServers."myx" (local/per-project scope, Claude
+# Code's own convention - see https://code.claude.com/docs/en/mcp) via byte
+# offsets (head -c / tail -c), leaving every other byte untouched.
 #
 # Input: whole file content as one record (caller sets RS to slurp-all).
-# Modes (-v mode=...):
-#   locate (default) - prints KEY=VALUE facts (1-based byte offsets) about
-#     the "mcpServers" key and, within it, the "myx.common" key.
+# Params:
+#   -v mode=... - "locate" (default) or "validate" (see below).
+#   MYX_AGENTMCP_CWD (environment variable, NOT -v) - required in locate
+#     mode. The exact bytes to match/insert as the projects[] key - the
+#     caller is responsible for passing this already JSON-string-escaped
+#     (see agentMcpJsonEscape.awk) so it's byte-safe to splice directly and
+#     byte-comparable against what's already on disk. Deliberately an
+#     environment variable rather than -v cwd=...: POSIX awk's -v/command-
+#     line variable assignment performs its own backslash-escape decoding
+#     on the value before assignment, which would silently un-escape the
+#     very '\"'/'\\' sequences agentMcpJsonEscape.awk just produced and
+#     break byte-comparison for cwd paths containing '"' or '\' (confirmed
+#     via fixture: caused a duplicate "projects" key on re-run). ENVIRON[]
+#     values come straight from the process environment with no such
+#     decoding, so this sidesteps the bug entirely rather than documenting
+#     around it.
+# Modes:
+#   locate (default) - prints KEY=VALUE facts (1-based byte offsets)
+#     walking projects -> <cwd> -> mcpServers -> myx, stopping at whichever
+#     level is the shallowest missing key so the caller knows exactly what
+#     to splice in.
 #   validate - prints "VALID" if the input parses as one well-formed JSON
 #     value with nothing left over, else "INVALID <reason>". Used as a
 #     self-contained (no jq/python needed) sanity check after splicing.
@@ -151,6 +171,7 @@ function findKeyInObjectAt(objStart, targetKey,   keyStart, key, valStart, c, la
 
 BEGIN {
 	if (mode == "") mode = "locate"
+	cwd = ENVIRON["MYX_AGENTMCP_CWD"]
 }
 
 {
@@ -160,43 +181,69 @@ BEGIN {
 
 	if (mode == "validate") {
 		skipws()
-		if (!skipValue()) { print "INVALID could-not-parse-root-value"; exit }
+		if (!skipValue()) { print "INVALID could-not-parse-root-value"; exit; }
 		skipws()
-		if (p <= n) { print "INVALID trailing-data-after-root-value"; exit }
+		if (p <= n) { print "INVALID trailing-data-after-root-value"; exit; }
 		print "VALID"
 		exit
 	}
 
+	if (cwd == "") { print "NOCWD"; exit; }
+
 	skipws()
-	if (substr(s, p, 1) != "{") { print "NOTJSON"; exit }
+	if (substr(s, p, 1) != "{") { print "NOTJSON"; exit; }
 	rootOpen = p
 
-	if (!findKeyInObjectAt(rootOpen, "mcpServers")) { print "PARSE_ERROR"; exit }
-
-	if (FOUND) {
-		print "MCPSERVERS_FOUND=1"
-		print "MCPSERVERS_VALUE_START=" VALUE_START
-		print "MCPSERVERS_VALUE_END=" VALUE_END
-		mcpServersValueStart = VALUE_START
-		if (substr(s, mcpServersValueStart, 1) != "{") { print "MCPSERVERS_NOT_OBJECT=1"; exit }
-		if (!findKeyInObjectAt(mcpServersValueStart, "myx.common")) { print "PARSE_ERROR"; exit }
-		if (FOUND) {
-			print "ENTRY_FOUND=1"
-			print "ENTRY_KEY_START=" KEY_START
-			print "ENTRY_VALUE_START=" VALUE_START
-			print "ENTRY_VALUE_END=" VALUE_END
-			print "ENTRY_PAIR_END_NO_COMMA=" PAIR_END_NO_COMMA
-			print "ENTRY_PAIR_END_WITH_COMMA=" PAIR_END_WITH_COMMA
-			print "ENTRY_HAD_TRAILING_COMMA=" HAD_TRAILING_COMMA
-			print "ENTRY_PRECEDING_COMMA_POS=" PRECEDING_COMMA_POS
-		} else {
-			print "ENTRY_FOUND=0"
-			print "MCPSERVERS_FIRST_KEY_START=" FIRST_KEY_START
-			print "MCPSERVERS_IS_EMPTY=" IS_EMPTY
-		}
-	} else {
-		print "MCPSERVERS_FOUND=0"
+	# Level 1: root -> "projects"
+	if (!findKeyInObjectAt(rootOpen, "projects")) { print "PARSE_ERROR"; exit; }
+	if (!FOUND) {
+		print "PROJECTS_FOUND=0"
 		print "ROOT_FIRST_KEY_START=" FIRST_KEY_START
 		print "ROOT_IS_EMPTY=" IS_EMPTY
+		exit
+	}
+	print "PROJECTS_FOUND=1"
+	projectsValueStart = VALUE_START
+	if (substr(s, projectsValueStart, 1) != "{") { print "PROJECTS_NOT_OBJECT=1"; exit; }
+
+	# Level 2: projects -> "<cwd>"
+	if (!findKeyInObjectAt(projectsValueStart, cwd)) { print "PARSE_ERROR"; exit; }
+	if (!FOUND) {
+		print "PROJECT_FOUND=0"
+		print "PROJECTS_FIRST_KEY_START=" FIRST_KEY_START
+		print "PROJECTS_IS_EMPTY=" IS_EMPTY
+		exit
+	}
+	print "PROJECT_FOUND=1"
+	projectValueStart = VALUE_START
+	if (substr(s, projectValueStart, 1) != "{") { print "PROJECT_NOT_OBJECT=1"; exit; }
+
+	# Level 3: <cwd> -> "mcpServers"
+	if (!findKeyInObjectAt(projectValueStart, "mcpServers")) { print "PARSE_ERROR"; exit; }
+	if (!FOUND) {
+		print "MCPSERVERS_FOUND=0"
+		print "PROJECT_FIRST_KEY_START=" FIRST_KEY_START
+		print "PROJECT_IS_EMPTY=" IS_EMPTY
+		exit
+	}
+	print "MCPSERVERS_FOUND=1"
+	mcpServersValueStart = VALUE_START
+	if (substr(s, mcpServersValueStart, 1) != "{") { print "MCPSERVERS_NOT_OBJECT=1"; exit; }
+
+	# Level 4: mcpServers -> "myx"
+	if (!findKeyInObjectAt(mcpServersValueStart, "myx")) { print "PARSE_ERROR"; exit; }
+	if (FOUND) {
+		print "ENTRY_FOUND=1"
+		print "ENTRY_KEY_START=" KEY_START
+		print "ENTRY_VALUE_START=" VALUE_START
+		print "ENTRY_VALUE_END=" VALUE_END
+		print "ENTRY_PAIR_END_NO_COMMA=" PAIR_END_NO_COMMA
+		print "ENTRY_PAIR_END_WITH_COMMA=" PAIR_END_WITH_COMMA
+		print "ENTRY_HAD_TRAILING_COMMA=" HAD_TRAILING_COMMA
+		print "ENTRY_PRECEDING_COMMA_POS=" PRECEDING_COMMA_POS
+	} else {
+		print "ENTRY_FOUND=0"
+		print "MCPSERVERS_FIRST_KEY_START=" FIRST_KEY_START
+		print "MCPSERVERS_IS_EMPTY=" IS_EMPTY
 	}
 }
