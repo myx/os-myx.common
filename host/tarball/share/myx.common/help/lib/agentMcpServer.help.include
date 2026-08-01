@@ -1,0 +1,4 @@
+echo '📘 Syntax: myx.common lib/agentMcpServer --run' >&2
+echo '📘 Syntax: myx.common lib/agentMcpServer --help' >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/lib/agentMcpServer.help.md" >&2

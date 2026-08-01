@@ -2,36 +2,57 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 #
-# SHELL-NOTE: Removes the myx.common MCP server entry registered by
-# `myx.common setup/agentMcp` from ~/.claude.json. Idempotent: a no-op
-# (success) if the entry isn't present. Same byte-range splice + backup +
-# validate approach as setup/agentMcp - see that file for the rationale.
+# SHELL-NOTE: Removes the myx MCP server entry registered by
+# `myx.common setup/agentMcp` from ~/.claude.json's local-scope
+# projects["<cwd>"].mcpServers."myx" (see setup/agentMcp.Common for the
+# scope rationale). Idempotent: a no-op (success) if the entry isn't
+# present for this cwd. Same byte-range splice + backup + validate
+# approach as setup/agentMcp - see that file for the rationale.
 
 RemoveAgentMcp(){
 	local claudeConfig="${HOME:?RemoveAgentMcp: HOME is not set}/.claude.json"
 	local root="${MYXROOT:-/usr/local/share/myx.common}"
 	local awkEditFile="$root/include/data/agentMcpConfigEdit.awk"
+	local awkEscapeFile="$root/include/data/agentMcpJsonEscape.awk"
 
-	[ -f "$awkEditFile" ] || { echo "⛔ ERROR: RemoveAgentMcp: missing resource file $awkEditFile" >&2; return 1; }
+	[ -f "$awkEditFile" ] && [ -f "$awkEscapeFile" ] || { echo "⛔ ERROR: RemoveAgentMcp: missing resource files under $root/include/data" >&2; return 1; }
 	[ -f "$claudeConfig" ] || { echo "ℹ️  $claudeConfig not found - nothing to remove" >&2; return 0; }
 	[ -r "$claudeConfig" ] && [ -w "$claudeConfig" ] || { echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig is not readable/writable" >&2; return 1; }
 
+	local cwd escapedCwd
+	cwd="$(pwd)"
+	case "$cwd" in
+		/*) : ;;
+		*) echo "⛔ ERROR: RemoveAgentMcp: cwd ($cwd) did not resolve to an absolute path" >&2; return 1 ;;
+	esac
+	escapedCwd="$(printf '%s' "$cwd" | LC_ALL=C awk -f "$awkEscapeFile")"
+
 	local facts
-	facts="$(LC_ALL=C awk -v RS='\0' -f "$awkEditFile" "$claudeConfig")"
+	# cwd via env, not -v cwd=... - see agentMcpConfigEdit.awk's header
+	# comment (awk's -v decoding would break paths with '"' or '\').
+	facts="$(MYX_AGENTMCP_CWD="$escapedCwd" LC_ALL=C awk -v RS='\0' -f "$awkEditFile" "$claudeConfig")"
 	case "$facts" in
-		*NOTJSON*|*PARSE_ERROR*)
+		*NOTJSON*|*PARSE_ERROR*|*NOCWD*)
 			echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig doesn't parse as a JSON object - refusing to touch it" >&2
 			return 1
 		;;
+		*PROJECTS_NOT_OBJECT*)
+			echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig has a top-level \"projects\" that isn't a JSON object - refusing to touch it" >&2
+			return 1
+		;;
+		*PROJECT_NOT_OBJECT*)
+			echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig has a projects[\"$cwd\"] that isn't a JSON object - refusing to touch it" >&2
+			return 1
+		;;
 		*MCPSERVERS_NOT_OBJECT*)
-			echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig has a top-level \"mcpServers\" that isn't a JSON object - refusing to touch it" >&2
+			echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig has a projects[\"$cwd\"].mcpServers that isn't a JSON object - refusing to touch it" >&2
 			return 1
 		;;
 	esac
 	eval "$facts"
 
 	if [ "$MCPSERVERS_FOUND" != "1" ] || [ "$ENTRY_FOUND" != "1" ]; then
-		echo "ℹ️  myx.common MCP server is not registered in $claudeConfig - nothing to remove" >&2
+		echo "ℹ️  myx MCP server is not registered in $claudeConfig for $cwd - nothing to remove" >&2
 		return 0
 	fi
 
@@ -78,7 +99,7 @@ RemoveAgentMcp(){
 		return 1
 	fi
 
-	echo "✅ Removed myx.common MCP server entry from $claudeConfig" >&2
+	echo "✅ Removed myx MCP server entry from $claudeConfig (local scope: $cwd)" >&2
 }
 
 case "$0" in
