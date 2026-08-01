@@ -2,20 +2,30 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 #
-# SHELL-NOTE: Registers the myx.common MCP integration stub
-# (include/data/agentMcpServer.sh) as a user-scope MCP server in
-# ~/.claude.json, so an AI agent host (Claude Code) can use this machine's
-# myx.common tooling. Edits ~/.claude.json surgically (byte-range splice via
-# head/tail, located by include/data/agentMcpConfigEdit.awk) - never a full
-# parse/rewrite of that file. Always backs up first and validates the
-# result parses as JSON before replacing the original. Idempotent:
-# re-running just confirms/updates the one entry it owns.
+# SHELL-NOTE: Registers the myx MCP integration
+# (bin/lib/agentMcpServer.Common, launched with --run) as a *local-scope*
+# MCP server in ~/.claude.json, keyed by the launch cwd
+# (projects["<cwd>"].mcpServers."myx") - Claude Code's own local-scope
+# convention (https://code.claude.com/docs/en/mcp), so each workspace gets
+# its own private entry instead of one global entry silently overwritten by
+# whichever workspace last ran setup. Edits ~/.claude.json surgically
+# (byte-range splice via head/tail, located by
+# include/data/agentMcpConfigEdit.awk) - never a full parse/rewrite of that
+# file. Always backs up first and validates the result parses as JSON
+# before replacing the original. Idempotent: re-running just
+# confirms/updates the one entry it owns for this cwd.
+#
+# NOTE: does not touch (read, migrate, or remove) any pre-existing
+# top-level ~/.claude.json "mcpServers" entry from before this local-scope
+# rework - that flat/global key is simply never looked at by this script
+# anymore. Left in place deliberately (conservative, non-destructive); it
+# stops receiving new writes as of this change.
 
 SetupAgentMcp(){
 	local claudeConfig="${HOME:?SetupAgentMcp: HOME is not set}/.claude.json"
 	local root="${MYXROOT:-/usr/local/share/myx.common}"
 	local myxCommonBin="${root%/share/myx.common}/bin/myx.common"
-	local serverScript="$root/include/data/agentMcpServer.sh"
+	local serverScript="$root/bin/lib/agentMcpServer.Common"
 	local awkEditFile="$root/include/data/agentMcpConfigEdit.awk"
 	local awkEscapeFile="$root/include/data/agentMcpJsonEscape.awk"
 
@@ -25,19 +35,46 @@ SetupAgentMcp(){
 	[ -f "$claudeConfig" ] || { echo "⛔ ERROR: SetupAgentMcp: $claudeConfig not found - nothing to register into" >&2; return 1; }
 	[ -r "$claudeConfig" ] && [ -w "$claudeConfig" ] || { echo "⛔ ERROR: SetupAgentMcp: $claudeConfig is not readable/writable" >&2; return 1; }
 
+	local cwd escapedCwd
+	cwd="$(pwd)"
+	case "$cwd" in
+		/*) : ;;
+		*) echo "⛔ ERROR: SetupAgentMcp: cwd ($cwd) did not resolve to an absolute path" >&2; return 1 ;;
+	esac
+	escapedCwd="$(printf '%s' "$cwd" | LC_ALL=C awk -f "$awkEscapeFile")"
+
 	local escapedScript entryValueJson
 	escapedScript="$(printf '%s' "$serverScript" | LC_ALL=C awk -f "$awkEscapeFile")"
-	entryValueJson="$(printf '{"command": "%s"}' "$escapedScript")"
+	# --run is required: bin/lib/agentMcpServer.Common uses the same
+	# case "$0"/--run dispatch shape as every other bin/lib/*.Common file
+	# (plus its own --run guard on top - see that file's own header
+	# comment) - bare invocation (no args) prints usage and exits 1 rather
+	# than starting the server loop, so the registered launch args must
+	# carry --run explicitly or the MCP host's own invocation would never
+	# actually start the server.
+	entryValueJson="$(printf '{"command": "%s", "args": ["--run"]}' "$escapedScript")"
 
 	local facts
-	facts="$(LC_ALL=C awk -v RS='\0' -f "$awkEditFile" "$claudeConfig")"
+	# cwd is passed via env (MYX_AGENTMCP_CWD), never -v cwd=...: awk's -v
+	# assignment does its own backslash-escape decoding, which would silently
+	# undo the JSON-escaping above for paths containing '"' or '\' - see
+	# agentMcpConfigEdit.awk's header comment for the confirmed failure mode.
+	facts="$(MYX_AGENTMCP_CWD="$escapedCwd" LC_ALL=C awk -v RS='\0' -f "$awkEditFile" "$claudeConfig")"
 	case "$facts" in
-		*NOTJSON*|*PARSE_ERROR*)
+		*NOTJSON*|*PARSE_ERROR*|*NOCWD*)
 			echo "⛔ ERROR: SetupAgentMcp: $claudeConfig doesn't parse as a JSON object - refusing to touch it" >&2
 			return 1
 		;;
+		*PROJECTS_NOT_OBJECT*)
+			echo "⛔ ERROR: SetupAgentMcp: $claudeConfig has a top-level \"projects\" that isn't a JSON object - refusing to touch it" >&2
+			return 1
+		;;
+		*PROJECT_NOT_OBJECT*)
+			echo "⛔ ERROR: SetupAgentMcp: $claudeConfig has a projects[\"$cwd\"] that isn't a JSON object - refusing to touch it" >&2
+			return 1
+		;;
 		*MCPSERVERS_NOT_OBJECT*)
-			echo "⛔ ERROR: SetupAgentMcp: $claudeConfig has a top-level \"mcpServers\" that isn't a JSON object - refusing to touch it" >&2
+			echo "⛔ ERROR: SetupAgentMcp: $claudeConfig has a projects[\"$cwd\"].mcpServers that isn't a JSON object - refusing to touch it" >&2
 			return 1
 		;;
 	esac
@@ -50,7 +87,7 @@ SetupAgentMcp(){
 		local currentValue
 		currentValue="$(dd if="$claudeConfig" bs=1 skip=$((ENTRY_VALUE_START - 1)) count=$((ENTRY_VALUE_END - ENTRY_VALUE_START)) 2>/dev/null)"
 		if [ "$currentValue" = "$entryValueJson" ]; then
-			echo "✅ myx.common MCP server already registered in $claudeConfig (command: $serverScript)" >&2
+			echo "✅ myx MCP server already registered in $claudeConfig for $cwd (command: $serverScript --run)" >&2
 			rm -f "$newContentFile"
 			return 0
 		fi
@@ -59,20 +96,36 @@ SetupAgentMcp(){
 			printf '%s' "$entryValueJson"
 			tail -c +"$ENTRY_VALUE_END" "$claudeConfig"
 		} > "$newContentFile"
-	elif [ "$MCPSERVERS_FOUND" = "1" ]; then
+	elif [ "$PROJECT_FOUND" = "1" ] && [ "$MCPSERVERS_FOUND" = "1" ]; then
 		local sep=","
 		[ "$MCPSERVERS_IS_EMPTY" = "1" ] && sep=""
 		{
 			head -c $((MCPSERVERS_FIRST_KEY_START - 1)) "$claudeConfig"
-			printf '"myx.common": %s%s' "$entryValueJson" "$sep"
+			printf '"myx": %s%s' "$entryValueJson" "$sep"
 			tail -c +"$MCPSERVERS_FIRST_KEY_START" "$claudeConfig"
+		} > "$newContentFile"
+	elif [ "$PROJECT_FOUND" = "1" ]; then
+		local sep=","
+		[ "$PROJECT_IS_EMPTY" = "1" ] && sep=""
+		{
+			head -c $((PROJECT_FIRST_KEY_START - 1)) "$claudeConfig"
+			printf '"mcpServers": {"myx": %s}%s' "$entryValueJson" "$sep"
+			tail -c +"$PROJECT_FIRST_KEY_START" "$claudeConfig"
+		} > "$newContentFile"
+	elif [ "$PROJECTS_FOUND" = "1" ]; then
+		local sep=","
+		[ "$PROJECTS_IS_EMPTY" = "1" ] && sep=""
+		{
+			head -c $((PROJECTS_FIRST_KEY_START - 1)) "$claudeConfig"
+			printf '"%s": {"mcpServers": {"myx": %s}}%s' "$escapedCwd" "$entryValueJson" "$sep"
+			tail -c +"$PROJECTS_FIRST_KEY_START" "$claudeConfig"
 		} > "$newContentFile"
 	else
 		local sep=","
 		[ "$ROOT_IS_EMPTY" = "1" ] && sep=""
 		{
 			head -c $((ROOT_FIRST_KEY_START - 1)) "$claudeConfig"
-			printf '"mcpServers": {"myx.common": %s}%s' "$entryValueJson" "$sep"
+			printf '"projects": {"%s": {"mcpServers": {"myx": %s}}}%s' "$escapedCwd" "$entryValueJson" "$sep"
 			tail -c +"$ROOT_FIRST_KEY_START" "$claudeConfig"
 		} > "$newContentFile"
 	fi
@@ -100,8 +153,8 @@ SetupAgentMcp(){
 		return 1
 	fi
 
-	echo "✅ Registered myx.common MCP server in $claudeConfig" >&2
-	echo "   command: $serverScript" >&2
+	echo "✅ Registered myx MCP server in $claudeConfig (local scope: $cwd)" >&2
+	echo "   command: $serverScript --run" >&2
 	echo "   Restart your MCP host (e.g. Claude Code) to pick it up." >&2
 }
 
