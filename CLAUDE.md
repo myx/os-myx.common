@@ -5,12 +5,12 @@ architecturally related to myx.distro-*: its `project.inf` `Provides:`
 entries (`deploy-export:...`, `image-install:exec-update-before:...`) only
 register it as an installable package in the distro-* index/pipeline — the
 command tool itself has no dependency on distro-* code or conventions.
-Don't carry over distro-* conventions here or vice versa.
+distro-* conventions don't carry over here, nor the reverse.
 
 Canonical human doc: `README.md` (command index, per-command
 Platforms/Root/Syntax, and "Adding or Changing a Command" for suffix/dispatch
-mechanics). No generator produces it — it's hand-maintained; keep it in sync
-by hand when adding/changing commands.
+mechanics). No generator produces it — hand-maintained, synced by hand when
+commands change.
 
 ## Sibling repos are install-only placeholders
 
@@ -34,19 +34,18 @@ entry point/URL.
    (`.$(uname -s)` → `.Common` → legacy). Costs a subprocess spawn but is
    OS-aware.
 
-Convention (1) is only safe for functions with no real per-OS behavior. For
-a function that *does* need OS dispatch but is still called via convention
-(1), the `.Common` file itself must manually replicate the OS-selection
-logic. Confirmed real example: `install/ensure/nativePackage.Common` — this
-command has genuinely different Darwin/FreeBSD/Linux implementations
-(~30-39 lines each), yet `lib/installEnsurePackage.Common` sources it via
-convention (1) (`type InstallEnsureNativePackage ... || .
-.../nativePackage.Common`). So `nativePackage.Common` itself checks for
-`nativePackage.$MYXUNIX` and manually sources+delegates to it, erroring
-("abstract method") if no OS override exists. If you add a new command with
-real per-OS variants, check whether anything sources it via convention (1)
-— if so, its `.Common` file needs this same manual self-redirect, or the
-caller needs to switch to convention (2).
+Convention (1) is only safe for functions with no real per-OS behavior. A
+function that *does* need OS dispatch but is still called via convention
+(1) must have its `.Common` file manually replicate the OS-selection logic
+— e.g. `install/ensure/nativePackage.Common`: genuinely different
+Darwin/FreeBSD/Linux implementations (~30-39 lines each), sourced via
+convention (1) by `lib/installEnsurePackage.Common` (`type
+InstallEnsureNativePackage ... || . .../nativePackage.Common`), so
+`nativePackage.Common` itself checks for `nativePackage.$MYXUNIX` and
+manually sources+delegates to it, erroring ("abstract method") if no OS
+override exists. Any new command with real per-OS variants sourced via
+convention (1) needs this same manual self-redirect, or a switch to
+convention (2).
 
 myx.distro-* uses the same `type X >/dev/null 2>&1 || . file` idiom, but
 resolves the path via `myx.common which lib/X` (one subprocess, but
@@ -66,8 +65,8 @@ README entry, and doesn't appear in `myx.common help --bare` — a curious
 human finding it and running it directly just gets a hanging JSON-RPC
 listener, which is accepted as fine since it's integration plumbing, not
 API surface. "Needs a stable dispatcher-independent path" and "is a public
-command" are separate, independently-decidable properties; don't assume
-every script that must live at a fixed path belongs under `bin/`.
+command" are separate, independently-decidable properties — a fixed-path
+requirement doesn't imply `bin/`.
 
 ## `include/data/*.awk` — reusable JSON-parsing engine, copy don't reinvent
 
@@ -78,12 +77,12 @@ CLAUDE.md) share the exact same recursive-descent JSON parsing engine (`skipws`/
 `parseString`/`parseValue`/`parseObject`/`parseArray`) byte-for-byte — only each file's own `emitLeaf`
 function differs, tailored to the specific flat/one-level-nested field shape that caller actually needs.
 Neither is a general-purpose JSON parser (both say so in their own header comments) — they understand
-exactly the shapes their one real caller produces. If a third consumer needs to pull specific fields out
-of a small, predictable JSON shape from awk (no `jq`/`python3` dependency), copy the parsing engine
-verbatim from one of these two files and write a new `emitLeaf` — don't hand-roll a fresh parser, and
-don't reach for `jq`/`python3 -c` as a substitute when this engine already exists and does the job with
-zero external dependencies (the actual reason it exists: `agentMcpServer.sh` and `DistroAgentsTools.fn.sh`
-both need to run in environments where a JSON dependency can't be assumed present).
+exactly the shapes their one real caller produces. Convention for a third consumer pulling specific fields
+out of a small, predictable JSON shape from awk (no `jq`/`python3` dependency): copy the parsing engine
+verbatim from one of these two files, write a new `emitLeaf` — no hand-rolled fresh parser, no
+`jq`/`python3 -c` substitute, since this engine already does the job with zero external dependencies.
+Exists because `agentMcpServer.sh` and `DistroAgentsTools.fn.sh` both need to run in environments where a
+JSON dependency can't be assumed present.
 
 ## `bin/mail/*` — credential handling and curl gotchas
 
@@ -99,15 +98,15 @@ the magic-team mailbox — see README for the full option list).
 Darwin-only by design, same shape as `install/brew.Darwin` or
 `reset/dnsCache.Darwin`, not a gap to fill in.
 
-Two curl gotchas worth knowing before touching either script again:
-- The credential is passed to curl only via `curl -K -` (config directives
-  on stdin) — never argv, never a file. If you ever need `curl --verbose`
-  output for debugging auth, capture it to a file and inspect only
-  `<`-prefixed (server) lines; `>`-prefixed (client) lines contain the
-  base64 `AUTH PLAIN` exchange and are not safe to eyeball or
-  grep-filter — the password already leaked into chat once this way.
+Two curl gotchas:
+- Credential passed to curl only via `curl -K -` (config directives on
+  stdin) — never argv, never a file. `curl --verbose` auth-debugging output,
+  if captured to a file, is only safe to inspect on `<`-prefixed (server)
+  lines; `>`-prefixed (client) lines carry the base64 `AUTH PLAIN` exchange
+  and aren't safe to eyeball or grep-filter — the password already leaked
+  into chat once this way.
 - `receive.Common` fetches one message at a time via curl's native
-  `imaps://host/INBOX;MAILINDEX=<n>;SECTION=...` URL form. A single custom
+  `imaps://host/INBOX;MAILINDEX=<n>;SECTION=...` URL form. A custom
   multi-message `FETCH range (...)` request was tried first and abandoned —
   curl only prints the `* N FETCH (...) {size}` summary tag lines for that
   form and silently drops the actual payload.
