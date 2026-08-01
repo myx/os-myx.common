@@ -1,0 +1,52 @@
+#!/bin/sh
+
+##### !!!    This script is universal for FreeBSD, Darwin, Ubuntu.    !!! #####
+
+type UserRequireRoot >/dev/null 2>&1 || \
+	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
+
+InstallClaude(){
+	set -e
+
+	if command -v claude >/dev/null 2>&1 ; then
+		echo "claude is already installed, version: " >&2
+		echo "$( claude --version )" >&2
+	else
+		UserRequireRoot "InstallClaude"
+
+		case "${MYXUNIX:-$( uname -s )}" in
+			Darwin)
+				sudo -u $SUDO_USER -H -s brew install --cask claude-code
+			;;
+			FreeBSD)
+				pkg install -y claude-code
+			;;
+			Linux)
+				install -d -m 0755 /etc/apt/keyrings
+				curl -fsSL https://downloads.claude.ai/keys/claude-code.asc -o /etc/apt/keyrings/claude-code.asc
+				echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" > /etc/apt/sources.list.d/claude-code.list
+				apt update
+				apt install -y claude-code
+			;;
+			*)
+				echo "⛔ ERROR: InstallClaude: unsupported OS: ${MYXUNIX:-$( uname -s )}" >&2
+				return 1
+			;;
+		esac
+	fi
+
+	if [ "$1" = "--setup-agent-mcp" ] ; then
+		myx.common setup/agentMcp
+	fi
+}
+
+case "$0" in
+	*/myx.common/bin/install/claude.Common)
+		if [ "$1" = "--help" ] ; then
+			. "${MYXROOT:-/usr/local/share/myx.common}/help/install/claude.help.include" >&2
+			exit 1
+		fi
+		set -e
+		InstallClaude "$@"
+	;;
+esac

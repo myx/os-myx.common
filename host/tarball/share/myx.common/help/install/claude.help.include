@@ -1,0 +1,5 @@
+echo '📘 Syntax: myx.common install/claude' >&2
+echo '📘 Syntax: myx.common install/claude --help' >&2
+echo '📘 Syntax: myx.common install/claude --setup-agent-mcp' >&2
+echo '' >&2
+[ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/install/claude.help.md" >&2
