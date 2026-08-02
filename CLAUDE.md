@@ -71,8 +71,8 @@ requirement doesn't imply `bin/`.
 ## `include/data/*.awk` — reusable JSON-parsing engine, copy don't reinvent
 
 `agentMcpJsonParseRequest.awk` (MCP JSON-RPC message fields) and `agentSlackMessagesFormat.awk`
-(added 2026-07-21, Slack `conversations.history`/`conversations.replies` message fields — consumed by
-`myx.distro-system`'s `DistroAgentsTools.fn.sh --sweep-read-incoming-comms`, see that repo's own
+(Slack `conversations.history`/`conversations.replies` message fields — consumed by
+`myx.distro-agents`'s `DistroAgentsTools.fn.sh --sweep-read-incoming-comms`, see that repo's own
 CLAUDE.md) share the exact same recursive-descent JSON parsing engine (`skipws`/`hex2dec`/`utf8enc`/
 `parseString`/`parseValue`/`parseObject`/`parseArray`) byte-for-byte — only each file's own `emitLeaf`
 function differs, tailored to the specific flat/one-level-nested field shape that caller actually needs.
@@ -86,8 +86,8 @@ JSON dependency can't be assumed present.
 
 ## `bin/mail/*` — credential handling and curl gotchas
 
-New "mail" category (`bin/mail/send.Common`, `bin/mail/receive.Common`, added
-2026-07-16) sends/lists email over authenticated SMTPS/IMAPS via curl — no
+The "mail" category (`bin/mail/send.Common`, `bin/mail/receive.Common`)
+sends/lists email over authenticated SMTPS/IMAPS via curl — no
 Gmail-specific logic beyond its defaults, `MAIL_SMTP_HOST`/`MAIL_IMAP_HOST`
 etc. work against any implicit-TLS server. Both commands share the same
 credential resolution: `MAIL_APP_PASSWORD` env var first, else `myx.common
@@ -106,7 +106,7 @@ Two curl gotchas:
   and aren't safe to eyeball or grep-filter — the password already leaked
   into chat once this way.
 - `receive.Common` fetches one message at a time via curl's native
-  `imaps://host/INBOX;MAILINDEX=<n>;SECTION=...` URL form. A custom
-  multi-message `FETCH range (...)` request was tried first and abandoned —
-  curl only prints the `* N FETCH (...) {size}` summary tag lines for that
-  form and silently drops the actual payload.
+  `imaps://host/INBOX;MAILINDEX=<n>;SECTION=...` URL form. A multi-message
+  `FETCH range (...)` request does not work: curl only prints the
+  `* N FETCH (...) {size}` summary tag lines for that form and silently
+  drops the actual payload — this is why fetches stay single-message.
