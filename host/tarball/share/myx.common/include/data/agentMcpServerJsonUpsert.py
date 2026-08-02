@@ -2,7 +2,7 @@
 
 # Upserts the "myx" stdio MCP server entry into a JSON config file, for
 # setup/agentMcp.Common's workspace-detect tier (writes .vscode/mcp.json's
-# top-level "servers" key when a real myx workspace is detected at the
+# top-level "servers" key when a real myx.distro-* workspace is detected at the
 # launch cwd - see that file's own header comment for the full priority
 # chain).
 #

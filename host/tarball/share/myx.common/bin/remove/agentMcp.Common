@@ -20,6 +20,14 @@ RemoveAgentMcp(){
 	[ -r "$claudeConfig" ] && [ -w "$claudeConfig" ] || { echo "⛔ ERROR: RemoveAgentMcp: $claudeConfig is not readable/writable" >&2; return 1; }
 
 	local cwd escapedCwd
+	# NOTE: same class of exposure as setup/agentMcp.Common had before its
+	# MYX_AGENTMCP_TARGET_CWD fix - a caller whose own process cwd isn't the
+	# workspace in question (e.g. dispatch through an MCP tool such as
+	# mcp__myx_common__myx_common_run) will remove the wrong (or no)
+	# ~/.claude.json entry, silently. Deliberately deferred, not fixed here:
+	# this command only has the tier-3 home-scope removal (no workspace-
+	# local tier to correct), and no live bug against it has been reported
+	# yet. Flagged so this doesn't need rediscovering from scratch later.
 	cwd="$(pwd)"
 	case "$cwd" in
 		/*) : ;;
