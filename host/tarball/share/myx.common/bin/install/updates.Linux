@@ -30,7 +30,7 @@ InstallUpdates(){
 	DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 	# apt-get autoremove -y
 	
-	if [ -n "`which grub-install || :`" ] ; then
+	if command -v grub-install >/dev/null 2>&1 ; then
 		echo "'grub-install' present, updating grub config..."
 		update-grub2
 		echo "'grub-install' present, checking disks..."

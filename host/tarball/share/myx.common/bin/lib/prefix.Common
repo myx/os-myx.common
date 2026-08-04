@@ -34,10 +34,10 @@ Prefix(){
 
 	case "$1" in
 			"") echo "⛔ ERROR: prefix: prefix text argument is required!" >&2 ; return 1 ;;
-	        -1) PREFTEXT="$( basename "$2" )" ; shift ;;
-	        -2) PREFTEXT="$( basename "$3" )" ; shift ;;
-	        -3) PREFTEXT="$( basename "$4" )" ; shift ;;
-	        -4) PREFTEXT="$( basename "$5" )" ; shift ;;
+	        -1) PREFTEXT="${2##*/}" ; shift ;;
+	        -2) PREFTEXT="${3##*/}" ; shift ;;
+	        -3) PREFTEXT="${4##*/}" ; shift ;;
+	        -4) PREFTEXT="${5##*/}" ; shift ;;
 	        --) eval "$( 
 					printf 'PREFTEXT="${%s:?"⛔ ERROR: prefix: -- argument, count: %s!"}"\n' "$#" "$#"
 				)" ; shift ;;

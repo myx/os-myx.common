@@ -2,7 +2,7 @@
 
 set -e
 
-if which -s brew ; then
+if command -v brew >/dev/null 2>&1 ; then
 	brew update
 else
 	xcode-select -p 1>/dev/null || xcode-select --install || :

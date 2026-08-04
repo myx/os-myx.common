@@ -25,7 +25,7 @@ InstallUpdates(){
 	/usr/sbin/softwareupdate --background --force
 	/usr/sbin/softwareupdate --install --all
 
-	which -s brew && brew update
+	command -v brew >/dev/null 2>&1 && brew update
 	
 	open "/Applications/App Store.app"	 
 }

@@ -93,7 +93,7 @@ VmCreateLinuxResolveProxmoxIsoReference(){
 	if [[ "$iso_input" == /* ]]; then
 		[ -f "$iso_input" ] || VmCreateLinuxError "ISO file not found: $iso_input"
 		if [[ "$iso_input" == ${default_iso_dir}/* ]]; then
-			echo "local:iso/$(basename "$iso_input")"
+			echo "local:iso/${iso_input##*/}"
 		else
 			echo "$iso_input"
 		fi

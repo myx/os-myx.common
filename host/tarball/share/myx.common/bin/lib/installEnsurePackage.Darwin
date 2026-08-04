@@ -14,7 +14,7 @@ InstallEnsurePackage(){
 	set -e
 	
 	UserRequireRoot "InstallEnsurePackage"
-	which -s brew || myx.common install/brew
+	command -v brew >/dev/null 2>&1 || myx.common install/brew
 
 	[ -z "$SUDO_USER" ] && echo "⛔ ERROR: InstallEnsurePackage: The SUDO_USER env variable is required!" >&2 && return 1
 
@@ -24,7 +24,7 @@ InstallEnsurePackage(){
 	local LIST=""
 
 	for NAME in $@ ; do
-		which -s $NAME \
+		command -v "$NAME" >/dev/null 2>&1 \
 			&& echo "ensure: $NAME already present, skip" >&2 \
 			|| LIST="$LIST `OsGetUtilityPackage "$NAME"`"
 	done

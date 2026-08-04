@@ -173,7 +173,7 @@ if [ -z "$doUnattended" ]; then
 	for dev in /dev/sd? /dev/vd? /dev/hd? /dev/nvme?n? /dev/xd?; do
 		[[ -b $dev ]] || continue
 		QEMU_DISK_LIST+=( $dev )
-		name=$(basename "$dev")
+		name="${dev##*/}"
 		# ID must be unique and source of drive ID
 		QEMU_DISK_ARGS+=( \
 			-drive if=none,id=$name,file=$dev,format=raw \
@@ -214,7 +214,7 @@ else
 	# 4) Build QEMU_DISK_ARGS for each selected disk
 	local dev name serial
 	for dev in "${QEMU_DISK_LIST[@]}"; do
-		name=$(basename "$dev")
+		name="${dev##*/}"
 
 		# 1) Try the short serial
 		serial=$( udevadm info --query=property --name="$dev" | awk -F= '$1=="ID_SERIAL_SHORT"{print $2; exit}' )

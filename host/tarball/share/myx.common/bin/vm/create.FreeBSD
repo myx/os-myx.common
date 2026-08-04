@@ -121,7 +121,7 @@ VmCreate(){
     fi
 	local VMISO="$(VmCreateFreeBsdResolveIsoPath "$VMISOINPUT")" || return 1
     	
-    if [ -z "$( vm list | egrep "^$VMNAME\W" )" ] ; then
+	if ! vm list | grep -Eq "^$VMNAME\\W" ; then
 
 		case "$VMTYPE" in
 			--freebsd)
@@ -254,7 +254,7 @@ VmCreate(){
 				else
 					truncate -c -s "$VMHDD" "/vms/$VMNAME/disk0.img"
 				fi
-			elif [ -n "$( zfs list | grep -e "^zroot/vms/$VMNAME/disk0\s" )" ] ; then
+			elif zfs list | grep -q -e "^zroot/vms/$VMNAME/disk0\s" ; then
 		        echo "Disk type: zfs volume: zroot/vms/$VMNAME/disk0" >&2
 				if [ -z "$SHRINK" -a "$VMHDD" -lt "$(zfs get -H -p -o value volsize zroot/vms/$VMNAME/disk0)" ] ; then
 					echo "🙋 WARNING: ZFS shrink is not allowed, use --shrink-disk option, skipped... ($VMNAME)" >&2

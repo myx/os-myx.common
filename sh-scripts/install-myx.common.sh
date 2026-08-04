@@ -40,7 +40,7 @@ if [ "$( id -u )" = 0 ]; then
 				;;
 	        FreeBSD)
 	       		echo "Using: freebsd"
-				pkg bootstrap -y ; [ -n "$( pkg info | grep ca_root )" ] || pkg install -y ca_root_nss
+				pkg bootstrap -y ; pkg info | grep -q 'ca_root' || pkg install -y ca_root_nss
 	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
 	        	CHOWN="root:wheel"
 				;;
@@ -76,7 +76,7 @@ if [ "$( id -u )" = 0 ]; then
 		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || :)
     else
     	echo "Using: tar-tar"
-	   	tar -cpf - -C "$T_DIR" $( ls "$T_DIR" ) | tar -xvpf - -C "/usr/local/"
+	   	tar -cpf - -C "$T_DIR" . | tar -xvpf - -C "/usr/local/"
     fi
 	
 	rm -rf "$T_DIR"

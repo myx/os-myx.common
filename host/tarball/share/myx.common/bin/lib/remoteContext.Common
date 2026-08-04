@@ -435,7 +435,7 @@ RemoteContext(){
 		[ -z "$verbose" ] || printf '%s\n' "Local: 📦 pack: embedding '${entry#$MMDAPP/}'" >&2
 
 		echo
-		echo "echo '📦 Running: $( basename "$entry" )...' >&2"
+		echo "echo '📦 Running: ${entry##*/}...' >&2"
 		cat "$entry"
 
 		# If this is a mixin.include, and $interactive is non-empty,
@@ -447,7 +447,7 @@ RemoteContext(){
 					[ -z "${verbose:1}" ] || printf '%s\n' "Local: 📦 pack: looking for interactive add-on at '${entry#$MMDAPP/}'" >&2
 					if [ -n "$interactive" ] && [ -f "$entry" ]; then
 						[ -z "$verbose" ] || printf '%s\n' "Local: 📦 pack: embedding interactive mixin '${entry#$MMDAPP/}'" >&2
-						echo "echo '📦 Running: $( basename "$entry" )...' >&2"
+						echo "echo '📦 Running: ${entry##*/}...' >&2"
 						cat "$entry"
 					fi
 				fi
