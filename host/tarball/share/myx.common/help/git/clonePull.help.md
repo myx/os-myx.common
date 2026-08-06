@@ -38,6 +38,17 @@ Supported OS: Linux, FreeBSD, Darwin.
 
       Default. If fast-forward pull fails, stop with error.
 
+##  Environment:
+
+    MYX_GIT_CLONE_PULL_ON_CONFLICT
+
+      If no --on-conflict-* option is specified, the value of this
+      environment variable is used as default conflict policy.
+
+      Supported values: stash, discard, fail.
+
+      If unset, fail is used.
+
 ##  Usage notes:
 
   Use --help to print detailed help for this command.

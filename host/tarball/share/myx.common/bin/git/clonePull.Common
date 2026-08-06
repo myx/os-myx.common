@@ -5,7 +5,7 @@
 GitClonePull(){
 	set -e
 
-	local onConflict="fail"
+	local onConflict="${MYX_GIT_CLONE_PULL_ON_CONFLICT:-fail}"
 	while [ $# -gt 0 ] ; do
 		case "$1" in
 			--on-conflict-stash)
