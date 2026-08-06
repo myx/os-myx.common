@@ -5,6 +5,42 @@
 GitClonePull(){
 	set -e
 
+	local onConflict="fail"
+	while [ $# -gt 0 ] ; do
+		case "$1" in
+			--on-conflict-stash)
+				onConflict="stash"
+				shift
+				continue
+			;;
+			--on-conflict-discard)
+				onConflict="discard"
+				shift
+				continue
+			;;
+			--on-conflict-fail)
+				onConflict="fail"
+				shift
+				continue
+			;;
+			--no-write)
+				shift
+				continue
+			;;
+			--)
+				shift
+				break
+			;;
+			-*)
+				echo "⛔ ERROR: GitClonePull: invalid option: $1" >&2
+				return 1
+			;;
+			*)
+				break
+			;;
+		esac
+		done
+
 	: "${1:?⛔ ERROR: GitClonePull: tgtPath is required!}"
 	: "${2:?⛔ ERROR: GitClonePull: repoUrl is required!}"
 	local tgtPath="$1" repoUrl="$2"
@@ -45,7 +81,31 @@ GitClonePull(){
 			if [ -n "$specificBranch" ] ; then
 				git checkout $specificBranch
 			fi
-			git pull --ff-only
+			if ! git pull --ff-only ; then
+				if [ "$onConflict" = "fail" ] ; then
+					cd "$currentPath"
+					return 1
+				fi
+
+				local targetBranch="$specificBranch"
+				[ -n "$targetBranch" ] || targetBranch="$( git rev-parse --abbrev-ref HEAD )"
+				[ "$targetBranch" != "HEAD" ] || targetBranch="main"
+
+				echo "GitClonePull: $tgtPath: pull conflict, applying policy '$onConflict' on '$targetBranch'..." >&2
+				git fetch origin
+
+				if [ "$onConflict" = "stash" ] ; then
+					if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$( git ls-files --others --exclude-standard )" ] ; then
+						git stash push -u -m "GitClonePull auto-stash before reset"
+					fi
+				fi
+
+				if ! git checkout "$targetBranch" ; then
+					git checkout -b "$targetBranch" --track "origin/$targetBranch"
+				fi
+				git reset --hard "origin/$targetBranch"
+				git clean -fd
+			fi
 			cd "$currentPath"
 		fi
 	fi
