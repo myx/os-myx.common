@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Upserts the "myx" stdio MCP server entry into a JSON config file, for
+# Upserts the "myx.common" stdio MCP server entry into a JSON config file, for
 # setup/agentMcp.Common's workspace-detect tier (writes .vscode/mcp.json's
 # top-level "servers" key when a real myx.distro-* workspace is detected at the
 # launch cwd - see that file's own header comment for the full priority
@@ -18,16 +18,19 @@
 #
 # argv[1]: path to the JSON config file to upsert into (created if it
 #   doesn't exist yet). argv[2]: path to the MCP server script to register
-#   as the "myx" entry's stdio command. argv[3]: top-level object key the
+#   as the "myx.common" entry's stdio command. argv[3]: top-level object key the
 #   server entry lives under (e.g. "servers" for VS Code's own
 #   .vscode/mcp.json schema). argv[4] (optional): a JSON array of extra
 #   launch args (e.g. ["--run"]) to add as the entry's own "args" field -
 #   omitted entirely when argv[4] isn't given, same entry shape as before
 #   this field existed.
 #
-# Non-destructive to unrelated entries: only the "myx" key under the given
-# top-level key is set/overwritten - every other existing server entry,
-# and the rest of the file's top-level object, is preserved as-is. Writes
+# Non-destructive to unrelated entries: only the "myx.common" key under the
+# given top-level key is set/overwritten - every other existing server entry,
+# and the rest of the file's top-level object, is preserved as-is. The one
+# exception is any other entry launching a command from inside the myx.common
+# tree: that is a duplicate registration of this same server, dropped so the
+# host doesn't launch it twice. Writes
 # via a temp file + atomic os.replace (original file is never touched
 # until the new content is fully written and valid), same safety shape as
 # the myx.distro-system original this was copied from. Prints "OK" to
@@ -74,7 +77,21 @@ if args_json is not None:
 		raise SystemExit("argv[4] must be a JSON array of args")
 	entry["args"] = args
 
-servers["myx"] = entry
+# Drop any other entry launching a command from inside this product's tree --
+# a duplicate registration under a stale key, which the host would launch
+# alongside the real one. "myx.common" as an exact path component, never a
+# substring: a directory merely named "not-myx.common-really" is a stranger's.
+def launches_our_server(value):
+	if not isinstance(value, dict):
+		return False
+	command = value.get("command")
+	return isinstance(command, str) and "myx.common" in command.split("/")
+
+
+for stale in [k for k, v in servers.items() if k != "myx.common" and launches_our_server(v)]:
+	del servers[stale]
+
+servers["myx.common"] = entry
 data[key] = servers
 
 tmp = path + ".tmp"

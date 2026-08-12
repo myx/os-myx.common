@@ -31,8 +31,10 @@ Requires root privileges: no.
      additionally writes/upserts the myx MCP server into
      `<launch-cwd>/.vscode/mcp.json`'s `servers` key - VS Code/Copilot-
      Chat's own workspace-scoped MCP config. Non-destructive: only the
-     `myx` key is set/overwritten, every other entry and the rest of the
-     file is left alone. This tier runs on top of, not instead of, the
+     `myx.common` key is set/overwritten, and any other entry launching a
+     command from inside the myx.common tree is dropped as a duplicate of
+     that same server; every other entry and the rest of the file is left
+     alone. This tier runs on top of, not instead of, the
      home-scope registration below - Claude Code itself does not read
      `.vscode/mcp.json`, so replacing rather than adding to the home entry
      would silently stop Claude Code's own MCP discovery for the

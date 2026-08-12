@@ -3,8 +3,8 @@
 # Locates (or, in validate mode, sanity-checks) a specific nested key inside
 # a JSON config file, WITHOUT a general parse/rewrite of the whole
 # structure - used by setup/agentMcp and remove/agentMcp to surgically
-# splice the "myx" entry at ~/.claude.json's
-# projects["<cwd>"].mcpServers."myx" (local/per-project scope, Claude
+# splice the "myx.common" entry at ~/.claude.json's
+# projects["<cwd>"].mcpServers."myx.common" (local/per-project scope, Claude
 # Code's own convention - see https://code.claude.com/docs/en/mcp) via byte
 # offsets (head -c / tail -c), leaving every other byte untouched.
 #
@@ -27,7 +27,7 @@
 #     around it.
 # Modes:
 #   locate (default) - prints KEY=VALUE facts (1-based byte offsets)
-#     walking projects -> <cwd> -> mcpServers -> myx, stopping at whichever
+#     walking projects -> <cwd> -> mcpServers -> myx.common, stopping at whichever
 #     level is the shallowest missing key so the caller knows exactly what
 #     to splice in.
 #   validate - prints "VALID" if the input parses as one well-formed JSON
@@ -169,6 +169,79 @@ function findKeyInObjectAt(objStart, targetKey,   keyStart, key, valStart, c, la
 	}
 }
 
+# Reads the "command" of the entry object at objStart, as its raw JSON token.
+# Saves/restores p so the caller's own walk is unaffected.
+function commandTokenAt(objStart,   savedP, ret) {
+	savedP = p
+	ret = ""
+	if (substr(s, objStart, 1) == "{" && findKeyInObjectAt(objStart, "command") && FOUND)
+		ret = substr(s, VALUE_START, VALUE_END - VALUE_START)
+	p = savedP
+	return ret
+}
+
+# True when the command lives inside this product's tree, i.e. "myx.common" is
+# one of its path components. An exact component, never a substring: a
+# directory merely named "not-myx.common-really" is a stranger's.
+function isOurCommand(tok,   v) {
+	if (tok == "" || substr(tok, 1, 1) != "\"") return 0
+	v = substr(tok, 2, length(tok) - 2)
+	gsub(/\\\//, "/", v)
+	return v ~ /(^|\/)myx\.common(\/|$)/
+}
+
+# Walks the same object looking for the first pair, other than "myx.common",
+# whose entry launches a command from inside this product's tree -- a
+# duplicate registration the host would launch alongside the real one. Sets
+# STALE_FOUND plus splice offsets. Returns 0 if the object didn't parse.
+function findStaleEntryInObjectAt(objStart,   keyStart, key, valStart, c, lastCommaPos) {
+	p = objStart
+	STALE_FOUND = 0
+	p++ # {
+	skipws()
+	if (substr(s, p, 1) == "}") { return 1 }
+	lastCommaPos = 0
+	while (1) {
+		skipws()
+		keyStart = p
+		if (substr(s, p, 1) != "\"") return 0
+		if (!skipString()) return 0
+		key = substr(s, keyStart + 1, p - keyStart - 2)
+		skipws()
+		if (substr(s, p, 1) != ":") return 0
+		p++
+		skipws()
+		valStart = p
+		if (!skipValue()) return 0
+		if (!STALE_FOUND && key != "myx.common" && isOurCommand(commandTokenAt(valStart))) {
+			STALE_FOUND = 1
+			STALE_KEY_START = keyStart
+			STALE_PAIR_END_NO_COMMA = p
+			STALE_PRECEDING_COMMA_POS = lastCommaPos
+		}
+		skipws()
+		c = substr(s, p, 1)
+		if (c == ",") {
+			if (STALE_FOUND && STALE_KEY_START == keyStart) {
+				STALE_HAD_TRAILING_COMMA = 1
+				STALE_PAIR_END_WITH_COMMA = p + 1
+			}
+			lastCommaPos = p
+			p++
+			continue
+		} else if (c == "}") {
+			if (STALE_FOUND && STALE_KEY_START == keyStart) {
+				STALE_HAD_TRAILING_COMMA = 0
+				STALE_PAIR_END_WITH_COMMA = p
+			}
+			p++
+			return 1
+		} else {
+			return 0
+		}
+	}
+}
+
 BEGIN {
 	if (mode == "") mode = "locate"
 	cwd = ENVIRON["MYX_AGENTMCP_CWD"]
@@ -230,8 +303,8 @@ BEGIN {
 	mcpServersValueStart = VALUE_START
 	if (substr(s, mcpServersValueStart, 1) != "{") { print "MCPSERVERS_NOT_OBJECT=1"; exit; }
 
-	# Level 4: mcpServers -> "myx"
-	if (!findKeyInObjectAt(mcpServersValueStart, "myx")) { print "PARSE_ERROR"; exit; }
+	# Level 4: mcpServers -> "myx.common"
+	if (!findKeyInObjectAt(mcpServersValueStart, "myx.common")) { print "PARSE_ERROR"; exit; }
 	if (FOUND) {
 		print "ENTRY_FOUND=1"
 		print "ENTRY_KEY_START=" KEY_START
@@ -245,5 +318,16 @@ BEGIN {
 		print "ENTRY_FOUND=0"
 		print "MCPSERVERS_FIRST_KEY_START=" FIRST_KEY_START
 		print "MCPSERVERS_IS_EMPTY=" IS_EMPTY
+	}
+
+	# Duplicate registration under some other key, spliced out by setup/agentMcp.
+	if (!findStaleEntryInObjectAt(mcpServersValueStart)) { print "PARSE_ERROR"; exit; }
+	print "STALE_FOUND=" STALE_FOUND
+	if (STALE_FOUND) {
+		print "STALE_KEY_START=" STALE_KEY_START
+		print "STALE_PAIR_END_NO_COMMA=" STALE_PAIR_END_NO_COMMA
+		print "STALE_PAIR_END_WITH_COMMA=" STALE_PAIR_END_WITH_COMMA
+		print "STALE_HAD_TRAILING_COMMA=" STALE_HAD_TRAILING_COMMA
+		print "STALE_PRECEDING_COMMA_POS=" STALE_PRECEDING_COMMA_POS
 	}
 }

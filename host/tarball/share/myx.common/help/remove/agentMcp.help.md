@@ -16,7 +16,7 @@ Requires root privileges: no.
 
 ##  Usage notes:
 
-  Removes the `myx` entry at `projects["<launch-cwd>"].mcpServers` for the
+  Removes the `myx.common` entry at `projects["<launch-cwd>"].mcpServers` for the
   directory this command is run from - the same local-scope, per-directory
   entry `myx.common setup/agentMcp` wrote (see that command's help for the
   scope rationale). Run it from the same directory you ran setup/agentMcp

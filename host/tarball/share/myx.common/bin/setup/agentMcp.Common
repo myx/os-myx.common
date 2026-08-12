@@ -30,7 +30,7 @@
 #      because the newer, additive tier had trouble.
 #   3) always (unless (1) applies): the original home-scope registration,
 #      unchanged - registers in ~/.claude.json's
-#      projects["<cwd>"].mcpServers ("myx"), Claude Code's own local-scope
+#      projects["<cwd>"].mcpServers ("myx.common"), Claude Code's own local-scope
 #      convention, keyed by the launch cwd - so each workspace/checkout
 #      gets its own private entry instead of one global entry silently
 #      overwritten by whichever workspace last ran setup. Edits
@@ -57,8 +57,10 @@
 # agentMcpServerJsonUpsert.py) rather than a cross-package call into
 # myx.distro-system itself - see that new file's own header comment for
 # why (os-myx.common/CLAUDE.md: myx.common has no dependency on distro-*
-# code or conventions, nor the reverse). Non-destructive: only the "myx"
-# key under .vscode/mcp.json's "servers" object is set/overwritten.
+# code or conventions, nor the reverse). Non-destructive: only the
+# "myx.common" key under .vscode/mcp.json's "servers" object is
+# set/overwritten, plus any other entry launching a command from inside the
+# myx.common tree, which is dropped as a duplicate.
 SetupAgentMcpWorkspace(){
 	local cwd="$1"
 	local root="${MYXROOT:-/usr/local/share/myx.common}"
@@ -87,6 +89,71 @@ SetupAgentMcpWorkspace(){
 	echo "✅ Registered myx MCP server in $mcpFile (workspace scope: $cwd)" >&2
 	echo "   command: $serverScript --run" >&2
 	echo "   Restart your MCP host (e.g. Claude Code) to pick it up." >&2
+}
+
+# Splices out every entry that launches this same server under a key other
+# than "myx.common", so the host can't launch it twice. One splice per pass;
+# offsets shift, so it re-locates each time. Best-effort: an unparsable config
+# is left alone, the canonical write below reports it.
+SetupAgentMcpDropStaleEntries(){
+	local claudeConfig="$1" escapedCwd="$2" awkEditFile="$3"
+	local pass=0
+
+	while [ "$pass" -lt 32 ]; do
+		pass=$((pass + 1))
+
+		local facts
+		facts="$(MYX_AGENTMCP_CWD="$escapedCwd" LC_ALL=C awk -v RS='\0' -f "$awkEditFile" "$claudeConfig")" || return 0
+		case "$facts" in
+			*NOTJSON*|*PARSE_ERROR*|*NOCWD*|*NOT_OBJECT*) return 0 ;;
+		esac
+
+		local STALE_FOUND=0 STALE_KEY_START=0 STALE_PAIR_END_NO_COMMA=0
+		local STALE_PAIR_END_WITH_COMMA=0 STALE_HAD_TRAILING_COMMA=0
+		local STALE_PRECEDING_COMMA_POS=0
+		eval "$facts"
+
+		[ "$STALE_FOUND" = "1" ] || return 0
+
+		local newContentFile
+		newContentFile="$(mktemp "${TMPDIR:-/tmp}/myx.common.agentMcp.stale.XXXXXX")" || return 0
+
+		if [ "$STALE_HAD_TRAILING_COMMA" = "1" ]; then
+			{
+				head -c $((STALE_KEY_START - 1)) "$claudeConfig"
+				tail -c +"$STALE_PAIR_END_WITH_COMMA" "$claudeConfig"
+			} > "$newContentFile"
+		elif [ "$STALE_PRECEDING_COMMA_POS" != "0" ]; then
+			{
+				head -c $((STALE_PRECEDING_COMMA_POS - 1)) "$claudeConfig"
+				tail -c +"$STALE_PAIR_END_NO_COMMA" "$claudeConfig"
+			} > "$newContentFile"
+		else
+			{
+				head -c $((STALE_KEY_START - 1)) "$claudeConfig"
+				tail -c +"$STALE_PAIR_END_NO_COMMA" "$claudeConfig"
+			} > "$newContentFile"
+		fi
+
+		local validation
+		validation="$(LC_ALL=C awk -v RS='\0' -v mode=validate -f "$awkEditFile" "$newContentFile")"
+		if [ "$validation" != "VALID" ]; then
+			echo "⚠️  WARNING: SetupAgentMcp: dropping a duplicate MCP server entry from $claudeConfig would not validate ($validation) - left in place" >&2
+			rm -f "$newContentFile"
+			return 0
+		fi
+
+		local backup="$claudeConfig.bak"
+		cp -p "$claudeConfig" "$backup" || { rm -f "$newContentFile"; return 0; }
+		if cat "$newContentFile" > "$claudeConfig"; then
+			rm -f "$backup" "$newContentFile"
+			echo "✅ Removed a duplicate MCP server entry (not keyed \"myx.common\") from $claudeConfig" >&2
+		else
+			echo "⛔ ERROR: SetupAgentMcp: couldn't rewrite $claudeConfig - original preserved at $backup" >&2
+			rm -f "$newContentFile"
+			return 1
+		fi
+	done
 }
 
 SetupAgentMcp(){
@@ -133,7 +200,9 @@ SetupAgentMcp(){
 	[ -x "$myxCommonBin" ] || { echo "⛔ ERROR: SetupAgentMcp: can't resolve myx.common executable from MYXROOT ($root)" >&2; return 1; }
 	[ -x "$serverScript" ] || { echo "⛔ ERROR: SetupAgentMcp: missing or non-executable $serverScript" >&2; return 1; }
 	[ -f "$awkEditFile" ] && [ -f "$awkEscapeFile" ] || { echo "⛔ ERROR: SetupAgentMcp: missing resource files under $root/include/data" >&2; return 1; }
-	[ -f "$claudeConfig" ] || { echo "⛔ ERROR: SetupAgentMcp: $claudeConfig not found - nothing to register into" >&2; return 1; }
+	if [ ! -f "$claudeConfig" ]; then
+		( umask 077 && printf '{}' > "$claudeConfig" ) || { echo "⛔ ERROR: SetupAgentMcp: $claudeConfig not found and could not be created" >&2; return 1; }
+	fi
 	[ -r "$claudeConfig" ] && [ -w "$claudeConfig" ] || { echo "⛔ ERROR: SetupAgentMcp: $claudeConfig is not readable/writable" >&2; return 1; }
 
 	local escapedCwd
@@ -149,6 +218,9 @@ SetupAgentMcp(){
 	# carry --run explicitly or the MCP host's own invocation would never
 	# actually start the server.
 	entryValueJson="$(printf '{"command": "%s", "args": ["--run"]}' "$escapedScript")"
+
+	# Must run before the locate pass below: it shifts byte offsets.
+	SetupAgentMcpDropStaleEntries "$claudeConfig" "$escapedCwd" "$awkEditFile" || return 1
 
 	local facts
 	# cwd is passed via env (MYX_AGENTMCP_CWD), never -v cwd=...: awk's -v
@@ -197,7 +269,7 @@ SetupAgentMcp(){
 		[ "$MCPSERVERS_IS_EMPTY" = "1" ] && sep=""
 		{
 			head -c $((MCPSERVERS_FIRST_KEY_START - 1)) "$claudeConfig"
-			printf '"myx": %s%s' "$entryValueJson" "$sep"
+			printf '"myx.common": %s%s' "$entryValueJson" "$sep"
 			tail -c +"$MCPSERVERS_FIRST_KEY_START" "$claudeConfig"
 		} > "$newContentFile"
 	elif [ "$PROJECT_FOUND" = "1" ]; then
@@ -205,7 +277,7 @@ SetupAgentMcp(){
 		[ "$PROJECT_IS_EMPTY" = "1" ] && sep=""
 		{
 			head -c $((PROJECT_FIRST_KEY_START - 1)) "$claudeConfig"
-			printf '"mcpServers": {"myx": %s}%s' "$entryValueJson" "$sep"
+			printf '"mcpServers": {"myx.common": %s}%s' "$entryValueJson" "$sep"
 			tail -c +"$PROJECT_FIRST_KEY_START" "$claudeConfig"
 		} > "$newContentFile"
 	elif [ "$PROJECTS_FOUND" = "1" ]; then
@@ -213,7 +285,7 @@ SetupAgentMcp(){
 		[ "$PROJECTS_IS_EMPTY" = "1" ] && sep=""
 		{
 			head -c $((PROJECTS_FIRST_KEY_START - 1)) "$claudeConfig"
-			printf '"%s": {"mcpServers": {"myx": %s}}%s' "$escapedCwd" "$entryValueJson" "$sep"
+			printf '"%s": {"mcpServers": {"myx.common": %s}}%s' "$escapedCwd" "$entryValueJson" "$sep"
 			tail -c +"$PROJECTS_FIRST_KEY_START" "$claudeConfig"
 		} > "$newContentFile"
 	else
@@ -221,7 +293,7 @@ SetupAgentMcp(){
 		[ "$ROOT_IS_EMPTY" = "1" ] && sep=""
 		{
 			head -c $((ROOT_FIRST_KEY_START - 1)) "$claudeConfig"
-			printf '"projects": {"%s": {"mcpServers": {"myx": %s}}}%s' "$escapedCwd" "$entryValueJson" "$sep"
+			printf '"projects": {"%s": {"mcpServers": {"myx.common": %s}}}%s' "$escapedCwd" "$entryValueJson" "$sep"
 			tail -c +"$ROOT_FIRST_KEY_START" "$claudeConfig"
 		} > "$newContentFile"
 	fi

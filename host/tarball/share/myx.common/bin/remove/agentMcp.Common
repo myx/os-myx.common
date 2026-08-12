@@ -4,7 +4,7 @@
 #
 # SHELL-NOTE: Removes the myx MCP server entry registered by
 # `myx.common setup/agentMcp` from ~/.claude.json's local-scope
-# projects["<cwd>"].mcpServers."myx" (see setup/agentMcp.Common for the
+# projects["<cwd>"].mcpServers."myx.common" (see setup/agentMcp.Common for the
 # scope rationale). Idempotent: a no-op (success) if the entry isn't
 # present for this cwd. Same byte-range splice + backup + validate
 # approach as setup/agentMcp - see that file for the rationale.
