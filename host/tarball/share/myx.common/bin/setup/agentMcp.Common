@@ -91,6 +91,38 @@ SetupAgentMcpWorkspace(){
 	echo "   Restart your MCP host (e.g. Claude Code) to pick it up." >&2
 }
 
+# Companion to tier 2 above: the copilot CLI's own local-MCP trust gate.
+# Registering the server (tier 2) is not sufficient for it: `copilot -p` (headless,
+# no TTY to prompt on) silently skips starting any local/stdio MCP server
+# unless cwd is already listed in ~/.copilot/settings.json's
+# "trustedFolders" - confirmed live via its own logs (no server-start
+# attempt logged) and by adding the entry below and re-running the same
+# reproduction. Only relevant when copilot is installed; best-effort like
+# tier 2. The JSON read/upsert itself lives in a separate file,
+# include/data/agentMcpCopilotTrustUpsert.py - same split as
+# SetupAgentMcpWorkspace's own upsertScript above, rather than an inline
+# `python3 -c '...'` block (fragile: shell-quoting a multi-line Python body
+# inline is exactly the kind of syntax this codebase's scripts avoid by
+# convention).
+SetupAgentMcpCopilotTrust(){
+	local cwd="$1"
+	local root="${MYXROOT:-/usr/local/share/myx.common}"
+	local upsertScript="$root/include/data/agentMcpCopilotTrustUpsert.py"
+	command -v copilot >/dev/null 2>&1 || return 0
+	command -v python3 >/dev/null 2>&1 || { echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: python3 not found in PATH - skipping" >&2; return 0; }
+	[ -f "$upsertScript" ] || { echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: missing resource $upsertScript - skipping" >&2; return 0; }
+
+	local copilotSettings="${HOME:?SetupAgentMcpCopilotTrust: HOME is not set}/.copilot/settings.json"
+	mkdir -p "$(dirname "$copilotSettings")" || { echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't create $(dirname "$copilotSettings") - skipping" >&2; return 0; }
+	[ -f "$copilotSettings" ] || { ( umask 077 && printf '{}' > "$copilotSettings" ) || { echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't create $copilotSettings - skipping" >&2; return 0; } ; }
+
+	if python3 "$upsertScript" "$copilotSettings" "$cwd" >/dev/null; then
+		echo "✅ Trusted $cwd for the copilot CLI ($copilotSettings: trustedFolders)" >&2
+	else
+		echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't update $copilotSettings trustedFolders (unparsable?) - copilot CLI's -p mode may not load local MCP servers here" >&2
+	fi
+}
+
 # Splices out every entry that launches this same server under a key other
 # than "myx.common", so the host can't launch it twice. One splice per pass;
 # offsets shift, so it re-locates each time. Best-effort: an unparsable config
@@ -186,6 +218,7 @@ SetupAgentMcp(){
 	# whole script before tier 3 ever runs).
 	if [ -f "$cwd/.local/myx/myx.distro-.local/sh-lib/LocalContext.include" ]; then
 		SetupAgentMcpWorkspace "$cwd" || echo "⚠️  WARNING: SetupAgentMcp: workspace-local .vscode/mcp.json registration failed (see above) - continuing with the home ~/.claude.json registration below" >&2
+		SetupAgentMcpCopilotTrust "$cwd" || echo "⚠️  WARNING: SetupAgentMcp: copilot CLI trust registration failed (see above) - continuing with the home ~/.claude.json registration below" >&2
 	fi
 
 	# Tier 3: home ~/.claude.json registration - unchanged, always runs
