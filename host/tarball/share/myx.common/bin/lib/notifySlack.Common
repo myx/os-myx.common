@@ -81,24 +81,28 @@ NotifySlack(){
 		logger -s -t "$slackChannel" "@${eventUser:-"unknown"}: $eventText"
 	fi
 
-	(	\
-		curl 'https://slack.com/api/chat.postMessage' \
-			--insecure \
-			--silent \
-			--show-error \
-			--data-binary "@/dev/stdin" \
-			-H "Content-Type: application/json; charset=utf-8" \
-			-H "Authorization: Bearer ${slackBearer}" \
-			2>&1 >> /dev/null \
-		|| : \
-	) <<- RESTJSON
+	## Token and body travel in a `curl -K -` config: off argv, no temp file, no
+	## descriptor above 2. Escape `\` then `"` -- see MAGIC.md.
+	local slackBody slackBodyCfg slackBearerCfg
+	slackBody="$( cat <<- RESTJSON
 		{
-			"text": "$( echo -n "$eventText" | sed -e 's/\"/\\\"/g;s/\r/\\\r/g;s/\n/\\\n/g' )", 
-			"channel": "$slackChannel", 
-			"username": "$eventUser", 
+			"text": "$( printf '%s' "$eventText" | sed -e 's/\"/\\\"/g;s/\r/\\\r/g;s/\n/\\\n/g' )",
+			"channel": "$slackChannel",
+			"username": "$eventUser",
 			"icon_emoji": "$eventEmoji"
-		}	
+		}
 	RESTJSON
+	)"
+	slackBodyCfg="$( printf '%s' "$slackBody" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | tr '\n' ' ' )"
+	slackBearerCfg="$( printf '%s' "$slackBearer" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' )"
+	printf 'header = "Authorization: Bearer %s"\nheader = "Content-Type: application/json; charset=utf-8"\ndata-binary = "%s"\n' \
+		"$slackBearerCfg" "$slackBodyCfg" \
+	| curl -K - 'https://slack.com/api/chat.postMessage' \
+		--insecure \
+		--silent \
+		--show-error \
+		2>&1 >> /dev/null \
+	|| :
 
 	return 0
 }
