@@ -7,10 +7,39 @@ register it as an installable package in the distro-* index/pipeline — the
 command tool itself has no dependency on distro-* code or conventions.
 distro-* conventions don't carry over here, nor the reverse.
 
-Canonical human doc: `README.md` (command index, per-command
-Platforms/Root/Syntax, and "Adding or Changing a Command" for suffix/dispatch
-mechanics). No generator produces it — hand-maintained, synced by hand when
-commands change.
+Canonical human doc: `README.md` — install, everyday tasks and the command
+index, written for a person using the tool. Contributor mechanics (suffix
+dispatch, the help pair) live here, not there. No generator produces either
+one — both are hand-maintained, synced by hand when commands change.
+
+## Command resolution: `<name>.<Variant>`
+
+`myx.common <category>/<name>` tries three paths in this fixed order and takes
+the first match. Never reorder them.
+
+1. `bin/<category>/<name>.$(uname -s)` — this OS's own implementation.
+2. `bin/<category>/<name>.Common` — the cross-platform implementation.
+3. `include/obsolete/user/bin/<category>/<name>` — legacy-name fallback, a thin
+   redirect kept after a rename.
+
+- `bin/myx.common` runs the match only if it is executable, so a candidate
+  missing its `+x` bit is skipped silently and the next one wins.
+- `lib/which` walks the same chain but tests for a plain file, so it can name a
+  path the dispatcher would refuse to run.
+- `lib/which --uname <OS>` and `MYXUNIX` resolve the chain as another OS would.
+  `bin/myx.common` itself always reads the live `$(uname -s)`.
+
+## `bin/` command ↔ `help/` pair
+
+- Every `bin/<category>/<name>.<Variant>` has two files under `help/` at the
+  matching relative path: `<name>.help.include` (short syntax, sourced by the
+  command's own `--help` branch) and `<name>.help.md` (the full manual).
+- One pair per command name, never per OS variant — the same text serves
+  `.Common` and every `.<Platform>` sibling. This is why `myx.common help
+  <command>` sources the `.help.include` directly instead of re-running the
+  command, which would re-resolve against the live host and lose `--uname`.
+- A new `bin/` command without both files is incomplete. `include/` scripts
+  deliberately have no pair — see the `bin/` vs `include/` section below.
 
 ## Sibling repos are install-only placeholders
 
