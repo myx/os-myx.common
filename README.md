@@ -65,10 +65,9 @@ Run something over a list of inputs:
 	cat hosts.txt | myx.common lib/parallel --workers 8 -- ssh
 	echo 'uname -a' | myx.common lib/execShStdin
 
-Send a notification or an email:
+Send a notification:
 
 	myx.common lib/notifySmart --alert --text "backup failed"
-	echo "body text" | myx.common mail/send someone@example.org "Subject line"
 
 Register `myx.common` as an MCP server for an AI agent host:
 
@@ -95,6 +94,7 @@ Linux, FreeBSD and macOS.
 	- `install/ensure/utilDhcpIpfwPublicDns` — ensure DHCP, IPFW and public-DNS tooling. [FreeBSD]
 	- `install/git` — install Git.
 	- `install/java` — install the Java runtime and tools.
+	- `install/claude` — install the Claude Code CLI.
 	- `install/updates` — install system updates.
 	- `install/myx.common-reinstall` — reinstall myx.common from upstream.
 	- `install/brew` — install Homebrew and baseline tools. [Darwin]
@@ -135,9 +135,7 @@ Linux, FreeBSD and macOS.
 		- `lib/fetchStdout` — fetch a URL to stdout, with optional caching.
 		- `lib/installEnsurePackage` — install a package if it is missing.
 		- `lib/setupShellCompletion` — register shell completion for a utility.
-- `mail/` — email:
-	- `mail/send` — send an email; the body is piped in.
-	- `mail/receive` — list recent INBOX messages, newest first.
+		- `lib/agentMcpServer` — the MCP stdio server. Launched by the agent host that `setup/agentMcp` registers, not run by hand.
 - `os/` — machine facts and maintenance:
 	- Facts:
 		- `os/getCpuCount` — CPU core count.
