@@ -63,9 +63,9 @@ out.nextrelease() {
 
 out.valuechange() {
  if [ "$4" ]; then
-  echo -n "Changing value of '$1' setting for '$2' from '$4' to '$3'... "
+  printf '%s' "Changing value of '$1' setting for '$2' from '$4' to '$3'... "
  else
-  echo -n "Changing value of '$1' setting for '$2' to '$3'... "
+  printf '%s' "Changing value of '$1' setting for '$2' to '$3'... "
  fi
 }
 
@@ -88,8 +88,8 @@ out.status() {
 
 out.message() {
  if [ "$(echo $OPTIONS | fgrep -w verbose)" -o -z "$SIMPLEOUTPUT" ]; then
-  [ waitstatus = "$2" ] && echo -n "$1 " || echo $1
+  [ waitstatus = "$2" ] && printf '%s' "$1 " || printf '%s\n' "$1"
  else
-  [ "$3" ] && echo -n $3
+  [ "$3" ] && printf '%s' "$3"
  fi
 }
