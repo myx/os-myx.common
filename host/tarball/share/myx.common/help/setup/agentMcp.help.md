@@ -21,7 +21,7 @@ Requires root privileges: no.
   by the launch cwd - or by the `MYX_AGENTMCP_TARGET_CWD` environment
   variable when set, for a caller whose own process cwd isn't the
   workspace being registered (e.g. dispatch through an MCP tool such as
-  `mcp__myx_common__myx_common_run`, whose server process has its own
+  `mcp__myx_common__lib_execShStdin`, whose server process has its own
   fixed cwd unrelated to any particular workspace). Ordinary
   interactive/terminal invocation needs nothing extra - pwd already is
   the intended workspace there:

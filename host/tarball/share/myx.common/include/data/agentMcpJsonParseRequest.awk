@@ -1,39 +1,13 @@
 #!/usr/bin/env awk
 
-# Parses one single-line JSON-RPC message (fed on stdin, run under LC_ALL=C
-# by the caller for byte safety) and writes the fields agentMcpServer cares
-# about into files under -v outDir=..., rather than to stdout/argv, so
-# values with embedded newlines/quotes round-trip safely:
-#   outDir/method              - method name (decoded string)
-#   outDir/has_id              - "1" if a top-level "id" was present
-#   outDir/id                  - raw JSON token for "id" (echoed back as-is)
-#   outDir/tool_name           - params.name (tools/call)
-#   outDir/uri                 - params.uri (resources/read, decoded string)
-#   outDir/cancel_request_id   - params.requestId (notifications/cancelled,
-#                                 raw JSON token, matched against outDir/id
-#                                 format written for the original request)
-#   outDir/arg_command         - params.arguments.command (decoded string)
-#   outDir/arg_uname           - params.arguments.uname (decoded string)
-#   outDir/arg_stdin           - params.arguments.stdin (decoded string)
-#   outDir/arg_timeout         - params.arguments.timeout (raw number token)
-#   outDir/arg_comment         - params.arguments.comment (decoded string)
-#   outDir/arg_merge_outputs   - params.arguments.mergeOutputs ("true"/"false")
-#   outDir/client_name         - params.clientInfo.name (initialize; decoded string)
-#   outDir/client_version      - params.clientInfo.version (initialize; decoded string)
-#   outDir/arg_args_count      - params.arguments.args array length
-#   outDir/arg_args_<N>        - params.arguments.args[N] (decoded string)
-#   outDir/arg_env_count       - number of valid params.arguments.env entries
-#   outDir/arg_env_name_<N>    - Nth env var name (only emitted if it matches
-#                                 the POSIX identifier shape [A-Za-z_][A-Za-z0-9_]*;
-#                                 non-conforming keys are silently skipped)
-#   outDir/arg_env_val_<N>     - Nth env var value (decoded string)
-# Any other field is parsed (to keep position tracking correct) but
-# silently discarded. Not a general-purpose JSON parser: only understands
-# the flat/one-level-nested shapes MCP tool-call messages actually use.
+# Parses one single-line JSON-RPC message from stdin into separate files under
+# -v outDir=..., so values with embedded newlines or quotes round-trip safely.
+# The caller must run this under LC_ALL=C: byte safety for raw UTF-8, and the
+# [A-Za-z_] env-name range below must collate as ASCII, not by locale.
+# Not a general JSON parser - only the shapes MCP messages actually use.
+# Full outDir/* field list: os-myx.common/MAGIC.md.
 
-# envEntryCount must start as a real "0", not awk's uninitialized "" -
-# concatenating "" into a filename ("arg_env_name_" with no index) instead
-# of "arg_env_name_0" would silently break the first entry.
+# Must be a real 0, not awk's uninitialized "": "arg_env_name_" with no index would silently break the first entry.
 BEGIN { envEntryCount = 0; }
 
 function skipws(   c) {

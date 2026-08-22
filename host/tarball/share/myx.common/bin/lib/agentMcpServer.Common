@@ -2,82 +2,12 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 #
-# SHELL-NOTE: Long-running MCP (Model Context Protocol) stdio server. Public/
-# completable as `myx.common lib/agentMcpServer` (shows in `myx.common
-# help`/completion like any other bin/ command - accepted, not curated out;
-# see help/lib/agentMcpServer.help.md), but only ever actually *used* one way:
-# registered via `myx.common setup/agentMcp`, which writes this file's
-# absolute path plus `--run` straight into the MCP host's config as its
-# launch command/args; launched as a subprocess by that host (e.g. Claude
-# Code) - not for interactive human use. The trailing case "$0"/--run guard
-# below is the same dispatch shape every other bin/lib/*.Common file uses;
-# --run is this file's own addition on top of that shape (see the guard
-# itself) since, unlike a normal command, bare invocation must never fall
-# into the server loop by accident.
-#
-# Speaks JSON-RPC 2.0 over stdin/stdout, newline-delimited, hand-rolled (no
-# jq/python dependency) using the sibling resources in this directory
-# (agentMcpJsonEscape.awk, agentMcpJsonParseRequest.awk, agentMcpTools.json).
-#
-# Exposes two tools to the connected agent:
-#   myx_common_help - discover commands (wraps `myx.common help`)
-#   myx_common_run  - execute a command and return stdout/stderr/exit status
-#
-# Also exposes a `resources` capability (resources/list, resources/read) so
-# a host can read a command's full help manual without spending a tool
-# call: one resource per shipped $MYXROOT/help/**/*.help.md file, addressed
-# by URI `myx-common://help/<category>/<name>` (mirrors the command's own
-# `category/name` addressing, minus the `.help.md` suffix). NOTE: this is
-# `$MYXROOT/help/*.help.md` only - the repo's own README.md is NOT part of
-# the installed tree (`host/tarball/share/myx.common/` has no README.md),
-# so it can't be exposed this way without also changing what ships in the
-# install tarball, which wasn't done here.
-#
-# myx_common_run runs in the background (see AgentMcpRunMyxCommonRunAsync)
-# so the request loop stays free to read/act on the next line - a
-# notifications/cancelled for the in-flight call (see
-# AgentMcpHandleCancelled), a ping, another fast method - instead of
-# blocking for the whole duration. Concurrent calls are allowed: each
-# in-flight myx_common_run is tracked by its own request id under
-# $AGENT_MCP_REQ_BASE/inflight/<id>, so multiple calls can run at once
-# without contending with each other - except a second call sharing the
-# exact same request id as one already in flight, which still gets an
-# immediate "busy" error (see the same-id gate in
-# AgentMcpHandleToolsCall's myx_common_run case).
-#
-# Known limitations (accepted, not bugs):
-#  - Cancellation and the same-id "busy" check are PID-based (same
-#    TERM-then-KILL pattern as the timeout feature below), so share its
-#    grandchild / PID-reuse caveats.
-#  - Response lines (synchronous methods and the async myx_common_run
-#    result alike) are serialized through a tiny mkdir-based mutex
-#    (AgentMcpStdoutLock/Unlock) so two writers can never interleave
-#    partial JSON-RPC lines on stdout - now that more than one write can
-#    genuinely be in flight at once, this isn't optional.
-#  - Background myx_common_run jobs are not explicitly reaped (`wait`ed)
-#    after they finish - POSIX sh has no portable non-blocking wait, and a
-#    blocking one would reintroduce exactly the stall this design avoids.
-#    They become zombie processes until this server process itself exits
-#    (which reaps all its children) - typically once per MCP host session,
-#    so accepted as bounded/cheap rather than engineered away.
-#  - An optional `timeout` (seconds) arg still bounds an individual
-#    myx_common_run call itself (see AgentMcpRunWithTimeout) - independent
-#    of, and composable with, the above.
-#  - Timeout enforcement is PID-based (TERM then KILL on the directly
-#    backgrounded command process), not process-group-based: a grandchild
-#    the command itself forks (e.g. a `curl` it shells out to) is not
-#    guaranteed to die with it and may linger detached. No GNU `timeout(1)`
-#    dependency is assumed, since it's not guaranteed present on a bare
-#    FreeBSD/Darwin install.
-#  - A trailing newline (or its absence) at the very end of a command's
-#    output is not distinguishable after capture; harmless for text results.
-#  - NUL bytes in command output are not supported (shared sh/awk limitation).
+# SHELL-NOTE: Hand-rolled JSON-RPC 2.0 MCP stdio server. The MCP host launches
+# it by absolute path with --run; bare invocation prints help and never serves.
+# NUL bytes in command output are unsupported (shared sh/awk limitation).
+# Wire format, concurrency model and accepted limits: os-myx.common/MAGIC.md.
 
-# Self-bootstraps MYXROOT/MYXUNIX rather than relying on the myx.common
-# dispatcher to have exported them first (like every other bin/lib/*.Common
-# file can) - this file is normally launched directly by absolute path from
-# the MCP host's own config, entirely bypassing the dispatcher, so nothing
-# upstream has necessarily set them.
+# Self-bootstraps: the MCP host launches this file by absolute path, bypassing the dispatcher.
 if [ -z "$MYXROOT" ]; then
 	case "$0" in
 	*/bin/lib/agentMcpServer.Common) MYXROOT="${0%/bin/lib/agentMcpServer.Common}" ;;
@@ -86,12 +16,7 @@ if [ -z "$MYXROOT" ]; then
 	export MYXROOT MYXUNIX=${MYXUNIX:-$(uname -s)}
 fi
 
-# Tool definitions are static (no dynamic values), so they live in their
-# own real .json file (agentMcpTools.json, sibling to the awk resources
-# below) rather than an embedded shell literal - editable/diffable/lintable
-# as actual JSON. The wire format is newline-delimited JSON-RPC (see header
-# comment above), so the file's own newlines must be stripped before use -
-# JSON itself doesn't care about the whitespace either way.
+# The wire is newline-delimited JSON-RPC, so the file's own newlines must go.
 AGENT_MCP_TOOLS_JSON="$(tr -d '\n' < "$MYXROOT/include/data/agentMcpTools.json")"
 
 AgentMcpJsonEscape(){
@@ -104,30 +29,12 @@ AgentMcpJsonParseRequest(){
 	printf '%s\n' "$line" | LC_ALL=C awk -v outDir="$outDir" -f "$MYXROOT/include/data/agentMcpJsonParseRequest.awk"
 }
 
-# Derives a filesystem-safe key from a JSON-RPC id (the id itself is only
-# ever echoed back verbatim in JSON-RPC response bodies elsewhere) before
-# it's used as an inflight-tracking filename component under
-# $AGENT_MCP_REQ_BASE/inflight/. The raw id token round-tripped by
-# AgentMcpJsonParseRequest is untrusted - JSON-RPC 2.0 permits string ids,
-# so the raw token can contain "/", "..", quotes, or other characters
-# unsafe in a path segment. cksum(1) is POSIX and produces a pure
-# digit/space string on every one of Darwin/FreeBSD/Linux, so this is
-# portable and collision-resistant without a hand-rolled allow-list; it
-# only needs to be stable within this one running server process, never
-# across processes or machines.
+# A JSON-RPC id is untrusted and may hold "/", ".." or quotes; cksum(1) is POSIX and portable.
 AgentMcpSafeId(){
 	printf '%s' "$1" | cksum | tr -s ' ' '_'
 }
 
-# Tiny mkdir-based mutex around stdout writes - mkdir is atomic on every
-# POSIX filesystem, so this is portable with no flock/lockf dependency
-# (flock isn't guaranteed present on bare FreeBSD/Darwin). Needed because
-# AgentMcpRunMyxCommonRunAsync's background job and the main loop's own
-# synchronous responses can now genuinely write to stdout at the same
-# moment; without this, two response lines could interleave mid-line and
-# break JSON-RPC framing for both. Hold times here are always a single
-# printf call (microseconds), so a tight spin is fine - the sleep fallback
-# only guards against something unexpectedly stuck.
+# mkdir is atomic on every POSIX filesystem; flock is not guaranteed on bare FreeBSD/Darwin.
 AgentMcpStdoutLock(){
 	local tries=0
 	[ -n "$AGENT_MCP_STDOUT_LOCK" ] || return 0
@@ -162,21 +69,8 @@ AgentMcpSendError(){
 	AgentMcpStdoutUnlock
 }
 
-# Runs "env" "$@" (stdin from reqDir/arg_stdin if present, else
-# /dev/null) with a hard wall-clock timeout. $@ is expected to already be
-# the fully-assembled [envpair1 envpair2 ... MYX_COMMON_BIN cmd arg1 arg2
-# ...] list (see AgentMcpHandleToolsCall's myx_common_run case) - `env`
-# with zero leading NAME=value tokens just execs the target directly, so
-# routing every call through it (even with no env vars set) keeps this
-# function simple with no branching on whether env vars were requested.
-# Portable POSIX background-job + watcher pattern - no GNU `timeout(1)`
-# dependency (not guaranteed present on a bare FreeBSD/Darwin install).
-# Backgrounds the invocation directly (not wrapped in a `( ... )` subshell)
-# so "$!" is the real, killable process - `env` execs into the target
-# rather than forking, so its PID stays the target's PID. Prints captured
-# stdout+stderr to stdout and returns the command's exit status, or 124 if
-# the watcher had to kill it. PID-based, so is subject to the grandchild /
-# PID-reuse caveats noted in this file's header comment.
+# PID-based, no GNU timeout(1) dependency: a grandchild the command forks may linger.
+# Backgrounds `env` directly, never in a subshell, so "$!" is the real killable PID.
 AgentMcpRunWithTimeout(){
 	local reqDir="$1" timeoutSecs="$2" outFile killedFile cmdPid watcherPid exitCode
 	shift 2
@@ -222,18 +116,13 @@ AgentMcpRunWithTimeout(){
 	return "$exitCode"
 }
 
-# Runs myx_common_run entirely in the background so the main request loop
-# stays free to read the next line - a notifications/cancelled for this
-# same request (see AgentMcpHandleCancelled), a ping, another fast method
-# - instead of blocking for the whole duration. Each job's PID is tracked
-# under $AGENT_MCP_REQ_BASE/inflight/<id>, keyed by this request's own
-# id, so concurrent myx_common_run calls no longer contend with each
-# other.
+# Backgrounded so the request loop stays free; each job is tracked by its own request id.
 AgentMcpRunMyxCommonRunAsync(){
 	local asyncReqDir="$1" id="$2" safeId="$3"
 	shift 3
 	# $@ = [envpair... MYX_COMMON_BIN cmd arg...], assembled by the caller.
 
+	# Never reaped: POSIX sh has no portable non-blocking wait, and a blocking one stalls the loop.
 	(
 		local contentText exitCode isError escText resultJson timeoutArg mergeOutputs outFile errFile
 
@@ -279,34 +168,16 @@ $(cat "$errFile" 2>/dev/null)"
 		resultJson="$(printf '{"content":[{"type":"text","text":"%s"}],"isError":%s}' "$escText" "$isError")"
 		AgentMcpSendResult "$id" "$resultJson"
 
-		# Remove this job's own per-id tracking file unconditionally on
-		# completion - safe because each in-flight job now has its own
-		# uniquely keyed file (no shared scalar pair to race over between
-		# unrelated jobs), and idempotent (rm -f) if a concurrent
-		# notifications/cancelled already removed it first; harmless either
-		# way, the client already stopped expecting a response for a
-		# cancelled id and will just ignore this send.
 		rm -f "$AGENT_MCP_REQ_BASE/inflight/$safeId"
 		rm -rf "$asyncReqDir"
 	) &
 
-	# Atomic-create idiom: write to a private tmp file then rename into
-	# place - mv(1) within the same directory is atomic on every POSIX
-	# filesystem, so a concurrent reader (AgentMcpHandleCancelled or the
-	# same-id busy-check) never observes a partially-written PID.
+	# Write-then-rename: a concurrent reader must never see a partially-written PID.
 	printf '%s' "$!" > "$AGENT_MCP_REQ_BASE/inflight/$safeId.tmp"
 	mv -f "$AGENT_MCP_REQ_BASE/inflight/$safeId.tmp" "$AGENT_MCP_REQ_BASE/inflight/$safeId"
 }
 
-# Handles notifications/cancelled for one specific in-flight
-# myx_common_run job, looked up directly by its request id under
-# $AGENT_MCP_REQ_BASE/inflight/<id>. A notification has no id and expects
-# no response either way; this only does something if the cancelled
-# requestId matches a currently-tracked in-flight job. TERM is sent
-# immediately and tracking is cleared right away (so a new myx_common_run
-# isn't needlessly held "busy" waiting for the old one to actually die);
-# the KILL escalation runs in its own detached background check so this
-# function - and the main loop right after it - never blocks on it.
+# TERM and untrack immediately; the KILL escalation is detached so the loop never blocks on it.
 AgentMcpHandleCancelled(){
 	local cancelReqDir="$1" cancelId safeId inflightFile inflightPid
 
@@ -343,9 +214,7 @@ AgentMcpHandleToolsCall(){
 			else
 				contentText="$("$MYX_COMMON_BIN" help "$@" 2>&1)"
 			fi
-			# NOTE: `myx.common help ...` conventionally exits 1 even when it
-			# successfully displayed help text - that's not a real failure,
-			# so this tool never reports isError based on exit status.
+			# `myx.common help` exits 1 even on success - never derive isError from it.
 			exitCode=0
 		;;
 		lib_execShStdin)
@@ -361,9 +230,6 @@ AgentMcpHandleToolsCall(){
 			envCount="$(cat "$reqDir/arg_env_count" 2>/dev/null || true)"
 			case "$envCount" in ''|*[!0-9]*) envCount=0 ;; esac
 
-			# $@ is assembled once as [envpair1 ... MYX_COMMON_BIN cmd arg1 ...] -
-			# see AgentMcpRunWithTimeout's header comment for why leading it with
-			# NAME=value tokens and always invoking through `env` is safe/simple.
 			set --
 			i=0
 			while [ "$i" -lt "$envCount" ]; do
@@ -379,24 +245,13 @@ AgentMcpHandleToolsCall(){
 				i=$((i + 1))
 			done
 
-			# Each in-flight myx_common_run is tracked under its own request id
-			# (see AgentMcpRunMyxCommonRunAsync's header comment), so different
-			# ids run concurrently without contending with each other. A second
-			# call sharing the exact same request id as one already in flight is
-			# still rejected here rather than queued or run in parallel, so a
-			# single id's own cancellation/tracking never has to reason about
-			# more than one job for itself.
 			safeId="$(AgentMcpSafeId "$id")"
 			if [ -f "$AGENT_MCP_REQ_BASE/inflight/$safeId" ] && kill -0 "$(cat "$AGENT_MCP_REQ_BASE/inflight/$safeId" 2>/dev/null)" 2>/dev/null; then
 				AgentMcpSendError "$id" -32000 "Another lib_execShStdin call with this same request id is already in progress; wait for it to finish or send notifications/cancelled for it first"
 				return 0
 			fi
 
-			# reqDir is the loop's one shared scratch directory, reused (rm
-			# -rf'd) on the very next line read - moving it to a private,
-			# uniquely-named directory before backgrounding is what makes it
-			# safe for the async job to keep reading it after this function
-			# (and this loop iteration) returns.
+			# reqDir is the loop shared scratch, reused on the next line - move it before backgrounding.
 			AGENT_MCP_ASYNC_SEQ=$((AGENT_MCP_ASYNC_SEQ + 1))
 			asyncReqDir="$AGENT_MCP_REQ_BASE/async.$AGENT_MCP_ASYNC_SEQ"
 			rm -rf "$asyncReqDir"
@@ -423,10 +278,7 @@ AgentMcpHandleToolsCall(){
 	AgentMcpSendResult "$id" "$resultJson"
 }
 
-# Lists every $MYXROOT/help/**/*.help.md file as an MCP resource. URI is
-# `myx-common://help/<relpath>` where <relpath> mirrors the command's own
-# category/name (the file minus its $MYXROOT/help/ prefix and .help.md
-# suffix) - e.g. help/git/clonePull.help.md -> myx-common://help/git/clonePull.
+# URI is `myx-common://help/<category>/<name>` - the help file minus its prefix and .help.md suffix.
 AgentMcpHandleResourcesList(){
 	local id="$1" helpDir fileList file relpath uri escName escUri entries first
 
@@ -451,11 +303,6 @@ AGENTMCPLISTEOF
 	AgentMcpSendResult "$id" "{\"resources\":[$entries]}"
 }
 
-# Reads back one resource listed by AgentMcpHandleResourcesList. Re-derives
-# and validates the file path from the URI rather than trusting it verbatim
-# - relpath must stay a plain relative path under $MYXROOT/help (no "..",
-# no leading "/", identifier/slash/dot/dash characters only) since the URI
-# is caller-supplied and a well-behaved client isn't the only possible one.
 AgentMcpHandleResourcesRead(){
 	local reqDir="$1" id="$2" uri relpath filePath escUri escText
 
@@ -531,21 +378,9 @@ AgentMcpServerLoop(){
 	local reqDir LINE
 	AGENT_MCP_REQ_BASE="$(mktemp -d "${TMPDIR:-/tmp}/myx.common.agentMcp.XXXXXX")" || return 1
 	AGENT_MCP_STDOUT_LOCK="$AGENT_MCP_REQ_BASE/stdout.lock"
-	# Per-request-id myx_common_run tracking files live under here (see
-	# AgentMcpRunMyxCommonRunAsync) - created once up front so the first
-	# tracked job never races its own directory into existence.
 	mkdir -p "$AGENT_MCP_REQ_BASE/inflight" || return 1
-	# Startup diagnostic, stderr only - stdout is the JSON-RPC wire itself
-	# (the host parses every stdout line as a message, so nothing else may
-	# ever be written there). Makes this run's scratch layout directly
-	# visible for debugging instead of only discoverable by reading source
-	# or hitting a bug.
-	# One session-id var, folded from whichever host actually set one -
-	# CLAUDE_CODE_SESSION_ID is the only confirmed one of the three today;
-	# COPILOT_SESSION_ID/GROK_SESSION_ID are undocumented/unconfirmed
-	# placeholder names, harmless no-ops if unset, picked up automatically
-	# if a future host version ever sets them - no per-host branching, one
-	# flat fallback chain, one flat presence check below.
+	# stdout is the JSON-RPC wire itself; every diagnostic goes to stderr, never there.
+	# Only CLAUDE_CODE_SESSION_ID is confirmed - the other two are unverified placeholders.
 	callerSessionId="${CLAUDE_CODE_SESSION_ID:-${COPILOT_SESSION_ID:-$GROK_SESSION_ID}}"
 	callerInfo="pid=$$"
 	[ -z "$CLAUDE_PID" ] || callerInfo="$callerInfo caller_pid=$CLAUDE_PID"
@@ -566,15 +401,6 @@ AgentMcpServerLoop(){
 	trap - EXIT INT TERM
 }
 
-# Standard bin/lib/*.Common case "$0" dispatch shape (see e.g.
-# bin/lib/execShStdin.Common, bin/lib/iterate.Common), plus a --run guard on
-# top of it: --help/no-args prints usage same as any other command, but
-# nothing here falls through to the server loop without an explicit --run -
-# unlike a normal command, silently starting a long-running stdin-reading
-# loop on bare/accidental invocation would be actively harmful (hangs
-# reading stdin forever), not just wrong output. `myx.common setup/agentMcp`
-# registers this file's absolute path with `--run` as its launch args, so
-# the MCP host's own invocation always includes it.
 case "$0" in
 	*/myx.common/bin/lib/agentMcpServer.Common)
 		if [ "--help" = "$1" ] || [ -z "$1" ]; then
@@ -582,10 +408,7 @@ case "$0" in
 			exit 1
 		fi
 		if [ "--run" = "$1" ]; then
-			# NOTE: deliberately no `set -e` for the loop itself - it's a
-			# long-running loop that must survive individual failing tool
-			# invocations, not abort the whole server process on the first
-			# non-zero exit status.
+			# Deliberately no `set -e`: the loop must survive a failing tool call, not abort.
 			AgentMcpServerLoop
 			exit 0
 		fi

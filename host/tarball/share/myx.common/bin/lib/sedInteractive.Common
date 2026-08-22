@@ -8,10 +8,6 @@
 export SedInteractive='sed -u'
 alias SedInteractive='sed -u'
 
-# SedInteractive(){
-# 	sed -u "$@"
-# }
-
 case "$0" in
 	*/myx.common/bin/lib/sedInteractive.Common) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then

@@ -5,22 +5,6 @@
 ###   myx.common lib/setupShellCompletion "myx.common" --remove
 ###
 
-
-
-#
-#type SetupShellCompletion >/dev/null 2>&1 || \
-#	. "${MYXROOT:-/usr/local/share/myx.common}/bin/lib/setupShellCompletion"
-#
-#
-#
-#SetupShellCompletion "$@"
-#
-#exit 0
-#
-
-
-
-
 type UserRequireRoot >/dev/null 2>&1 || \
 	. "${MYXROOT:-/usr/local/share/myx.common}/bin/user/requireRoot.Common"
 

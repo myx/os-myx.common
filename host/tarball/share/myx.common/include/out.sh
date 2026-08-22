@@ -35,12 +35,14 @@ bakwht='\33[47m'   # White
 txtbld='\33[1m'    # Bold
 txtrst='\33[0m'    # Text Reset
 
+## Caller text is an argument, never part of the format -- a '%' in a message must print, not expand.
+
 out.error() {
- printf "${bldred}Error:$txtrst $@\n" && return 0
+ printf "${bldred}Error:$txtrst %s\n" "$*" && return 0
 }
 
 out.info() {
- printf "${txtbld}Info:$txtrst $@\n" && return 0
+ printf "${txtbld}Info:$txtrst %s\n" "$*" && return 0
 }
 
 out.syntax() {
@@ -50,11 +52,11 @@ out.syntax() {
 }
 
 out.example() {
- printf "${txtbld}Example: $@$txtrst\n" && return 0
+ printf "${txtbld}Example: %s$txtrst\n" "$*" && return 0
 }
 
 out.str() {
- printf "\t$SCRIPTNAME $@\n" && return 0
+ printf "\t%s %s\n" "$SCRIPTNAME" "$*" && return 0
 }
 
 out.nextrelease() {
@@ -70,11 +72,11 @@ out.valuechange() {
 }
 
 out.status() {
- if [ "$(echo $OPTIONS | fgrep -w verbose)" -o -z "$SIMPLEOUTPUT" ]; then
+ if [ -z "$SIMPLEOUTPUT" ] || case " $OPTIONS " in *" verbose "*) true ;; *) false ;; esac ; then
   case $1 in
-   red) printf "[ $bldred$2$txtrst ]\n";;
-   green) printf "[ $bldgrn$2$txtrst ]\n";;
-   yellow) printf "[ $bldylw$2$txtrst ]\n";;
+   red) printf "[ $bldred%s$txtrst ]\n" "$2";;
+   green) printf "[ $bldgrn%s$txtrst ]\n" "$2";;
+   yellow) printf "[ $bldylw%s$txtrst ]\n" "$2";;
   esac
  else
   case $1 in
@@ -87,7 +89,7 @@ out.status() {
 }
 
 out.message() {
- if [ "$(echo $OPTIONS | fgrep -w verbose)" -o -z "$SIMPLEOUTPUT" ]; then
+ if [ -z "$SIMPLEOUTPUT" ] || case " $OPTIONS " in *" verbose "*) true ;; *) false ;; esac ; then
   [ waitstatus = "$2" ] && printf '%s' "$1 " || printf '%s\n' "$1"
  else
   [ "$3" ] && printf '%s' "$3"

@@ -286,7 +286,7 @@ RemoteContext(){
 
 	local templateRoot="${MYXROOT:-/usr/local/share/myx.common}/include/remote/"
 
-	if [ -n "$interactive" -o -n "$requireBash" ]; then
+	if [ -n "$interactive" ] || [ -n "$requireBash" ]; then
 		if [ -n "$interactive" ]; then
 			[ ! -t 0 ] || stty -echo; exec 0</dev/null
 			printf "[ -t 0 ] && stty -echo\n" '\b'

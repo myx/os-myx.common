@@ -1,38 +1,11 @@
 #!/usr/bin/env awk
 
-# Locates (or, in validate mode, sanity-checks) a specific nested key inside
-# a JSON config file, WITHOUT a general parse/rewrite of the whole
-# structure - used by setup/agentMcp and remove/agentMcp to surgically
-# splice the "myx.common" entry at ~/.claude.json's
-# projects["<cwd>"].mcpServers."myx.common" (local/per-project scope, Claude
-# Code's own convention - see https://code.claude.com/docs/en/mcp) via byte
-# offsets (head -c / tail -c), leaving every other byte untouched.
-#
-# Input: whole file content as one record (caller sets RS to slurp-all).
-# Params:
-#   -v mode=... - "locate" (default) or "validate" (see below).
-#   MYX_AGENTMCP_CWD (environment variable, NOT -v) - required in locate
-#     mode. The exact bytes to match/insert as the projects[] key - the
-#     caller is responsible for passing this already JSON-string-escaped
-#     (see agentMcpJsonEscape.awk) so it's byte-safe to splice directly and
-#     byte-comparable against what's already on disk. Deliberately an
-#     environment variable rather than -v cwd=...: POSIX awk's -v/command-
-#     line variable assignment performs its own backslash-escape decoding
-#     on the value before assignment, which would silently un-escape the
-#     very '\"'/'\\' sequences agentMcpJsonEscape.awk just produced and
-#     break byte-comparison for cwd paths containing '"' or '\' (confirmed
-#     via fixture: caused a duplicate "projects" key on re-run). ENVIRON[]
-#     values come straight from the process environment with no such
-#     decoding, so this sidesteps the bug entirely rather than documenting
-#     around it.
-# Modes:
-#   locate (default) - prints KEY=VALUE facts (1-based byte offsets)
-#     walking projects -> <cwd> -> mcpServers -> myx.common, stopping at whichever
-#     level is the shallowest missing key so the caller knows exactly what
-#     to splice in.
-#   validate - prints "VALID" if the input parses as one well-formed JSON
-#     value with nothing left over, else "INVALID <reason>". Used as a
-#     self-contained (no jq/python needed) sanity check after splicing.
+# Locates (locate mode) or sanity-checks (validate mode) one nested key in a
+# JSON config by byte offset, without ever reparsing or rewriting the file.
+# MYX_AGENTMCP_CWD is an environment variable, never -v: awk's -v decodes
+# backslash escapes and would undo agentMcpJsonEscape.awk's own escaping,
+# breaking byte-comparison for a cwd containing '"' or '\'.
+# Modes and the emitted fact names: os-myx.common/MAGIC.md.
 
 function skipws(   c) {
 	while (p <= n) {
@@ -107,13 +80,7 @@ function skipArray(   c, ok) {
 	}
 }
 
-# Walks the direct key/value pairs of the object whose "{" is at objStart,
-# looking for targetKey. Sets FOUND plus (if found) KEY_START, VALUE_START,
-# VALUE_END, PAIR_END_NO_COMMA, PAIR_END_WITH_COMMA, HAD_TRAILING_COMMA,
-# PRECEDING_COMMA_POS (0 if none). Always sets FIRST_KEY_START (insertion
-# point for a brand new first key) and IS_EMPTY, and OBJ_CLOSE (position
-# right after the object's closing "}"). Returns 1 on a structurally valid
-# walk, 0 if the object didn't parse cleanly.
+# Walks one object's direct pairs for targetKey; sets FOUND plus the splice offsets MAGIC.md lists.
 function findKeyInObjectAt(objStart, targetKey,   keyStart, key, valStart, c, lastCommaPos) {
 	p = objStart
 	FOUND = 0
@@ -169,8 +136,7 @@ function findKeyInObjectAt(objStart, targetKey,   keyStart, key, valStart, c, la
 	}
 }
 
-# Reads the "command" of the entry object at objStart, as its raw JSON token.
-# Saves/restores p so the caller's own walk is unaffected.
+# Saves and restores p, so the caller's own in-progress walk is unaffected.
 function commandTokenAt(objStart,   savedP, ret) {
 	savedP = p
 	ret = ""
@@ -180,9 +146,7 @@ function commandTokenAt(objStart,   savedP, ret) {
 	return ret
 }
 
-# True when the command lives inside this product's tree, i.e. "myx.common" is
-# one of its path components. An exact component, never a substring: a
-# directory merely named "not-myx.common-really" is a stranger's.
+# True only when "myx.common" is a whole path component of the command, never a substring.
 function isOurCommand(tok,   v) {
 	if (tok == "" || substr(tok, 1, 1) != "\"") return 0
 	v = substr(tok, 2, length(tok) - 2)
@@ -190,10 +154,7 @@ function isOurCommand(tok,   v) {
 	return v ~ /(^|\/)myx\.common(\/|$)/
 }
 
-# Walks the same object looking for the first pair, other than "myx.common",
-# whose entry launches a command from inside this product's tree -- a
-# duplicate registration the host would launch alongside the real one. Sets
-# STALE_FOUND plus splice offsets. Returns 0 if the object didn't parse.
+# Finds the first pair other than "myx.common" whose command comes from this tree - a duplicate registration.
 function findStaleEntryInObjectAt(objStart,   keyStart, key, valStart, c, lastCommaPos) {
 	p = objStart
 	STALE_FOUND = 0
@@ -247,8 +208,12 @@ BEGIN {
 	cwd = ENVIRON["MYX_AGENTMCP_CWD"]
 }
 
-{
-	s = $0
+# Rejoin the records under the default RS: a NUL RS is the empty string, which
+# selects paragraph mode and would split the document on any blank line.
+{ doc = (NR == 1) ? $0 : doc "\n" $0; }
+
+END {
+	s = doc
 	n = length(s)
 	p = 1
 
@@ -267,7 +232,6 @@ BEGIN {
 	if (substr(s, p, 1) != "{") { print "NOTJSON"; exit; }
 	rootOpen = p
 
-	# Level 1: root -> "projects"
 	if (!findKeyInObjectAt(rootOpen, "projects")) { print "PARSE_ERROR"; exit; }
 	if (!FOUND) {
 		print "PROJECTS_FOUND=0"
@@ -279,7 +243,6 @@ BEGIN {
 	projectsValueStart = VALUE_START
 	if (substr(s, projectsValueStart, 1) != "{") { print "PROJECTS_NOT_OBJECT=1"; exit; }
 
-	# Level 2: projects -> "<cwd>"
 	if (!findKeyInObjectAt(projectsValueStart, cwd)) { print "PARSE_ERROR"; exit; }
 	if (!FOUND) {
 		print "PROJECT_FOUND=0"
@@ -291,7 +254,6 @@ BEGIN {
 	projectValueStart = VALUE_START
 	if (substr(s, projectValueStart, 1) != "{") { print "PROJECT_NOT_OBJECT=1"; exit; }
 
-	# Level 3: <cwd> -> "mcpServers"
 	if (!findKeyInObjectAt(projectValueStart, "mcpServers")) { print "PARSE_ERROR"; exit; }
 	if (!FOUND) {
 		print "MCPSERVERS_FOUND=0"
@@ -303,7 +265,6 @@ BEGIN {
 	mcpServersValueStart = VALUE_START
 	if (substr(s, mcpServersValueStart, 1) != "{") { print "MCPSERVERS_NOT_OBJECT=1"; exit; }
 
-	# Level 4: mcpServers -> "myx.common"
 	if (!findKeyInObjectAt(mcpServersValueStart, "myx.common")) { print "PARSE_ERROR"; exit; }
 	if (FOUND) {
 		print "ENTRY_FOUND=1"

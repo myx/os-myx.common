@@ -24,10 +24,7 @@ Help(){
 	fi
 	
 	if [ -n "$1" ] && myx.common which --uname "$UNAME" "$1" >/dev/null; then
-		# Help text is shared across OS variants (one help/<cmd>.help.include
-		# per command, not per-OS) - source it directly rather than
-		# re-executing "myx.common $1 --help", which would re-resolve
-		# against the *live* host's OS and lose the requested --uname.
+		# Sourced, not re-executed: "myx.common $1 --help" would lose the requested --uname.
 		( helpInclude="$MYXROOT/help/$1.help.include"; set -- --help; . "$helpInclude" )
 		exit 1
 	fi
@@ -44,19 +41,11 @@ Help(){
 
 	echo "'myx.common' script commands:" >&2
 	for ITEM in $FINDREZ ; do
-		# ITEM is already the bare command name - the sed above already
-		# stripped the trailing .Common/.$UNAME suffix. Do NOT re-trim with
-		# ${ITEM%.*}: that assumes the only dot left is a leftover suffix,
-		# but command names can genuinely contain a dot themselves (e.g.
-		# install/myx.common-reinstall), and %.* silently truncates those
-		# to a shorter, wrong, non-existent command name.
-		#
-		# A .$UNAME file only means this OS has its own implementation on
-		# hand, not that other OSes lack one - tag with the OS name only
-		# when there's no .Common fallback (the command only works here).
+		# ITEM is already bare - never re-trim with ${ITEM%.*}, it truncates dotted names.
 		if [ -x "$MYXROOT/bin/$ITEM.Common" ]; then
 			echo "$ITEM" "common"
 		else
+			# No .Common fallback, so this command runs only on this OS.
 			echo "$ITEM" "$UNAME-specific"
 		fi
 	done \

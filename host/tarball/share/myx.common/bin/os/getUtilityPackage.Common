@@ -50,7 +50,7 @@ OsGetUtilityPackage(){
 
 case "$0" in
 	*/myx.common/bin/os/getUtilityPackage.Common) 
-		if [ -z "$1" -o "$1" = "--help" ] ; then
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
 			. "${MYXROOT:-/usr/local/share/myx.common}/help/os/getUtilityPackage.help.include" >&2
 			exit 1
 		fi

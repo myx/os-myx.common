@@ -41,7 +41,7 @@ VmCreate(){
     local VMRAM="$1"  ; shift
     local VMHDD="$1"  ; shift
     	
-    if [ -z "$VMTYPE" -o -z "$VMNAME" -o -z "$VMCPUS" -o -z "$VMRAM" -o -z "$VMHDD" ] ; then
+    if [ -z "$VMTYPE" ] || [ -z "$VMNAME" ] || [ -z "$VMCPUS" ] || [ -z "$VMRAM" ] || [ -z "$VMHDD" ] ; then
 		echo "⛔ ERROR: Syntax error: vm/create: check arguments." >&2
 		return 1
     fi
@@ -64,52 +64,52 @@ VmCreate(){
 
 	local SHRINK=""
 
-	if [ "$1" == "--shrink-disk" ] ; then
+	if [ "$1" = "--shrink-disk" ] ; then
 		shift;
 		SHRINK="true"
 	fi
     
-    if [ "$1" == "--net" ] ; then
+    if [ "$1" = "--net" ] ; then
     	shift;
     	VMLAN0="$1" ; shift
     	VMMAC0="$1" ; shift
-	    if [ -z "$VMLAN0" -o -z "$VMMAC0" ] ; then
+	    if [ -z "$VMLAN0" ] || [ -z "$VMMAC0" ] ; then
 			echo "⛔ ERROR: Syntax error: vm/create: network #1: invalid arguments" >&2
 			return 1
 	    fi
     fi
     
-    if [ "$1" == "--net" ] ; then
+    if [ "$1" = "--net" ] ; then
     	shift;
     	VMLAN1="$1" ; shift
     	VMMAC1="$1" ; shift
-	    if [ -z "$VMLAN1" -o -z "$VMMAC1" ] ; then
+	    if [ -z "$VMLAN1" ] || [ -z "$VMMAC1" ] ; then
 			echo "⛔ ERROR: Syntax error: vm/create: network #2: invalid arguments" >&2
 			return 1
 	    fi
     fi
     
-    if [ "$1" == "--net" ] ; then
+    if [ "$1" = "--net" ] ; then
     	shift;
     	VMLAN2="$1" ; shift
     	VMMAC2="$1" ; shift
-	    if [ -z "$VMLAN2" -o -z "$VMMAC2" ] ; then
+	    if [ -z "$VMLAN2" ] || [ -z "$VMMAC2" ] ; then
 			echo "⛔ ERROR: Syntax error: vm/create: network #3: invalid arguments" >&2
 			return 1
 	    fi
     fi
     
-    if [ "$1" == "--net" ] ; then
+    if [ "$1" = "--net" ] ; then
     	shift;
     	VMLAN3="$1" ; shift
     	VMMAC3="$1" ; shift
-	    if [ -z "$VMLAN3" -o -z "$VMMAC3" ] ; then
+	    if [ -z "$VMLAN3" ] || [ -z "$VMMAC3" ] ; then
 			echo "⛔ ERROR: Syntax error: vm/create: network #4: invalid arguments" >&2
 			return 1
 	    fi
     fi
 
-    if [ "$1" == "--net" ] ; then
+    if [ "$1" = "--net" ] ; then
 		echo "⛔ ERROR: Only up to 4 network interfaces supported" >&2
 		return 1
 	fi
@@ -249,14 +249,14 @@ VmCreate(){
 		if [ -n "$VMHDD" ] ; then
 			if [ -f "/vms/$VMNAME/disk0.img" ] ; then
 		        echo "Disk type: file image: /vms/$VMNAME/disk0.img" >&2
-				if [ -z "$SHRINK" -a "$VMHDD" -lt "$(sh -c "eval '`stat -s /vms/$VMNAME/disk0.img` printenv st_size'")" ] ; then
+				if [ -z "$SHRINK" ] && [ "$VMHDD" -lt "$(sh -c "eval '`stat -s /vms/$VMNAME/disk0.img` printenv st_size'")" ] ; then
 					echo "🙋 WARNING: Image shrink is not allowed, use --shrink-disk option, skipped... ($VMNAME)" >&2
 				else
 					truncate -c -s "$VMHDD" "/vms/$VMNAME/disk0.img"
 				fi
 			elif zfs list | grep -q -e "^zroot/vms/$VMNAME/disk0\s" ; then
 		        echo "Disk type: zfs volume: zroot/vms/$VMNAME/disk0" >&2
-				if [ -z "$SHRINK" -a "$VMHDD" -lt "$(zfs get -H -p -o value volsize zroot/vms/$VMNAME/disk0)" ] ; then
+				if [ -z "$SHRINK" ] && [ "$VMHDD" -lt "$(zfs get -H -p -o value volsize zroot/vms/$VMNAME/disk0)" ] ; then
 					echo "🙋 WARNING: ZFS shrink is not allowed, use --shrink-disk option, skipped... ($VMNAME)" >&2
 				else
 					zfs set "volsize=$VMHDD" "zroot/vms/$VMNAME/disk0"

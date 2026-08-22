@@ -40,7 +40,7 @@ InstallEnsurePackage(){
 
 case "$0" in
 	*/myx.common/bin/lib/installEnsurePackage.*) 
-		if [ -z "$1" -o "$1" = "--help" ] ; then
+		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
 			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/installEnsurePackage.help.include" >&2
 			exit 1
 		fi

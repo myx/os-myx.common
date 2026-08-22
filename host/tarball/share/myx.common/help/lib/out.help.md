@@ -5,6 +5,11 @@ Colored/formatted terminal output helper. Dispatches to one of the
 
 Supported OS: Linux, FreeBSD, Darwin.
 
+Call it as `myx.common lib/out <subcommand>`, which works from any shell.
+Sourcing `include/out.sh` directly requires bash: the `out.*` function names
+contain a dot, which a POSIX shell - FreeBSD's `/bin/sh`, dash - rejects as an
+invalid identifier, so the whole file fails to load.
+
 ##  Who this is for, and when:
 
 For anyone writing a shell script - myx.common-based or standalone - that
@@ -57,11 +62,13 @@ color - but the conventional usage across this tool family is:
 
     error <message>
 
-            Prints "Error: <message>" in bold red.
+            Prints "Error: <message>". The `Error:` label is bold red; the
+            message itself is unstyled.
 
     info <message>
 
-            Prints "Info: <message>" in bold.
+            Prints "Info: <message>". The `Info:` label is bold; the message
+            itself is unstyled.
 
     example <message>
 
@@ -71,6 +78,11 @@ color - but the conventional usage across this tool family is:
 
             Prints a "Syntax:" line, prefixed with $SCRIPTNAME if set,
             followed by <message>.
+
+    str <message>
+
+            Prints a tab, $SCRIPTNAME (empty if unset), a space, then
+            <message>. Used by `syntax` to print its own second line.
 
     valuechange <setting> <target> <new-value> [<old-value>]
 

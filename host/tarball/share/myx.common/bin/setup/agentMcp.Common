@@ -2,87 +2,46 @@
 
 ##### !!! This script is universal for FreeBSD, Darwin, Ubuntu. !!! #####
 #
-# SHELL-NOTE: Registers the myx MCP integration
-# (bin/lib/agentMcpServer.Common, launched with --run) as an MCP server for
-# an AI agent host, via up to two registrations per run, both keyed by the
-# launch cwd - or by MYX_AGENTMCP_TARGET_CWD when set, for a caller (e.g. an
-# MCP-tool dispatch) whose own process cwd isn't the workspace in question -
-# see SetupAgentMcp's own comment for why this exists:
-#   1) an explicit scope option, if this command ever grows one (none
-#      exists today - see help/setup/agentMcp.help.md's Options section) -
-#      would take priority over both of the below.
-#   2) a real myx.distro-* workspace detected at the launch cwd - additionally
-#      writes/upserts <cwd>/.vscode/mcp.json (VS Code/Copilot-Chat's own
-#      workspace-scoped MCP config, top-level key "servers", no git
-#      dependency at all). Distinct from, and never touching, Claude
-#      Code's own project-scope .mcp.json (top-level key "mcpServers",
-#      requires a git repo root) - that piece is separate and still
-#      undecided. Deliberately ADDITIVE, not a replacement for (3) below:
-#      Claude Code itself does not read .vscode/mcp.json (confirmed by
-#      myx.distro-system's own AgentsTools.Owner.include, which writes
-#      .vscode/mcp.json and .mcp.json as two separate targets for exactly
-#      this reason) - making (2) exclusive of (3) would silently stop
-#      Claude Code's own MCP discovery for every myx.distro-* workspace,
-#      since the
-#      git-rooted .mcp.json path this would otherwise need is explicitly
-#      out of scope here. A failure in this tier is reported but does not
-#      block (3) - the home registration below must not regress just
-#      because the newer, additive tier had trouble.
-#   3) always (unless (1) applies): the original home-scope registration,
-#      unchanged - registers in ~/.claude.json's
-#      projects["<cwd>"].mcpServers ("myx.common"), Claude Code's own local-scope
-#      convention, keyed by the launch cwd - so each workspace/checkout
-#      gets its own private entry instead of one global entry silently
-#      overwritten by whichever workspace last ran setup. Edits
-#      ~/.claude.json surgically (byte-range splice via head/tail, located
-#      by include/data/agentMcpConfigEdit.awk) - never a full parse/
-#      rewrite of that file. Always backs up first and validates the
-#      result parses as JSON before replacing the original. Idempotent:
-#      re-running just confirms/updates the one entry it owns for this cwd.
-#
-# NOTE: does not touch (read, migrate, or remove) any pre-existing
-# top-level ~/.claude.json "mcpServers" entry from before this local-scope
-# rework - that flat/global key is simply never looked at by this script
-# anymore. Left in place deliberately (conservative, non-destructive); it
-# stops receiving new writes as of this change.
+# SHELL-NOTE: Registers bin/lib/agentMcpServer.Common --run as an MCP server
+# for the launch cwd; MYX_AGENTMCP_TARGET_CWD overrides pwd when the caller's
+# own process cwd is not the workspace. Two additive tiers: workspace
+# .vscode/mcp.json, then a byte-offset splice into ~/.claude.json
+# projects["<cwd>"].mcpServers - never a reparse/rewrite of that file.
+# Tier model and the untouched legacy top-level "mcpServers": os-myx.common/MAGIC.md.
 
-# Tier 2: workspace-local .vscode/mcp.json. Detected via the same
-# .local/myx/myx.distro-.local/sh-lib/LocalContext.include marker file
-# myx.distro-system's AgentsTools.Owner.include (--owner-install-vscode-
-# integrations) already uses to confirm a real, set-up myx.distro-*
-# workspace -
-# checked at the exact launch cwd, no upward directory walk, same as that
-# existing op. Upserts via a myx.common-owned copy of myx.distro-system's
-# own AgentMcpServerJsonUpsert.py idiom (include/data/
-# agentMcpServerJsonUpsert.py) rather than a cross-package call into
-# myx.distro-system itself - see that new file's own header comment for
-# why (os-myx.common/CLAUDE.md: myx.common has no dependency on distro-*
-# code or conventions, nor the reverse). Non-destructive: only the
-# "myx.common" key under .vscode/mcp.json's "servers" object is
-# set/overwritten, plus any other entry launching a command from inside the
-# myx.common tree, which is dropped as a duplicate.
+# Tier 2: only the "myx.common" key of .vscode/mcp.json "servers", plus any other entry launching from the myx.common tree, is touched.
 SetupAgentMcpWorkspace(){
 	local cwd="$1"
 	local root="${MYXROOT:-/usr/local/share/myx.common}"
 	local serverScript="$root/bin/lib/agentMcpServer.Common"
-	local upsertScript="$root/include/data/agentMcpServerJsonUpsert.py"
+	local upsertScript="$root/include/data/agentMcpServerJsonUpsert.awk"
 
 	[ -x "$serverScript" ] || { echo "⛔ ERROR: SetupAgentMcpWorkspace: missing or non-executable $serverScript" >&2; return 1; }
 	[ -f "$upsertScript" ] || { echo "⛔ ERROR: SetupAgentMcpWorkspace: missing resource $upsertScript" >&2; return 1; }
-	command -v python3 >/dev/null 2>&1 || { echo "⛔ ERROR: SetupAgentMcpWorkspace: python3 not found in PATH" >&2; return 1; }
 
 	local vscodeDir="$cwd/.vscode"
 	mkdir -p "$vscodeDir" || { echo "⛔ ERROR: SetupAgentMcpWorkspace: couldn't create $vscodeDir" >&2; return 1; }
 	local mcpFile="$vscodeDir/mcp.json"
 
-	# --run is required: bin/lib/agentMcpServer.Common uses the same
-	# case "$0"/--run dispatch shape as every other bin/lib/*.Common file
-	# (plus its own --run guard on top - see that file's own header
-	# comment) - bare invocation (no args) prints usage and exits 1 rather
-	# than starting the server loop, so the registered launch args must
-	# carry --run explicitly.
-	if ! python3 "$upsertScript" "$mcpFile" "$serverScript" servers '["--run"]' >/dev/null; then
+	# The upsert prints to stdout and never opens the target, so the write is ours.
+	local mcpSource="$mcpFile"
+	[ -f "$mcpSource" ] || mcpSource=/dev/null
+
+	# --run is required: bare invocation prints usage and exits 1 instead of serving.
+	if ! MYX_MCPUPSERT_TOPKEY=servers \
+		MYX_MCPUPSERT_ENTRYKEY=myx.common \
+		MYX_MCPUPSERT_COMMAND="$serverScript" \
+		MYX_MCPUPSERT_ARGS='["--run"]' \
+		MYX_MCPUPSERT_DROPPATHPART=myx.common \
+		LC_ALL=C awk -f "$upsertScript" "$mcpSource" > "$mcpFile.tmp"
+	then
+		rm -f "$mcpFile.tmp"
 		echo "⛔ ERROR: SetupAgentMcpWorkspace: failed to upsert myx MCP server entry into $mcpFile" >&2
+		return 1
+	fi
+	if ! mv -f "$mcpFile.tmp" "$mcpFile"; then
+		rm -f "$mcpFile.tmp"
+		echo "⛔ ERROR: SetupAgentMcpWorkspace: couldn't install $mcpFile" >&2
 		return 1
 	fi
 
@@ -91,42 +50,32 @@ SetupAgentMcpWorkspace(){
 	echo "   Restart your MCP host (e.g. Claude Code) to pick it up." >&2
 }
 
-# Companion to tier 2 above: the copilot CLI's own local-MCP trust gate.
-# Registering the server (tier 2) is not sufficient for it: `copilot -p` (headless,
-# no TTY to prompt on) silently skips starting any local/stdio MCP server
-# unless cwd is already listed in ~/.copilot/settings.json's
-# "trustedFolders" - confirmed live via its own logs (no server-start
-# attempt logged) and by adding the entry below and re-running the same
-# reproduction. Only relevant when copilot is installed; best-effort like
-# tier 2. The JSON read/upsert itself lives in a separate file,
-# include/data/agentMcpCopilotTrustUpsert.py - same split as
-# SetupAgentMcpWorkspace's own upsertScript above, rather than an inline
-# `python3 -c '...'` block (fragile: shell-quoting a multi-line Python body
-# inline is exactly the kind of syntax this codebase's scripts avoid by
-# convention).
+# `copilot -p` silently skips every local/stdio MCP server unless cwd is already in ~/.copilot/settings.json trustedFolders.
 SetupAgentMcpCopilotTrust(){
 	local cwd="$1"
 	local root="${MYXROOT:-/usr/local/share/myx.common}"
-	local upsertScript="$root/include/data/agentMcpCopilotTrustUpsert.py"
+	local upsertScript="$root/include/data/agentMcpCopilotTrustUpsert.awk"
 	command -v copilot >/dev/null 2>&1 || return 0
-	command -v python3 >/dev/null 2>&1 || { echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: python3 not found in PATH - skipping" >&2; return 0; }
 	[ -f "$upsertScript" ] || { echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: missing resource $upsertScript - skipping" >&2; return 0; }
 
 	local copilotSettings="${HOME:?SetupAgentMcpCopilotTrust: HOME is not set}/.copilot/settings.json"
 	mkdir -p "$(dirname "$copilotSettings")" || { echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't create $(dirname "$copilotSettings") - skipping" >&2; return 0; }
 	[ -f "$copilotSettings" ] || { ( umask 077 && printf '{}' > "$copilotSettings" ) || { echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't create $copilotSettings - skipping" >&2; return 0; } ; }
 
-	if python3 "$upsertScript" "$copilotSettings" "$cwd" >/dev/null; then
+	# umask 077 on the temp too: mv -f carries its mode, so a 0644 temp would widen the 0600 target.
+	if ! ( umask 077 && MYX_MCPTRUST_FOLDER="$cwd" LC_ALL=C awk -f "$upsertScript" "$copilotSettings" > "$copilotSettings.tmp" ); then
+		rm -f "$copilotSettings.tmp"
+		echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't update $copilotSettings trustedFolders (unparsable?) - copilot CLI's -p mode may not load local MCP servers here" >&2
+	elif cmp -s "$copilotSettings.tmp" "$copilotSettings" || mv -f "$copilotSettings.tmp" "$copilotSettings"; then
+		rm -f "$copilotSettings.tmp"
 		echo "✅ Trusted $cwd for the copilot CLI ($copilotSettings: trustedFolders)" >&2
 	else
-		echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't update $copilotSettings trustedFolders (unparsable?) - copilot CLI's -p mode may not load local MCP servers here" >&2
+		rm -f "$copilotSettings.tmp"
+		echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't update $copilotSettings trustedFolders - copilot CLI's -p mode may not load local MCP servers here" >&2
 	fi
 }
 
-# Splices out every entry that launches this same server under a key other
-# than "myx.common", so the host can't launch it twice. One splice per pass;
-# offsets shift, so it re-locates each time. Best-effort: an unparsable config
-# is left alone, the canonical write below reports it.
+# Drops entries launching this same server under another key. One splice per pass: each splice shifts the offsets.
 SetupAgentMcpDropStaleEntries(){
 	local claudeConfig="$1" escapedCwd="$2" awkEditFile="$3"
 	local pass=0
@@ -135,7 +84,7 @@ SetupAgentMcpDropStaleEntries(){
 		pass=$((pass + 1))
 
 		local facts
-		facts="$(MYX_AGENTMCP_CWD="$escapedCwd" LC_ALL=C awk -v RS='\0' -f "$awkEditFile" "$claudeConfig")" || return 0
+		facts="$(MYX_AGENTMCP_CWD="$escapedCwd" LC_ALL=C awk -f "$awkEditFile" "$claudeConfig")" || return 0
 		case "$facts" in
 			*NOTJSON*|*PARSE_ERROR*|*NOCWD*|*NOT_OBJECT*) return 0 ;;
 		esac
@@ -168,7 +117,7 @@ SetupAgentMcpDropStaleEntries(){
 		fi
 
 		local validation
-		validation="$(LC_ALL=C awk -v RS='\0' -v mode=validate -f "$awkEditFile" "$newContentFile")"
+		validation="$(LC_ALL=C awk -v mode=validate -f "$awkEditFile" "$newContentFile")"
 		if [ "$validation" != "VALID" ]; then
 			echo "⚠️  WARNING: SetupAgentMcp: dropping a duplicate MCP server entry from $claudeConfig would not validate ($validation) - left in place" >&2
 			rm -f "$newContentFile"
@@ -190,39 +139,20 @@ SetupAgentMcpDropStaleEntries(){
 
 SetupAgentMcp(){
 	local cwd
-	# MYX_AGENTMCP_TARGET_CWD lets a caller whose own process cwd isn't the
-	# workspace being registered (e.g. an MCP-tool dispatch such as
-	# mcp__myx_common__myx_common_run, whose server process has its own
-	# fixed cwd, unrelated to any workspace the calling agent has in mind)
-	# state the real target cwd explicitly. Falls back to pwd - unchanged
-	# behavior for ordinary interactive/terminal invocation, where pwd
-	# already IS the intended workspace. Root-caused live: tier 2 below
-	# silently never triggered under MCP-tool dispatch because pwd resolved
-	# to the MCP server's own cwd, not the workspace holding the marker
-	# file - a plain false condition, not an error, so nothing surfaced it.
+	# MYX_AGENTMCP_TARGET_CWD names the real workspace when the caller's own process cwd is not it (MCP-tool dispatch).
 	cwd="${MYX_AGENTMCP_TARGET_CWD:-$(pwd)}"
 	case "$cwd" in
 		/*) : ;;
 		*) echo "⛔ ERROR: SetupAgentMcp: cwd ($cwd) did not resolve to an absolute path" >&2; return 1 ;;
 	esac
 
-	# Tier 2: a real myx.distro-* workspace detected at cwd - additional
-	# .vscode/mcp.json registration, on top of (not instead of) tier 3
-	# below. See this file's own header comment and
-	# SetupAgentMcpWorkspace's for the full rationale, especially why this
-	# is additive rather than exclusive. Tier 1 (explicit scope option)
-	# doesn't exist yet - nothing to check here until this command grows
-	# one. A tier-2 failure is reported but must not prevent tier 3 from
-	# still running (set -e is active in the caller, so this is wrapped in
-	# `||` rather than left bare - a bare failing call here would abort the
-	# whole script before tier 3 ever runs).
+	# Tier 2 is additive and must never abort tier 3, so it is wrapped in `||` against the caller's own set -e.
 	if [ -f "$cwd/.local/myx/myx.distro-.local/sh-lib/LocalContext.include" ]; then
 		SetupAgentMcpWorkspace "$cwd" || echo "⚠️  WARNING: SetupAgentMcp: workspace-local .vscode/mcp.json registration failed (see above) - continuing with the home ~/.claude.json registration below" >&2
 		SetupAgentMcpCopilotTrust "$cwd" || echo "⚠️  WARNING: SetupAgentMcp: copilot CLI trust registration failed (see above) - continuing with the home ~/.claude.json registration below" >&2
 	fi
 
-	# Tier 3: home ~/.claude.json registration - unchanged, always runs
-	# (unless tier 1 someday applies instead).
+	# Tier 3: home ~/.claude.json registration, always runs.
 	local claudeConfig="${HOME:?SetupAgentMcp: HOME is not set}/.claude.json"
 	local root="${MYXROOT:-/usr/local/share/myx.common}"
 	local myxCommonBin="${root%/share/myx.common}/bin/myx.common"
@@ -243,24 +173,15 @@ SetupAgentMcp(){
 
 	local escapedScript entryValueJson
 	escapedScript="$(printf '%s' "$serverScript" | LC_ALL=C awk -f "$awkEscapeFile")"
-	# --run is required: bin/lib/agentMcpServer.Common uses the same
-	# case "$0"/--run dispatch shape as every other bin/lib/*.Common file
-	# (plus its own --run guard on top - see that file's own header
-	# comment) - bare invocation (no args) prints usage and exits 1 rather
-	# than starting the server loop, so the registered launch args must
-	# carry --run explicitly or the MCP host's own invocation would never
-	# actually start the server.
+	# --run is required: bare invocation prints usage and exits 1 instead of serving.
 	entryValueJson="$(printf '{"command": "%s", "args": ["--run"]}' "$escapedScript")"
 
 	# Must run before the locate pass below: it shifts byte offsets.
 	SetupAgentMcpDropStaleEntries "$claudeConfig" "$escapedCwd" "$awkEditFile" || return 1
 
 	local facts
-	# cwd is passed via env (MYX_AGENTMCP_CWD), never -v cwd=...: awk's -v
-	# assignment does its own backslash-escape decoding, which would silently
-	# undo the JSON-escaping above for paths containing '"' or '\' - see
-	# agentMcpConfigEdit.awk's header comment for the confirmed failure mode.
-	facts="$(MYX_AGENTMCP_CWD="$escapedCwd" LC_ALL=C awk -v RS='\0' -f "$awkEditFile" "$claudeConfig")"
+	# cwd goes via env, never -v: awk's -v decodes backslashes and would undo the JSON escaping above.
+	facts="$(MYX_AGENTMCP_CWD="$escapedCwd" LC_ALL=C awk -f "$awkEditFile" "$claudeConfig")"
 	case "$facts" in
 		*NOTJSON*|*PARSE_ERROR*|*NOCWD*)
 			echo "⛔ ERROR: SetupAgentMcp: $claudeConfig doesn't parse as a JSON object - refusing to touch it" >&2
@@ -332,18 +253,14 @@ SetupAgentMcp(){
 	fi
 
 	local validation
-	validation="$(LC_ALL=C awk -v RS='\0' -v mode=validate -f "$awkEditFile" "$newContentFile")"
+	validation="$(LC_ALL=C awk -v mode=validate -f "$awkEditFile" "$newContentFile")"
 	if [ "$validation" != "VALID" ]; then
 		echo "⛔ ERROR: SetupAgentMcp: generated config failed validation ($validation) - not touching $claudeConfig" >&2
 		rm -f "$newContentFile"
 		return 1
 	fi
 
-	# NOTE: same transient-backup convention as ReplaceLine (lib/replaceLine)
-	# - .bak exists only for the duration of the write, removed on success,
-	# left behind as a recovery copy only if something fails mid-write.
-	# Writing directly into $claudeConfig (not a mktemp-and-mv swap) also
-	# means its mode/ownership are never touched.
+	# Transient .bak, same convention as lib/replaceLine; writing in place (no mktemp-and-mv) keeps mode and ownership.
 	local backup="$claudeConfig.bak"
 	cp -p "$claudeConfig" "$backup" || { echo "⛔ ERROR: SetupAgentMcp: couldn't create backup $backup" >&2; rm -f "$newContentFile"; return 1; }
 	if cat "$newContentFile" > "$claudeConfig"; then

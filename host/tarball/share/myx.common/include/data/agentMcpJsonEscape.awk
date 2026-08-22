@@ -1,9 +1,7 @@
 #!/usr/bin/env awk
 
-# stdin (one or more lines of raw text) -> JSON string content on stdout,
-# WITHOUT surrounding quotes. Embedded newlines become literal \n so the
-# result is safe to place on a single JSON-RPC line. Byte-safe (run under
-# LC_ALL=C by the caller) so raw UTF-8 passes through untouched.
+# stdin -> JSON string content on stdout, without the surrounding quotes; embedded
+# newlines become literal \n. Run under LC_ALL=C by the caller, so raw UTF-8 passes through byte for byte.
 
 BEGIN {
 	for (i = 1; i <= 31; i++) esc[sprintf("%c", i)] = sprintf("\\u%04x", i)

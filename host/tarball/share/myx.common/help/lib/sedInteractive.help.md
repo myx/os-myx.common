@@ -6,11 +6,11 @@ Supported OS: Linux, FreeBSD, Darwin.
 
 ##  Arguments:
 
-  None.
+  Passed through to sed unchanged - the sed script, and any input files.
 
 ##  Options:
 
-  None.
+  Passed through to sed unchanged, such as -n or -e.
 
 ##  Usage notes:
 

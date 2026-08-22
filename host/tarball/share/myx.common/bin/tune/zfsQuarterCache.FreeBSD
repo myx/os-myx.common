@@ -55,7 +55,7 @@ TuneZfsQuarterCache(){
 	MAX_ARC="$( sysctl -n vfs.zfs.arc_max )"
 	MIN_ARC="$( sysctl -n vfs.zfs.arc_min )"
 	
-	if [ "$NEW_ARC" -lt "$MAX_ARC" -a "$MIN_ARC" -lt "$NEW_ARC" ] ; then
+	if [ "$NEW_ARC" -lt "$MAX_ARC" ] && [ "$MIN_ARC" -lt "$NEW_ARC" ] ; then
 		echo "MC-ZFS-QC: setting new arc_max, $NEW_ARC (physmem: $MEM_ALL, max-arc: $MAX_ARC)" >&2
 		sysctl vfs.zfs.arc_max=$NEW_ARC
 	else
