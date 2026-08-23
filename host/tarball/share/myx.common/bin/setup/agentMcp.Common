@@ -45,9 +45,7 @@ SetupAgentMcpWorkspace(){
 		return 1
 	fi
 
-	echo "✅ Registered myx MCP server in $mcpFile (workspace scope: $cwd)" >&2
-	echo "   command: $serverScript --run" >&2
-	echo "   Restart your MCP host (e.g. Claude Code) to pick it up." >&2
+	echo "✅ myx.common MCP → ${mcpFile#$cwd/} (workspace scope)" >&2
 }
 
 # `copilot -p` silently skips every local/stdio MCP server unless cwd is already in ~/.copilot/settings.json trustedFolders.
@@ -68,7 +66,7 @@ SetupAgentMcpCopilotTrust(){
 		echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't update $copilotSettings trustedFolders (unparsable?) - copilot CLI's -p mode may not load local MCP servers here" >&2
 	elif cmp -s "$copilotSettings.tmp" "$copilotSettings" || mv -f "$copilotSettings.tmp" "$copilotSettings"; then
 		rm -f "$copilotSettings.tmp"
-		echo "✅ Trusted $cwd for the copilot CLI ($copilotSettings: trustedFolders)" >&2
+		echo "✅ copilot CLI trust → ~/${copilotSettings#$HOME/}" >&2
 	else
 		rm -f "$copilotSettings.tmp"
 		echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't update $copilotSettings trustedFolders - copilot CLI's -p mode may not load local MCP servers here" >&2
@@ -209,7 +207,6 @@ SetupAgentMcp(){
 		local currentValue
 		currentValue="$(dd if="$claudeConfig" bs=1 skip=$((ENTRY_VALUE_START - 1)) count=$((ENTRY_VALUE_END - ENTRY_VALUE_START)) 2>/dev/null)"
 		if [ "$currentValue" = "$entryValueJson" ]; then
-			echo "✅ myx MCP server already registered in $claudeConfig for $cwd (command: $serverScript --run)" >&2
 			rm -f "$newContentFile"
 			return 0
 		fi
@@ -271,9 +268,9 @@ SetupAgentMcp(){
 		return 1
 	fi
 
-	echo "✅ Registered myx MCP server in $claudeConfig (local scope: $cwd)" >&2
-	echo "   command: $serverScript --run" >&2
-	echo "   Restart your MCP host (e.g. Claude Code) to pick it up." >&2
+	local shownConfig="$claudeConfig"
+	case "$shownConfig" in "$HOME"/*) shownConfig="~${shownConfig#$HOME}" ;; esac
+	echo "✅ myx.common MCP → $shownConfig (local scope) -- restart your MCP host to pick it up" >&2
 }
 
 case "$0" in
