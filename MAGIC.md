@@ -1,6 +1,6 @@
 # MAGIC.md — os-myx.common
 
-Team-owned notes for the magic-* team. `myx.common` and `myx.distro-*` are separate projects that share a name prefix; nothing in the `myx.distro-*` MAGIC.md files carries over here.
+Team-owned notes for the magic-* team. `myx.common` and `myx.distro-*` are separate projects that share a name prefix; nothing from the `myx.distro-*` projects carries over here.
 
 ## Probing git state here
 
@@ -50,7 +50,7 @@ Both appear throughout `bin/`, and they are not interchangeable.
 
 - `include/data/agentMcpJsonParseRequest.awk` carries a self-contained recursive-descent JSON engine — `skipws`, `hex2dec`, `utf8enc`, `parseString`, `parseValue`, `parseObject`, `parseArray` — plus an `emitLeaf` tailored to the exact field shape its one caller needs.
 - It is not a general-purpose JSON parser, and its own header says so. It understands exactly the shapes its caller produces.
-- `myx.distro-agents/sh-lib/AgentsSlackMessagesFormat.awk` is the same engine with its own `emitLeaf`, for Slack message fields — the established precedent for reuse across packages.
+- The same engine has been copied into another project with its own `emitLeaf`, for a different field shape — copying it is the established precedent, not sharing one file across packages.
 - For a third consumer pulling specific fields out of a small, predictable JSON shape from awk: copy the engine verbatim and write a new `emitLeaf`. No hand-rolled parser, no `jq` or `python3 -c` substitute.
 - The reason is the zero-dependency constraint: these run where a JSON dependency cannot be assumed present.
 
@@ -94,6 +94,7 @@ How it is reached, and why it is shaped that way.
 - The in-flight PID file is written to a private temp name then renamed into place. `mv(1)` within one directory is atomic, so a concurrent reader never observes a partially-written PID.
 - `reqDir` is the loop's one shared scratch directory, wiped on the very next line read. Moving it to a uniquely-named private directory before backgrounding is what makes it safe for the async job to keep reading after the loop iteration returns.
 - Cancellation sends TERM and clears tracking immediately, so a new call is not needlessly held busy waiting for the old one to die; the KILL escalation runs detached so neither the handler nor the loop blocks on it.
+- Command output is redirected to a file and read back, never captured with `$( ... )`: a command substitution returns only once its capture pipe has no writers left, so a child the command leaves running would hold the response forever.
 
 ### Accepted limitations, not bugs
 
@@ -139,7 +140,7 @@ Each field goes to its own file under `-v outDir=...`, never to stdout or argv, 
 - `MYX_AGENTMCP_TARGET_CWD` overrides `pwd` for a caller whose own process cwd is not the workspace being registered — an MCP-tool dispatch, whose server process holds a fixed cwd unrelated to the workspace the calling agent means. Without it the tier-2 marker check evaluates false: a plain wrong answer, not an error, with nothing to surface it.
 - Three tiers, in this order:
   1. An explicit scope option, which would take priority over both below. None exists today; nothing to check until this command grows one.
-  2. A real `myx.distro-*` workspace at the launch cwd — additionally upserts `<cwd>/.vscode/mcp.json`, VS Code/Copilot-Chat's own workspace-scoped config, top-level key `servers`, no git dependency. Detected by the `.local/myx/myx.distro-.local/sh-lib/LocalContext.include` marker at the exact cwd, no upward walk — the same check `myx.distro-system`'s `AgentsTools.Owner.include` uses.
+  2. A real `myx.distro-*` workspace at the launch cwd — additionally upserts `<cwd>/.vscode/mcp.json`, VS Code/Copilot-Chat's own workspace-scoped config, top-level key `servers`, no git dependency. Detected by the `myx.distro-.local` context marker at the exact cwd, no upward walk.
   3. The home-scope registration, always, unless (1) ever applies: `~/.claude.json` `projects["<cwd>"].mcpServers."myx.common"`, spliced by byte range via `head`/`tail` and located by `agentMcpConfigEdit.awk`, never a full parse and rewrite. Backed up first, and validated as JSON before it replaces the original. Idempotent.
 - **Tier 2 is additive, never a replacement for tier 3.** Claude Code does not read `.vscode/mcp.json` — `myx.distro-system` writes `.vscode/mcp.json` and `.mcp.json` as two separate targets for exactly that reason — so making tier 2 exclusive would silently stop Claude Code's own MCP discovery in every `myx.distro-*` workspace. A tier-2 failure is reported and must not block tier 3, which is why both tier-2 calls are wrapped in `||` against the caller's own `set -e`.
 - Claude Code's own project-scope `.mcp.json` (top-level key `mcpServers`, requires a git repo root) is out of scope here, and still undecided.
@@ -154,3 +155,10 @@ Each field goes to its own file under `-v outDir=...`, never to stdout or argv, 
 - **Known cwd exposure, deliberately deferred.** A caller whose own process cwd is not the workspace in question — dispatch through an MCP tool, for instance — removes the wrong entry, or none, silently. Unfixed here because this command has only the tier-3 home-scope removal, with no workspace-local tier to correct, and no live bug against it. This is the same class of exposure `setup/agentMcp.Common` carried before its `MYX_AGENTMCP_TARGET_CWD` fix.
 - cwd reaches awk through the environment, never `-v cwd=...`: awk's `-v` decoding mangles a path containing `"` or `\`. See `agentMcpConfigEdit.awk`'s own header.
 - The `.bak` is transient, the same convention `lib/replaceLine` uses — it exists only for the duration of the write, is removed on success, and is left behind as a recovery copy only if something fails mid-write. Writing directly into the config rather than a mktemp-and-swap also means its mode and ownership are never touched.
+
+## Machine-local state is never where a fix lands
+
+- `setup/agentMcp` and `remove/agentMcp` write this machine's own config — `~/.claude.json`, `~/.copilot/settings.json`, a workspace's `.vscode/mcp.json`. That is shipped behaviour: the command is the product, and it does the same thing on every machine that installs it.
+- A session hand-editing any of those files, or any other config, allowlist, cache or setting that exists only on this computer, is a different act entirely. The distinction is who wrote it, not what changed.
+- None of that state reaches a client, so changing it fixes nothing, and the effort it takes is taken from the released product. Local state that makes something work here is what hides a real defect from review, so working here is evidence of nothing.
+- Read local state to diagnose a defect. Then fix the command and ship it.
