@@ -45,7 +45,7 @@ SetupAgentMcpWorkspace(){
 		return 1
 	fi
 
-	echo "✅ myx.common MCP → ${mcpFile#$cwd/} (workspace scope)" >&2
+	echo "🔌 myx.common MCP registered in ${mcpFile#$cwd/} (workspace scope)" >&2
 }
 
 # `copilot -p` silently skips every local/stdio MCP server unless cwd is already in ~/.copilot/settings.json trustedFolders.
@@ -66,7 +66,7 @@ SetupAgentMcpCopilotTrust(){
 		echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't update $copilotSettings trustedFolders (unparsable?) - copilot CLI's -p mode may not load local MCP servers here" >&2
 	elif cmp -s "$copilotSettings.tmp" "$copilotSettings" || mv -f "$copilotSettings.tmp" "$copilotSettings"; then
 		rm -f "$copilotSettings.tmp"
-		echo "✅ copilot CLI trust → ~/${copilotSettings#$HOME/}" >&2
+		echo "🤝 copilot CLI trusts ~/${copilotSettings#$HOME/}" >&2
 	else
 		rm -f "$copilotSettings.tmp"
 		echo "⚠️  WARNING: SetupAgentMcpCopilotTrust: couldn't update $copilotSettings trustedFolders - copilot CLI's -p mode may not load local MCP servers here" >&2
@@ -207,6 +207,9 @@ SetupAgentMcp(){
 		local currentValue
 		currentValue="$(dd if="$claudeConfig" bs=1 skip=$((ENTRY_VALUE_START - 1)) count=$((ENTRY_VALUE_END - ENTRY_VALUE_START)) 2>/dev/null)"
 		if [ "$currentValue" = "$entryValueJson" ]; then
+			local shownConfig
+			case "$claudeConfig" in "$HOME"/*) shownConfig="~${claudeConfig#$HOME}" ;; *) shownConfig="$claudeConfig" ;; esac
+			echo "🔌 myx.common MCP registered in $shownConfig (local scope)" >&2
 			rm -f "$newContentFile"
 			return 0
 		fi
@@ -268,9 +271,9 @@ SetupAgentMcp(){
 		return 1
 	fi
 
-	local shownConfig="$claudeConfig"
-	case "$shownConfig" in "$HOME"/*) shownConfig="~${shownConfig#$HOME}" ;; esac
-	echo "✅ myx.common MCP → $shownConfig (local scope) -- restart your MCP host to pick it up" >&2
+	local shownConfig
+	case "$claudeConfig" in "$HOME"/*) shownConfig="~${claudeConfig#$HOME}" ;; *) shownConfig="$claudeConfig" ;; esac
+	echo "🔌 myx.common MCP registered in $shownConfig (local scope) -- restart your MCP host to pick it up" >&2
 }
 
 case "$0" in
