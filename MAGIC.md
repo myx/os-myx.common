@@ -156,6 +156,12 @@ Each field goes to its own file under `-v outDir=...`, never to stdout or argv, 
 - cwd reaches awk through the environment, never `-v cwd=...`: awk's `-v` decoding mangles a path containing `"` or `\`. See `agentMcpConfigEdit.awk`'s own header.
 - The `.bak` is transient, the same convention `lib/replaceLine` uses — it exists only for the duration of the write, is removed on success, and is left behind as a recovery copy only if something fails mid-write. Writing directly into the config rather than a mktemp-and-swap also means its mode and ownership are never touched.
 
+## `bin/git/{clonePull,cloneSync}.Common` — connection and read timeouts
+
+- Neither function had any timeout on its network-touching git calls (`clone`/`pull`/`fetch`/`push`/`ls-remote`) — a stalled remote hung the caller indefinitely. Both now export, before the first git call: `GIT_SSH_COMMAND` with `-o ConnectTimeout=${MYX_GIT_CONNECT_TIMEOUT:-15} -o BatchMode=yes` appended to whatever SSH command was already configured, and `GIT_HTTP_LOW_SPEED_LIMIT`/`GIT_HTTP_LOW_SPEED_TIME` (1000 bytes/sec for 30s default) for HTTP(S) transport stalls.
+- Appending to an existing `GIT_SSH_COMMAND` rather than overwriting it preserves a caller's own identity file/proxy config; only the timeout is added.
+- All three defaults are overridable per-call via `MYX_GIT_CONNECT_TIMEOUT`/`MYX_GIT_HTTP_LOW_SPEED_LIMIT`/`MYX_GIT_HTTP_LOW_SPEED_TIME`.
+
 ## Machine-local state is never where a fix lands
 
 - `setup/agentMcp` and `remove/agentMcp` write this machine's own config — `~/.claude.json`, `~/.copilot/settings.json`, a workspace's `.vscode/mcp.json`. That is shipped behaviour: the command is the product, and it does the same thing on every machine that installs it.

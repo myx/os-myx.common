@@ -46,9 +46,14 @@ GitClonePull(){
 	local tgtPath="$1" repoUrl="$2"
 
 	local specificBranch="$3"
-	
+
 	local currentPath="$PWD"
-	
+
+	GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh} -o ConnectTimeout=${MYX_GIT_CONNECT_TIMEOUT:-15} -o BatchMode=yes"
+	GIT_HTTP_LOW_SPEED_LIMIT="${MYX_GIT_HTTP_LOW_SPEED_LIMIT:-1000}"
+	GIT_HTTP_LOW_SPEED_TIME="${MYX_GIT_HTTP_LOW_SPEED_TIME:-30}"
+	export GIT_SSH_COMMAND GIT_HTTP_LOW_SPEED_LIMIT GIT_HTTP_LOW_SPEED_TIME
+
 	if [ -d "$tgtPath" ] && [ -d "$tgtPath/.git" ] ; then
 		cd "$tgtPath"
 		if git rev-parse --abbrev-ref HEAD > /dev/null ; then
