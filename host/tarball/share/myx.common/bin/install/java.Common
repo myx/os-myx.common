@@ -25,8 +25,8 @@ InstallJava(){
 	fi
 
 	if [ -n "$JAVA_MAJOR" ] && [ "$JAVA_MAJOR" -ge 22 ] 2>/dev/null ; then
-		echo "java is already installed, version: " >&2
-		echo "$( java -Xinternalversion || java -version )" >&2
+		local JAVA_VENDOR="$( echo "$JAVA_VERSION_LINE" | awk '{print $1}' )"
+		echo "java already installed: $JAVA_VENDOR - $JAVA_VERSION_STRING" >&2
 		return 0
 	fi
 
