@@ -35,8 +35,8 @@ InstallJava(){
 		local UNAME=${MYXUNIX:-$(uname -s)}
 		case "$UNAME" in
 			FreeBSD)
-				local OLD_PKG="$( pkg query '%n' 2>/dev/null | grep '^openjdk' | head -n 1 )"
-				[ -n "$OLD_PKG" ] && pkg delete -y "$OLD_PKG" || echo "could not determine old FreeBSD java package, skipping removal" >&2
+				local OLD_PKG="$( pkg -U query '%n' 2>/dev/null | grep '^openjdk' | head -n 1 )"
+				[ -n "$OLD_PKG" ] && pkg -U delete -y "$OLD_PKG" || echo "could not determine old FreeBSD java package, skipping removal" >&2
 			;;
 			Darwin)
 				local OLD_FORMULA="$( brew list --formula 2>/dev/null | grep '^openjdk' | head -n 1 )"
