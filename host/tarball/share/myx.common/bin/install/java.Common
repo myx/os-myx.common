@@ -10,10 +10,43 @@ InstallJava(){
 
 	UserRequireRoot "InstallJava"
 
+	local JAVA_MAJOR=""
 	if command -v java >/dev/null 2>&1 ; then
+		local JAVA_VERSION_LINE="$( java -version 2>&1 | head -n 1 )"
+		local JAVA_VERSION_STRING="$( echo "$JAVA_VERSION_LINE" | sed -n 's/.*version "\([^"]*\)".*/\1/p' )"
+		case "$JAVA_VERSION_STRING" in
+			1.*)
+				JAVA_MAJOR="$( echo "$JAVA_VERSION_STRING" | cut -d. -f2 )"
+			;;
+			*)
+				JAVA_MAJOR="$( echo "$JAVA_VERSION_STRING" | cut -d. -f1 )"
+			;;
+		esac
+	fi
+
+	if [ -n "$JAVA_MAJOR" ] && [ "$JAVA_MAJOR" -ge 22 ] 2>/dev/null ; then
 		echo "java is already installed, version: " >&2
 		echo "$( java -Xinternalversion || java -version )" >&2
-		exit 0
+		return 0
+	fi
+
+	if [ -n "$JAVA_MAJOR" ] ; then
+		echo "java present but version $JAVA_MAJOR is below the required 22 - removing before install" >&2
+		local UNAME=${MYXUNIX:-$(uname -s)}
+		case "$UNAME" in
+			FreeBSD)
+				local OLD_PKG="$( pkg query '%n' 2>/dev/null | grep '^openjdk' | head -n 1 )"
+				[ -n "$OLD_PKG" ] && pkg delete -y "$OLD_PKG" || echo "could not determine old FreeBSD java package, skipping removal" >&2
+			;;
+			Darwin)
+				local OLD_FORMULA="$( brew list --formula 2>/dev/null | grep '^openjdk' | head -n 1 )"
+				[ -n "$OLD_FORMULA" ] && brew uninstall "$OLD_FORMULA" || echo "could not determine old Darwin java formula, skipping removal" >&2
+			;;
+			*)
+				local OLD_PKG="$( dpkg -l 2>/dev/null | awk '/^ii/ && $2 ~ /jdk/ {print $2; exit}' )"
+				[ -n "$OLD_PKG" ] && apt remove -y "$OLD_PKG" || echo "could not determine old Linux java package, skipping removal" >&2
+			;;
+		esac
 	fi
 
 	myx.common lib/installEnsurePackage java
