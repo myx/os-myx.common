@@ -17,8 +17,13 @@ CatMarkdown() {
 		*) break ;;
 	esac done 
 
+	# An empty "$fromFile" means "read stdin". A literal "-" is the explicit
+	# spelling of the same thing, and is normalised away here.
 	local fromFile="$1"
-	if [ -n "$fromFile" ] ; then
+	if [ "$fromFile" = '-' ] ; then
+		fromFile=''
+		shift
+	elif [ -n "$fromFile" ] ; then
 		if [ ! -f "$fromFile" ] ; then
 			echo "⛔ ERROR: CatMarkdown: file not found: $fromFile" >&2
 			set +e ; return 1
@@ -47,16 +52,27 @@ CatMarkdown() {
 		fi
 	fi
 
+	# An empty "$fromFile" means stdin, which every stage below already reads,
+	# so the file case is a redirect on the first stage rather than a `cat`.
 	if [ -f "$awkFile" ]; then
-		cat "${fromFile:-'-'}" | awk -f "$awkFile" -- $useAnsi
+		if [ -n "$fromFile" ] ; then
+			awk -f "$awkFile" -- $useAnsi < "$fromFile"
+		else
+			awk -f "$awkFile" -- $useAnsi
+		fi
 		return 0
 	fi
 	
-	local COLUMNSEP=$'\x1F'
+	# $'...' is ANSI-C quoting, a bashism: dash reads it as a literal '$'
+	# followed by a single-quoted '\x1F', so the separator became the
+	# five-character string '$\x1F'. printf's octal escape is POSIX.
+	local COLUMNSEP="$( printf '\037' )"
 
-	sed \
-		-e 's|\t|    |g' \
-		"${fromFile:-'-'}" \
+	if [ -n "$fromFile" ] ; then
+		sed -e 's|\t|    |g' < "$fromFile"
+	else
+		sed -e 's|\t|    |g'
+	fi \
 	| if [ -n "$useAnsi" ]; then
 		# ANSI codes
 		esc=$(printf '\033')
@@ -101,14 +117,17 @@ CatMarkdown() {
 	| sed \
 		-e '$!N; /^\n$/!P; D' \
 		-e '/^[[:space:]]*\|?[-:]+(\|[-:]+)+\|?[[:space:]]*$/d' \
-	| sed -e 's/^$/__BLANK__/g' -e 's/||/'"$COLUMNSEP"'/g' \
+	| sed -e 's/^$/__BLANK__/g' -e 's/||/'"$COLUMNSEP"'__COLSEP__'"$COLUMNSEP"'/g' \
 	| column -s "$COLUMNSEP" -t \
-	| sed -e 's/'"$COLUMNSEP"'/||/g' -e 's/^__BLANK__$//'
+	| sed -e 's/__COLSEP__/||/g' -e 's/^__BLANK__$//'
 }
 
 case "$0" in
-	*/myx.common/bin/lib/catMarkdown.Common) 
-		if [ -z "$1" ] || [ "$1" = '--help' ] ; then
+	*/myx.common/bin/lib/catMarkdown.Common)
+		# No arguments is a valid invocation - it means "render stdin".
+		# Only fall back to help when there is also no stdin to read,
+		# i.e. the command was typed at an interactive terminal.
+		if [ "$1" = '--help' ] || { [ -z "$1" ] && [ -t 0 ] ; } ; then
 			. "${MYXROOT:-/usr/local/share/myx.common}/help/lib/catMarkdown.help.include"
 			exit 1
 		fi

@@ -15,6 +15,11 @@ to drop all ANSI formatting and produce plain text.
 		The markdown-formatted input file, stdin pipe used when no input
 		file specified.
 
+	-
+
+		Explicit spelling of "read the stdin pipe". Same as passing no
+		input file at all.
+
 ##  Options:
 
 	--strip-all
@@ -25,6 +30,9 @@ to drop all ANSI formatting and produce plain text.
 
 	# Render markdown from stdin or default input
 	`myx.common lib/catMarkdown`
+
+	# Same, with stdin named explicitly
+	`myx.common lib/catMarkdown --strip-all -`
 
 	# Render output as plain text
 	`myx.common lib/catMarkdown --strip-all /tmp/example.txt`
