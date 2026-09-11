@@ -24,8 +24,9 @@ CatMarkdown() {
 		fromFile=''
 		shift
 	elif [ -n "$fromFile" ] ; then
-		if [ ! -f "$fromFile" ] ; then
-			echo "⛔ ERROR: CatMarkdown: file not found: $fromFile" >&2
+		# Readability, not just existence: the input redirect below aborts under `set -e`. See MAGIC.md.
+		if [ ! -f "$fromFile" ] || [ ! -r "$fromFile" ] ; then
+			echo "⛔ ERROR: CatMarkdown: file not found or not readable: $fromFile" >&2
 			set +e ; return 1
 		fi
 		shift
@@ -52,8 +53,7 @@ CatMarkdown() {
 		fi
 	fi
 
-	# An empty "$fromFile" means stdin, which every stage below already reads,
-	# so the file case is a redirect on the first stage rather than a `cat`.
+	# Every stage below reads stdin already, so the file case is a redirect on the first stage, not a `cat`.
 	if [ -f "$awkFile" ]; then
 		if [ -n "$fromFile" ] ; then
 			awk -f "$awkFile" -- $useAnsi < "$fromFile"
