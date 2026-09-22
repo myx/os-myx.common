@@ -370,7 +370,7 @@ cleanup() {
 		losetup -d "$loop"
 	fi
 
-	if [ "$SPACE_CONSTRAINS" = "tiny" ] && [ -d "$WORKDIR/iso" ]; then
+	if [ "${SPACE_CONSTRAINS-}" = "tiny" ] && [ -d "$WORKDIR/iso" ]; then
 		rm -rf "$WORKDIR/iso"
 	fi
 
