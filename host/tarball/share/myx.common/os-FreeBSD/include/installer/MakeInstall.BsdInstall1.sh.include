@@ -51,7 +51,7 @@ if [ "${#DISKS[@]}" -eq 2 ]; then
 
 	echo '[ "$install_disk_count" -eq 2 ] || { echo "Invalid disk count: expect 2, have $install_disk_count, list: $( echo $install_disk_list )"; exit 1; }'
 	echo 'echo "# ZFS root on ${install_disk_list}" >&2'
-	echo 'export ZFSBOOT_DISKS="$disk_list"'
+	echo 'export ZFSBOOT_DISKS="$install_disk_list"'
 	echo 'export ZFSBOOT_VDEV_TYPE="mirror"'
 	echo 'bsdinstall zfsboot'
 

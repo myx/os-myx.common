@@ -308,7 +308,7 @@ done
 case "$(uname -m)" in
   x86_64)
     HOST_ARCH="amd64"
-	BOOT_IMG_URL="https://download.freebsd.org/releases/amd64/amd64/ISO-IMAGES/14.3/FreeBSD-14.3-RELEASE-amd64-mini-memstick.img"
+	BOOT_IMG_URL="https://download.freebsd.org/releases/amd64/amd64/ISO-IMAGES/15.1/FreeBSD-15.1-RELEASE-amd64-mini-memstick.img"
     ;;
   i[3456]86)
     HOST_ARCH="i386"
@@ -316,7 +316,7 @@ case "$(uname -m)" in
     ;;
   aarch64 | arm64)
     HOST_ARCH="arm64"
-	BOOT_IMG_URL="https://download.freebsd.org/releases/arm64/aarch64/ISO-IMAGES/14.3/FreeBSD-14.3-RELEASE-arm64-aarch64-mini-memstick.img"
+	BOOT_IMG_URL="https://download.freebsd.org/releases/arm64/aarch64/ISO-IMAGES/15.1/FreeBSD-15.1-RELEASE-arm64-aarch64-mini-memstick.img"
     ;;
   *)
 	echo "⛔ ERROR: UEFI firmware OVMF_CODE not found"  >&2;
