@@ -614,6 +614,17 @@ if [ -n "$doUnattended" ]; then
 	{ . "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/MakeInstall.BsdInstall1.sh.include"; } > "$VMIMAGE/etc/mcb-install-stage1"
 	{ . "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/MakeInstall.BsdInstall2.sh.include"; } > "$VMIMAGE/etc/mcb-install-stage2"
 	cat "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/LocalInstall.conf.postinstall.sh.script" > "$VMIMAGE/conf/mcb-postinstall.sh"
+	# optional per-host identity/network, appended to the same generic hook -
+	# static config only, since providers like Hetzner give no DHCP on the WAN NIC.
+	# Site/provider-specific quirks (e.g. a Hetzner IPv6 MAC bug workaround) are
+	# not this tool's concern - deploy applies those later, per host.
+	{
+		[ -n "${MCB_HOSTNAME-}" ] && printf 'sysrc hostname="%s"\n' "$MCB_HOSTNAME"
+		[ -n "${MCB_IFCONFIG_WAN-}" ] && printf 'sysrc ifconfig_wan="%s"\n' "$MCB_IFCONFIG_WAN"
+		[ -n "${MCB_DEFAULTROUTER-}" ] && printf 'sysrc defaultrouter="%s"\n' "$MCB_DEFAULTROUTER"
+		[ -n "${MCB_IFCONFIG_WAN_IPV6-}" ] && printf 'sysrc ifconfig_wan_ipv6="%s"\n' "$MCB_IFCONFIG_WAN_IPV6"
+		[ -n "${MCB_IPV6_DEFAULTROUTER-}" ] && printf 'sysrc ipv6_defaultrouter="%s"\nsysrc ipv6_default_interface="wan"\nsysrc ipv6_activate_all_interfaces="YES"\n' "$MCB_IPV6_DEFAULTROUTER"
+	} >> "$VMIMAGE/conf/mcb-postinstall.sh"
 	cat "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/LocalInstall.etc.ttys.config" > "$VMIMAGE/etc/ttys"
 
 	cat "${MYXROOT:-/usr/local/share/myx.common}/os-FreeBSD/include/installer/LocalInstall.etc.rc.d.installerenv.sh.script" > "$VMIMAGE/etc/rc.d/installerenv"
@@ -686,6 +697,11 @@ sleep 3
 
 fi
 
+# kill any stale qemu-system-x86_64 left over from a previous, interrupted run
+# of this same installer - a stuck guest holds the disks and the hostfwd port,
+# making a retry fail non-obviously instead of just starting clean
+pkill -9 -f "qemu-system-x86_64.*hostfwd=tcp::1022" 2>/dev/null || :
+
 echo "Starting VM..." 
 
 # 7) QEMU launch
@@ -704,7 +720,7 @@ else
 fi
 
 set -x
-exec $doDryRun qemu-system-x86_64 \
+$doDryRun qemu-system-x86_64 \
 	"${QEMU_FW_ARGS[@]}" \
 	-m "$GUEST_RAM" \
 	-smp "$(nproc)" \
@@ -718,7 +734,28 @@ exec $doDryRun qemu-system-x86_64 \
 	-netdev user,id=net0,hostfwd=tcp::1022-:22 \
 	-device virtio-net-pci,netdev=net0 \
 	-no-reboot -boot menu=on
+set +x
 
+if [ -z "$doDryRun" ] && [ -n "$doUnattended" ] && [ "$HOST_FIRMWARE" = "UEFI" ]; then
+	echo "InstallerEnv: verifying ESP bootloader on ${QEMU_DISK_LIST[0]}..." >&2
+	espPart="${QEMU_DISK_LIST[0]}p1"
+	mkdir -p "$WORKDIR/esp-check"
+	if mount -t vfat "$espPart" "$WORKDIR/esp-check" 2>/dev/null; then
+		if [ -f "$WORKDIR/esp-check/EFI/BOOT/BOOTX64.EFI" ]; then
+			echo "InstallerEnv: ESP bootloader present ✅" >&2
+			bootOk=yes
+		else
+			echo "InstallerEnv: ESP bootloader MISSING" >&2
+			bootOk=
+		fi
+		umount "$WORKDIR/esp-check"
+	else
+		echo "⛔ ERROR: InstallerEnv: could not mount $espPart to verify ESP" >&2
+		bootOk=
+	fi
+	rmdir "$WORKDIR/esp-check" 2>/dev/null || :
+	[ -n "$bootOk" ] || { echo "⛔ ERROR: InstallerEnv: install completed but disk is not UEFI-bootable" >&2; exit 1; }
+fi
 
 }
 

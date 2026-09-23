@@ -51,6 +51,12 @@ if [ "${#DISKS[@]}" -eq 2 ]; then
 
 	echo '[ "$install_disk_count" -eq 2 ] || { echo "Invalid disk count: expect 2, have $install_disk_count, list: $( echo $install_disk_list )"; exit 1; }'
 	echo 'echo "# ZFS root on ${install_disk_list}" >&2'
+	echo '# wipe any residual zpool label/partition table from a prior install attempt,'
+	echo '# so bsdinstall zfsboot never falls back to its interactive rename prompt'
+	echo 'for d in $install_disk_list; do'
+	echo '  zpool labelclear -f "/dev/$d" 2>/dev/null || :'
+	echo '  gpart destroy -F "$d" 2>/dev/null || :'
+	echo 'done'
 	echo 'export ZFSBOOT_DISKS="$install_disk_list"'
 	echo 'export ZFSBOOT_VDEV_TYPE="mirror"'
 	echo 'bsdinstall zfsboot'
@@ -82,6 +88,21 @@ echo 'bsdinstall mount'
 
 echo 'mkdir -p /mnt/usr/freebsd-dist /mnt/tmp /mnt/boot /mnt/etc'
 
+if [ "$HOST_FIRMWARE" = "UEFI" ]; then
+	echo '# bsdinstall zfsboot creates the ESP partition and the /mnt/boot/efi'
+	echo '# mountpoint directory, but only bsdinstall bootconfig - never called by'
+	echo '# this scripted flow - actually mounts it there. Without an explicit mount,'
+	echo '# writes to /mnt/boot/efi silently land on the ZFS root dataset instead of'
+	echo '# the real FAT32 ESP, leaving the disk unbootable with no visible error.'
+	echo 'mkdir -p /mnt/boot/efi'
+	echo 'for d in $install_disk_list; do'
+	echo '  espdev="/dev/${d}p1"'
+	echo '  [ -e "$espdev" ] || espdev="/dev/${d}s1"'
+	echo '  [ -e "$espdev" ] && mount -t msdosfs "$espdev" /mnt/boot/efi && break'
+	echo 'done'
+	echo 'mount | grep -q " on /mnt/boot/efi " || { echo "ERROR: InstallerEnv: failed to mount ESP at /mnt/boot/efi" >&2; exit 1; }'
+fi
+
 echo 'fetch "${BSDINSTALL_DISTSITE}/MANIFEST" -o /mnt/usr/freebsd-dist/DIST-MANIFEST'
 
 echo 'if [ -x /conf/mcb-preinstall.sh ]; then'
@@ -102,11 +123,25 @@ echo 'bsdinstall firmware'
 echo 'bsdinstall entropy'
 echo 'bsdinstall config'
 
-if [ "$HOST_FIRMWARE" = "UEFI" ] && [ -d "/mnt/boot/efi" ] ; then
-	echo 'echo "InstallerEnv: installing EFI files..." >&2'
-	echo 'install -d -o root -g wheel -m 755 /mnt/boot/efi/EFI/BOOT'
-	echo 'install -o root -g wheel -m 555 /mnt/boot/loader.efi /mnt/boot/efi/EFI/BOOT/BOOTX64.EFI'
-	echo 'install -o root -g wheel -m 444 /mnt/boot/defaults/loader.conf /mnt/boot/efi/EFI/BOOT/loader.conf'
+# bsdinstall's own netconfig (part of the "config" step above) writes a
+# throwaway "net"-named interface alias derived from this rescue host's own
+# live network - redundant with, and not the same convention as, the real
+# per-host "wan" identity applied later by deploy. Strip it so /etc/rc.conf
+# only ever carries the real identity, not a stale bsdinstall default.
+echo 'for k in ifconfig_ix0_name ifconfig_em0_name ifconfig_re0_name ifconfig_igb0_name ifconfig_bge0_name ifconfig_vtnet0_name ifconfig_net ifconfig_net_ipv6; do'
+echo '  sysrc -x "$k" 2>/dev/null || :'
+echo 'done'
+
+if [ "$HOST_FIRMWARE" = "UEFI" ]; then
+	echo 'if [ -d "/mnt/boot/efi" ]; then'
+	echo '  echo "InstallerEnv: installing EFI files..." >&2'
+	echo '  install -d -o root -g wheel -m 755 /mnt/boot/efi/EFI/BOOT'
+	echo '  install -o root -g wheel -m 555 /mnt/boot/loader.efi /mnt/boot/efi/EFI/BOOT/BOOTX64.EFI'
+	echo '  install -o root -g wheel -m 444 /mnt/boot/defaults/loader.conf /mnt/boot/efi/EFI/BOOT/loader.conf'
+	echo 'else'
+	echo '  echo "ERROR: InstallerEnv: /mnt/boot/efi not found - ESP will be unbootable!" >&2'
+	echo '  exit 1'
+	echo 'fi'
 fi
 #echo "esp_part=\$( gpart show -p \"\${install_disk_list}\" | awk '\$4~/^(efi|fat16)$/{print \$3;exit;} /freebsd-boot/{print \$3;exit;}' )"
 # esp_part=$(mount -t msdosfs | awk '$3 ~ /boot\/efi$/ { print $3 }')
