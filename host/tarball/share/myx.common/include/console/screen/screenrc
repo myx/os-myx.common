@@ -1,5 +1,5 @@
 # export SSH_AUTH_SOCK=$(readlink ~/.ssh/ssh_auth_sock)
-# chown -R $USER:ndci $SSH_AUTH_SOCK
+# chown -R $USER:mdci $SSH_AUTH_SOCK
 # chmod g+rwx $(dirname $SSH_AUTH_SOCK)
 
 startup_message off
