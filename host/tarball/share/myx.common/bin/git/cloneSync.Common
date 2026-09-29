@@ -29,6 +29,35 @@ GitCloneSync(){
 	GIT_HTTP_LOW_SPEED_TIME="${MYX_GIT_HTTP_LOW_SPEED_TIME:-30}"
 	export GIT_SSH_COMMAND GIT_HTTP_LOW_SPEED_LIMIT GIT_HTTP_LOW_SPEED_TIME
 
+	local reattached=
+	if [ -d "$tgtPath" ] && [ ! -e "$tgtPath/.git" ] && [ ! -L "$tgtPath/.git" ] && [ -n "$(ls -A -- "$tgtPath")" ] ; then
+		local lsRemoteRc=0
+		git ls-remote --exit-code -h "$repoUrl" >/dev/null || lsRemoteRc=$?
+		if [ "$lsRemoteRc" = 0 ] ; then
+			local reattachPath
+			reattachPath="$(mktemp -d "${tgtPath%/}.reattach-git.XXXXXX")" || { echo "⛔ ERROR: GitCloneSync: $tgtPath: .git re-attach temp dir failed!" >&2 ; set +e ; return 1 ; }
+			local GIT_BRANCH_OPT= ; [ -z "$specificBranch" ] || GIT_BRANCH_OPT="--branch $specificBranch"
+			if ! git clone --no-checkout $GIT_BRANCH_OPT "$repoUrl" "$reattachPath" ; then
+				rm -rf "$reattachPath"
+				echo "⛔ ERROR: GitCloneSync: $tgtPath: .git re-attach clone failed!" >&2
+				set +e ; return 1
+			fi
+			if [ -e "$tgtPath/.git" ] || [ -L "$tgtPath/.git" ] ; then
+				rm -rf "$reattachPath"
+				echo "⛔ ERROR: GitCloneSync: $tgtPath: .git appeared during re-attach!" >&2
+				set +e ; return 1
+			fi
+			mv "$reattachPath/.git" "${tgtPath%/}/" || { rm -rf "$reattachPath" ; echo "⛔ ERROR: GitCloneSync: $tgtPath: .git re-attach move failed!" >&2 ; set +e ; return 1 ; }
+			rmdir "$reattachPath" || echo "GitCloneSync: ⚠️ $tgtPath: could not remove $reattachPath" >&2
+			( cd "$tgtPath" && git reset -q ) || { echo "⛔ ERROR: GitCloneSync: $tgtPath: .git re-attach reset failed!" >&2 ; set +e ; return 1 ; }
+			reattached=true
+			echo "GitCloneSync: 🩹 $tgtPath: .git re-attached from $repoUrl" >&2
+		elif [ "$lsRemoteRc" != 2 ] ; then
+			echo "⛔ ERROR: GitCloneSync: $tgtPath: no .git and remote not reachable ($lsRemoteRc)!" >&2
+			set +e ; return 1
+		fi
+	fi
+
 	if [ -d "$tgtPath" ]; then
 		cd "$tgtPath"
 
@@ -78,15 +107,17 @@ GitCloneSync(){
 
 	if [ ! -d "$tgtPath" ] ; then
 	    echo "GitCloneSync: ⤵️ $tgtPath: creating..." >&2
+	    local tgtCreated=""
+	    [ -e "$tgtPath" ] || tgtCreated=true
 	    mkdir -p "$tgtPath"
 		local GIT_BRANCH_OPT= ; [ -z "$specificBranch" ] || GIT_BRANCH_OPT="--branch $specificBranch"
 		if ! git clone $GIT_BRANCH_OPT "$repoUrl" "$tgtPath" ; then
-		    rm -rf "$tgtPath"
+		    [ -z "$tgtCreated" ] || rm -rf "$tgtPath"
 		    return 1
 		fi
 	fi
 
-    if [ "$noWrite" != "true" ] && [ ! -f "$tgtPath/README.md" ] && [ ! -f "$tgtPath/README.MD" ] ; then
+    if [ "$noWrite" != "true" ] && [ -z "$reattached" ] && [ ! -f "$tgtPath/README.md" ] && [ ! -f "$tgtPath/README.MD" ] && ! ( cd "$tgtPath" && { git cat-file -e HEAD:README.md 2>/dev/null || git cat-file -e HEAD:README.MD 2>/dev/null ; } ) ; then
         cd "$tgtPath"
         touch README.md
         git add README.md
