@@ -162,6 +162,15 @@ Each field goes to its own file under `-v outDir=...`, never to stdout or argv, 
 - Appending to an existing `GIT_SSH_COMMAND` rather than overwriting it preserves a caller's own identity file/proxy config; only the timeout is added.
 - All three defaults are overridable per-call via `MYX_GIT_CONNECT_TIMEOUT`/`MYX_GIT_HTTP_LOW_SPEED_LIMIT`/`MYX_GIT_HTTP_LOW_SPEED_TIME`.
 
+## `git/clonePull` and `git/cloneSync` — what each one guarantees
+
+The help pair and this section define the behaviour.
+
+- `git/clonePull` makes sure the remote state is present locally. A missing target is cloned. An existing checkout is fast-forward pulled, never pushed.
+- `git/cloneSync` makes sure local changes are never lost. A missing target is cloned. An existing checkout is pulled, then its local commits are pushed.
+- An existing folder is never cloned over, and no sync ever deletes a `.git`.
+- These scripts run on every workspace and install of the family, so a change here reaches all of them. Check each change against this section before it lands.
+
 ## Machine-local state is never where a fix lands
 
 - `setup/agentMcp` and `remove/agentMcp` write this machine's own config — `~/.claude.json`, `~/.copilot/settings.json`, a workspace's `.vscode/mcp.json`. That is shipped behaviour: the command is the product, and it does the same thing on every machine that installs it.
