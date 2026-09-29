@@ -4,3 +4,4 @@ git		git
 go		go
 nano	nano
 rsync	rsync
+python3	python3
