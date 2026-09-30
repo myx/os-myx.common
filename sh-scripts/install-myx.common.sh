@@ -76,11 +76,13 @@ if [ "$( id -u )" = 0 ]; then
 		| (grep -v --line-buffered -E '>f\.\.t\.+ ' >&2 || :)
     else
     	echo "Using: tar-tar"
-	   	tar -cpf - -C "$T_DIR" . | tar -xvpf - -C "/usr/local/"
+	   	( cd "$T_DIR" && find . ! -type d -print ) | tar -cpf - -C "$T_DIR" -T - | tar -xvpf - -C "/usr/local/"
     fi
 	
 	rm -rf "$T_DIR"
 	
+	# a restrictive /usr/local would lock every non-root user out of myx.common
+	chmod go+rx /usr/local
 	
 	chown $CHOWN "/usr/local/bin/myx.common"
 	chmod 755 "/usr/local/bin/myx.common"
