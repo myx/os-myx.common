@@ -7,7 +7,7 @@ register it as an installable package in the distro-* index/pipeline — the
 command tool itself has no dependency on distro-* code or conventions.
 distro-* conventions don't carry over here, nor the reverse.
 
-Canonical human doc: `README.md` — install, everyday tasks and the command
+Canonical human docs: `README.md` and the pages under `docs/` — install, everyday tasks and the command
 index, written for a person using the tool. No generator produces it —
 hand-maintained, synced by hand when commands change.
 
