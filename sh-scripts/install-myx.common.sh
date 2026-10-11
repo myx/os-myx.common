@@ -35,19 +35,19 @@ if [ "$( id -u )" = 0 ]; then
 	case "$( uname -s )" in
 	        Darwin)
 	       		echo "Using: macosx"
-	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
+	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '*/host/tarball/*' ; }
 	        	CHOWN="root:wheel"
 				;;
 	        FreeBSD)
 	       		echo "Using: freebsd"
 				pkg bootstrap -y ; pkg info | grep -q 'ca_root' || pkg install -y ca_root_nss
-	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '**/host/tarball/*' ; }
+	        	UPACK(){ tar -xzf - --strip-components 3 -C "$1" '*/host/tarball/*' ; }
 	        	CHOWN="root:wheel"
 				;;
 	        Linux)
 	        	if [ -z "$FETCH" ] && command -v apt >/dev/null 2>&1; then
 	        		echo "Using: linux + apt"
-		        	UPACK(){ tar -xzf - --strip-components=3 -C "$1" --wildcards '**/host/tarball/*' ; }
+		        	UPACK(){ tar -xzf - --strip-components=3 -C "$1" --wildcards '*/host/tarball/*' ; }
 		        	CHOWN="root:adm"
 		        elif [ -z "$FETCH" ] ; then
 	            	echo "⛔ ERROR: Unknown Linux: $0 '$( uname -a )' {'apt' is expected}" >&2
