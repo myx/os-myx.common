@@ -34,6 +34,20 @@ VmCreateFreeBsdResolveIsoPath(){
 	return 0
 }
 
+VmCreateFreeBsdKeepNetworkMac(){
+	local MACCONF="$1" MACINDEX="$2" MACWANTED="$3"
+	local MACHAVE="$(sysrc -f "$MACCONF" -n "network${MACINDEX}_mac" 2>/dev/null || true)"
+
+	if [ -z "$MACHAVE" ] ; then
+		sysrc -f "$MACCONF" "network${MACINDEX}_mac=$MACWANTED"
+		return 0
+	fi
+
+	if [ "$(echo "$MACHAVE" | tr A-F a-f)" != "$(echo "$MACWANTED" | tr A-F a-f)" ] ; then
+		echo "🙋 WARNING: vm/create: $MACCONF: network${MACINDEX}_mac stays $MACHAVE, not $MACWANTED (remove the setting to replace it)" >&2
+	fi
+}
+
 VmCreate(){
     local VMTYPE="$1" ; shift
     local VMNAME="$1" ; shift
@@ -202,7 +216,7 @@ VmCreate(){
 		
         vm create -t "$VMNAME" -c "$VMCPUS" -m "$VMRAM" -s "$VMHDD" "$VMNAME"
 		[ -n "$VMMAC0" ] && sysrc -f "/vms/$VMNAME/$VMNAME.conf" network0_mac="$VMMAC0"
-		[ -n "$VMMAC1" ] && sysrc -f "/vms/$VMNAME/$VMNAME.conf" network0_mac="$VMMAC1"
+		[ -n "$VMMAC1" ] && sysrc -f "/vms/$VMNAME/$VMNAME.conf" network1_mac="$VMMAC1"
 	    sysrc vm_list+="$VMNAME" 
         vm install "$VMNAME" "$VMISO"
         echo "VM created, to continue installation, run: vm console $VMNAME" >&2
@@ -218,32 +232,32 @@ VmCreate(){
 			sysrc -f "/vms/$VMNAME/$VMNAME.conf"	\
 			    network0_type="virtio-net"			\
 				network0_switch="$VMLAN0"			\
-				network0_mac="$VMMAC0"				\
 			;
+			VmCreateFreeBsdKeepNetworkMac "/vms/$VMNAME/$VMNAME.conf" 0 "$VMMAC0"
 		fi
 		
 		if [ -n "$VMLAN1" ] ; then
 			sysrc -f "/vms/$VMNAME/$VMNAME.conf"	\
 			    network1_type="virtio-net"			\
 				network1_switch="$VMLAN1"			\
-				network1_mac="$VMMAC1"				\
 			;
+			VmCreateFreeBsdKeepNetworkMac "/vms/$VMNAME/$VMNAME.conf" 1 "$VMMAC1"
 		fi
 		
 		if [ -n "$VMLAN2" ] ; then
 			sysrc -f "/vms/$VMNAME/$VMNAME.conf"	\
 			    network2_type="virtio-net"			\
 				network2_switch="$VMLAN2"			\
-				network2_mac="$VMMAC2"				\
 			;
+			VmCreateFreeBsdKeepNetworkMac "/vms/$VMNAME/$VMNAME.conf" 2 "$VMMAC2"
 		fi
 		
 		if [ -n "$VMLAN3" ] ; then
 			sysrc -f "/vms/$VMNAME/$VMNAME.conf"	\
 			    network3_type="virtio-net"			\
 				network3_switch="$VMLAN3"			\
-				network3_mac="$VMMAC3"				\
 			;
+			VmCreateFreeBsdKeepNetworkMac "/vms/$VMNAME/$VMNAME.conf" 3 "$VMMAC3"
 		fi
 		
 		if [ -n "$VMHDD" ] ; then

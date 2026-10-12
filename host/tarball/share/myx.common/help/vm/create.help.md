@@ -87,6 +87,11 @@ Supported OS: Linux, FreeBSD.
 
   Relative paths with '/' are not accepted. Use either filename-only or absolute path.
 
+  Network MAC addresses of an existing VM (FreeBSD):
+    A MAC address is written only when the VM configuration has none.
+    When it already has a different one, that one is kept and a WARNING is printed.
+    To replace it, remove the networkN_mac setting from the VM configuration first.
+
 ##  Examples:
 
 	# Create VM using FreeBSD profile
