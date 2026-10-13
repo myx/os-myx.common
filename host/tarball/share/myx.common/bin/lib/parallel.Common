@@ -49,20 +49,16 @@ Parallel(){
 	local PARALLEL_LINE ready slotspec slot mainPid
 
 
-	local FIFO_CRTL="$TMPPARALLEL_DIR/ready-ctrl.$$.fifo"
+	# one pipe: a job writes its slot number into it as its last act (8 bytes, so one read takes
+	# exactly one), the dispatch loop reads it. fd 3 is the only read end. The write end, fd 4, is
+	# open here only while a job is started, so the running jobs alone hold it: end-of-file on
+	# fd 3 means no job is running any more.
 	local FIFO_MAIN="$TMPPARALLEL_DIR/ready-main.$$.fifo"
-	mkfifo "$FIFO_CRTL"
 	mkfifo "$FIFO_MAIN"
-	exec 3<>"$FIFO_CRTL" 
 	exec 4<>"$FIFO_MAIN" 
-	rm -- "$FIFO_CRTL" "$FIFO_MAIN"
-
-	while dd bs=256 count=1 <&3 >/dev/null 2>&1; do
-		if ! echo >&4; then
-			break
-		fi
-	done 2>/dev/null &
-	mainPid=$!
+	exec 3<"$FIFO_MAIN" 
+	exec 4>&-
+	mainPid=$$
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
 
@@ -74,33 +70,28 @@ Parallel(){
 		# throttle: wait for any slot to free if we’re at limit
 		while [ "$ACTIVE" -ge "$WORKERS" ]; do
 
-			# cross-platform poll via `ls -1d`
-			for ready in $(ls -1fd "$TMPPARALLEL_DIR/$mainPid"-slot-ready.* 2>/dev/null || :); do
-				[ -e "$ready" ] || continue
-				slot="${ready#*-slot-ready.}"
-				if waiter="$(printf '%s\n' $SLOT_PIDS | grep "^$slot:")"; then
-					# wait $waiterPid, should immediately return, anti-zombie
-					wait ${waiter##*:} 2>/dev/null || :
-				fi
-				rm -f -- "$ready"
-				ACTIVE=$((ACTIVE - 1))
-				# remove that slot from in-flight list
-				ready=""; for curr in $SLOT_PIDS; do 
-					case "$curr" in 
-						"$slot:"*) ;;
-						*) ready="${ready:+$ready }$curr" ;; 
-					esac 
-				done 
-				SLOT_PIDS=$ready
-				# SLOT_PIDS=$(printf '%s\n' $SLOT_PIDS | grep -v "^$slot:" || true | tr '\n' ' ')
-			done
-
-			[ "$ACTIVE" -ge "$WORKERS" ] || break
-
-			# sleep intil running job(s) finished
-			if ! dd bs=128 count=1 <&4 >/dev/null 2>&1; then
+			# sleep until a running job finished: it names its slot
+			slot="$(dd bs=8 count=1 <&3 2>/dev/null)" || {
+				# dd killed by a signal: read again
+				[ $? -le 128 ] || continue
 				break 2
-			fi
+			}
+			# nothing read is end of file: no job holds the pipe, so every slot still taken is
+			# of a job that died without naming it - all of them are free
+			slot="${slot%% *}"
+
+			# remove that slot (or all of them) from in-flight list
+			ready=""; for curr in $SLOT_PIDS; do 
+				case "$curr" in 
+					"${slot:-${curr%%:*}}:"*)
+						# wait $waiterPid, should immediately return, anti-zombie
+						wait ${curr##*:} 2>/dev/null || :
+						ACTIVE=$((ACTIVE - 1))
+					;;
+					*) ready="${ready:+$ready }$curr" ;; 
+				esac 
+			done 
+			SLOT_PIDS=$ready
 
 		done
 
@@ -113,17 +104,20 @@ Parallel(){
 		done
 
 
-		# one-time waiter for this job+slot, captures main loop pid, job pid, and slot as constants
+		# one-time waiter for this job+slot, captures slot as a constant. It takes the write end of the
+		# pipe with it, not the read end; the job's own command gets neither (what it writes to fd 3
+		# or fd 4 is swallowed, as it always was)
+		exec 4>"$FIFO_MAIN"
 		{
 			set -e
 			eval " 
 				[ '$verbose' = '+' ] || echo '>> Parallel: exec: [$slot] $PARALLEL_CMD $PARALLEL_LINE' >&2
-				( $PARALLEL_CMD $PARALLEL_LINE ) || echo \"⛔ ERROR: exited with error status (\$?)\" >&2
-				touch '$TMPPARALLEL_DIR/$mainPid-slot-ready.$slot' || :
+				( $PARALLEL_CMD $PARALLEL_LINE ) 3>/dev/null 4>/dev/null || echo \"⛔ ERROR: exited with error status (\$?)\" >&2
 				[ '$verbose' = '+' ] || echo '>> Parallel: done: [$slot]' >&2
 			" 
-			echo >&3 || :
-		} </dev/null &
+			printf '%-7s\n' $slot >&4 || :
+		} </dev/null 3<&- &
+		exec 4>&-
 
 		# book-keep: <slotNumber>:<waiterPid>
 		SLOT_PIDS="$slot:$! $SLOT_PIDS"
@@ -134,12 +128,11 @@ Parallel(){
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] all dispatched" >&2
 
 	#echo "Parallel: all dispatched"
-	exec 4>&- || :
-	kill -TERM $mainPid 2>/dev/null || :
-	wait $mainPid 2>/dev/null || :
-	echo >&3 || :
-	exec 3>&- || :
+	# no job is started any more: read on until the last running job has let go of the pipe
+	while slot="$(dd bs=8 count=1 <&3 2>/dev/null)" && [ -n "$slot" ] || [ $? -gt 128 ]; do :; done
+	exec 3<&- || :
 	wait || :
+	rm -rf -- "$TMPPARALLEL_DIR" || :
 
 	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] done." >&2
 }
