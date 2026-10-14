@@ -62,7 +62,7 @@ GitCloneSync(){
 		cd "$tgtPath"
 
 		# non-git existing folder, init-add-commit-push
-		if [ "$noPush" != "true" ] && [ ! -d ".git" ] && [ "0" = "`git ls-remote --exit-code -h "$repoUrl" ; echo $? | tr '2' '0'`" ] ; then
+		if [ "$noPush" != "true" ] && [ ! -d ".git" ] && [ "0" = "`git ls-remote --exit-code -h "$repoUrl" >/dev/null || echo $? | tr '2' '0'`" ] ; then
 			echo "GitCloneSync: 🆕 Initializing git repository..." >&2
 			git init
 			git remote add origin "$repoUrl"
