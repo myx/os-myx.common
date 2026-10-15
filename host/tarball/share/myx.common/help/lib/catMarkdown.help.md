@@ -26,6 +26,27 @@ to drop all ANSI formatting and produce plain text.
 
 		Removes all ANSI formatting. Output becomes plain text.
 
+	--spans
+
+		For a program that draws the text itself: each line is printed as its text,
+		a TAB and its spans, `<byte offset>+<bytes>+<look>` separated by commas; the
+		looks are h1 h2 h3 strong em code quote rule meta item head link. Front matter
+		shows as facts (meta), a table in columns, a link as its text (link).
+
+	--width <cells>
+
+		With --spans: lines are broken at words to that many cells, a broken line going
+		on under its text; a table wider than that has its cells broken in narrower
+		columns, its rows set apart by a line.
+
+	--no-wrap
+
+		With --spans: no line is broken, and a table keeps its width.
+
+	--ascii
+
+		With --spans: the marks of headings, items, rules and tables in ASCII.
+
 ##  Examples:
 
 	# Render markdown from stdin or default input

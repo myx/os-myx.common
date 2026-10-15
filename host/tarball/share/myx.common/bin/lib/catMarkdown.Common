@@ -9,11 +9,17 @@ fi
 CatMarkdown() {
 	set -e
 
-	local doStripAll doForceTty doBasicSed
+	local doStripAll doForceTty doBasicSed doSpans spansArgs=''
 	while [ $# -gt 0 ]; do case "$1" in
 		--strip-all) shift ; doStripAll=yes ;;
 		--force-tty) shift ; doForceTty=yes ;;
 		--basic-sed) shift ; doBasicSed=yes ;;
+		--spans) shift ; doSpans=yes ; spansArgs="$spansArgs --spans" ;;
+		--width)
+			case "${2-}" in ''|*[!0-9]*) echo "⛔ ERROR: CatMarkdown: --width needs a number of cells" >&2 ; set +e ; return 1 ;; esac
+			spansArgs="$spansArgs --width=$2" ; shift 2 ;;
+		--no-wrap) shift ; spansArgs="$spansArgs --no-wrap" ;;
+		--ascii) shift ; spansArgs="$spansArgs --ascii" ;;
 		*) break ;;
 	esac done 
 
@@ -35,6 +41,17 @@ CatMarkdown() {
 	fi
 
 	local awkFile='' useAnsi=''
+
+	# For a program that draws it: each line its text, a TAB and its spans, counted in bytes, so the awk counts bytes.
+	if [ -n "$doSpans" ] ; then
+		awkFile="${MYXROOT:-/usr/local/share/myx.common}/include/data/catMarkdown.awk"
+		if [ -n "$fromFile" ] ; then
+			LC_ALL=C awk -f "$awkFile" -- $spansArgs < "$fromFile"
+		else
+			LC_ALL=C awk -f "$awkFile" -- $spansArgs
+		fi
+		return 0
+	fi
 
 	if [ -z "$doBasicSed" ]; then
 		awkFile="${MYXROOT:-/usr/local/share/myx.common}/include/data/catMarkdown.awk"
