@@ -189,9 +189,9 @@ function visible(s) {
 # ---- --spans: a line as bytes, each with its look ----
 
 # the bytes of a rendered text into DB[key, ...] and their looks into DL[key, ...]; gives their count
-function decode(s, key,    n, k, c, o, sp, ST) {
-	n = 0; sp = 0
-	for (k = 1; k <= length(s); k++) {
+function decode(s, key,    n, k, c, o, sp, ST, size) {
+	n = 0; sp = 0; size = length(s)
+	for (k = 1; k <= size; k++) {
 		c = substr(s, k, 1)
 		o = ORD[c]
 		if (o >= 1 && o < 32 && c != "\t") {
@@ -232,8 +232,9 @@ function lbAdd(key, a, e,    k) {
 	for (k = a; k <= e; k++) { LBB[++LBN] = DB[key, k]; LBL[LBN] = DL[key, k] }
 }
 
-function lbText(s, look,    k) {
-	for (k = 1; k <= length(s); k++) { LBB[++LBN] = substr(s, k, 1); LBL[LBN] = look }
+function lbText(s, look,    k, size) {
+	size = length(s)
+	for (k = 1; k <= size; k++) { LBB[++LBN] = substr(s, k, 1); LBL[LBN] = look }
 }
 
 # the line built, printed as its text, a TAB and its spans; then a new one
@@ -250,7 +251,64 @@ function lbEmit(    k, text, out, start) {
 	LBN = 0
 }
 
-function emitSpans(s, hang,    n, a, room, first) {
+# A rendered line as its text (TEXT) and its spans (SPAN_AT, SPAN_LEN, SPAN_LOOK, SPANS of them),
+# by the runs between the marks of its looks; gives the text.
+function splitLooks(s,    sp, ST, c, look) {
+	TEXT = ""; SPANS = 0; sp = 0
+	while (s != "") {
+		if (match(s, /[\001-\037]/)) { c = substr(s, RSTART, 1); look = substr(s, 1, RSTART-1); s = substr(s, RSTART+1) }
+		else { c = ""; look = s; s = "" }
+		if (look != "") {
+			if (sp > 0 && SPANS > 0 && SPAN_LOOK[SPANS] == ST[sp] && SPAN_AT[SPANS] + SPAN_LEN[SPANS] == length(TEXT) + 1) SPAN_LEN[SPANS] += length(look)
+			else if (sp > 0) { SPAN_AT[++SPANS] = length(TEXT) + 1; SPAN_LEN[SPANS] = length(look); SPAN_LOOK[SPANS] = ST[sp] }
+			TEXT = TEXT look
+		}
+		if (c == POP) { if (sp > 0) sp-- }
+		else if (c == RESET) sp = 0
+		else if (c in LOOK) ST[++sp] = LOOK[c]
+		else if (c == "\t") TEXT = TEXT c
+	}
+	return TEXT
+}
+
+# the spans of the bytes a..e of TEXT, after `lead` bytes, as --spans prints them
+function spansOf(a, e, lead,    i, from, to, out) {
+	out = ""
+	for (i = 1; i <= SPANS; i++) {
+		from = SPAN_AT[i] > a ? SPAN_AT[i] : a
+		to = SPAN_AT[i] + SPAN_LEN[i] - 1 < e ? SPAN_AT[i] + SPAN_LEN[i] - 1 : e
+		if (from <= to) out = out (out == "" ? "" : ",") (lead + from - a) "+" (to - from + 1) "+" SPAN_LOOK[i]
+	}
+	return out
+}
+
+function emitSpans(s, hang,    n, a, room, first, text, stop, nxt, k, seen, at) {
+	# a line with no look that fits in its bytes, which are never fewer than its cells: as it is
+	if (s !~ /[\001-\037]/ && (width <= 0 || nowrap || length(s) <= width)) { print s "\t"; return }
+	text = splitLooks(s)
+	n = length(text)
+	if (text ~ /^[ -~]*$/) {
+		# one byte a character and a cell each: broken by its text
+		if (width <= 0 || nowrap || n <= width) { print text "\t" spansOf(1, n, 0); return }
+		a = 1; first = 1
+		while (a <= n) {
+			room = width - (first ? 0 : length(hang))
+			if (room < 1) room = 1
+			if (n - a + 1 <= room) { stop = n; nxt = n + 1 }
+			else {
+				at = 0; seen = 0
+				for (k = a; k < a + room; k++) {
+					if (substr(text, k, 1) == " ") { if (seen) at = k } else seen = 1
+				}
+				if (at) { stop = at - 1; nxt = at } else { stop = a + room - 1; nxt = stop + 1 }
+				while (stop > a && substr(text, stop, 1) == " ") stop--
+				while (nxt <= n && substr(text, nxt, 1) == " ") nxt++
+			}
+			print (first ? "" : hang) substr(text, a, stop - a + 1) "\t" spansOf(a, stop, first ? 0 : length(hang))
+			a = nxt; first = 0
+		}
+		return
+	}
 	n = decode(s, "L")
 	LBN = 0
 	if (n == 0 || width <= 0 || nowrap) { lbAdd("L", 1, n); lbEmit(); return }
