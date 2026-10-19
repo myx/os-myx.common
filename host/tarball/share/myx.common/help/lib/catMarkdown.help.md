@@ -6,7 +6,8 @@ Supported OS: Linux, FreeBSD, Darwin.
 
 A stylized Markdown viewer that renders ANSI-colored output by default
 for vivid headings, lists, and code blocks in your terminal. Add `--strip-all`
-to drop all ANSI formatting and produce plain text.
+to drop all ANSI formatting and produce plain text. Where the environment
+variable `NO_COLOR` has a value, no colour is added, also with `--force-tty`.
 
 ##  Arguments:
 
@@ -35,9 +36,23 @@ to drop all ANSI formatting and produce plain text.
 
 	--width <cells>
 
-		With --spans: lines are broken at words to that many cells, a broken line going
-		on under its text; a table wider than that has its cells broken in narrower
-		columns, its rows set apart by a line.
+		The cells of a line, with which a table is laid out: a table wider than that has
+		its widest columns narrowed and the words of their cells broken in them, its
+		header marked and a rule under it, and a rule between two rows where either takes
+		more than one line, so that the rows are told apart where they wrap. A table that
+		fits is as it is.
+
+		With --spans: lines are broken at words to that many cells too, a broken line
+		going on under its text.
+
+		Without --spans only the tables are laid out; the rest of the text is not broken.
+		Without --width, where the output is a terminal, the width of the terminal is
+		taken; where it is not, a table stands as it always did, as wide as its words.
+
+	--height <rows>
+
+		The rows of the window the text is shown in, for a caller that knows it. It is
+		given so that a caller can always give both sizes; no layout here goes by it.
 
 	--no-wrap
 

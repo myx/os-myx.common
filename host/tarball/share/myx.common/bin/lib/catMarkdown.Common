@@ -6,10 +6,24 @@ if type CatMarkdown >/dev/null 2>&1 ; then
 	return 0
 fi
 
+# Prints the cells of the terminal the output is, nothing where they are not known.
+CatMarkdownTerminalWidth() {
+	local size cols=''
+	size="$( stty size 2>/dev/null < /dev/tty )" || size=''
+	cols="${size##* }"
+	case "$cols" in ''|*[!0-9]*)
+		cols=''
+		# tput finds the size through the terminal it is on, so its error output is left where it is
+		if [ -n "${TERM-}" ] && [ "$TERM" != dumb ] ; then cols="$( tput cols )" || cols='' ; fi
+	;; esac
+	case "$cols" in ''|*[!0-9]*|0) return 0 ;; esac
+	echo "$cols"
+}
+
 CatMarkdown() {
 	set -e
 
-	local doStripAll doForceTty doBasicSed doSpans spansArgs=''
+	local doStripAll doForceTty doBasicSed doSpans spansArgs='' widthArg='' heightArg=''
 	while [ $# -gt 0 ]; do case "$1" in
 		--strip-all) shift ; doStripAll=yes ;;
 		--force-tty) shift ; doForceTty=yes ;;
@@ -17,7 +31,10 @@ CatMarkdown() {
 		--spans) shift ; doSpans=yes ; spansArgs="$spansArgs --spans" ;;
 		--width)
 			case "${2-}" in ''|*[!0-9]*) echo "⛔ ERROR: CatMarkdown: --width needs a number of cells" >&2 ; set +e ; return 1 ;; esac
-			spansArgs="$spansArgs --width=$2" ; shift 2 ;;
+			spansArgs="$spansArgs --width=$2" ; widthArg="$2" ; shift 2 ;;
+		--height)
+			case "${2-}" in ''|*[!0-9]*) echo "⛔ ERROR: CatMarkdown: --height needs a number of rows" >&2 ; set +e ; return 1 ;; esac
+			spansArgs="$spansArgs --height=$2" ; heightArg="$2" ; shift 2 ;;
 		--no-wrap) shift ; spansArgs="$spansArgs --no-wrap" ;;
 		--ascii) shift ; spansArgs="$spansArgs --ascii" ;;
 		*) break ;;
@@ -57,7 +74,8 @@ CatMarkdown() {
 		awkFile="${MYXROOT:-/usr/local/share/myx.common}/include/data/catMarkdown.awk"
 	fi
 
-	if [ -z "$doStripAll" ]; then
+	# No colour where NO_COLOR names a value, nor with --strip-all
+	if [ -z "$doStripAll" ] && [ -z "${NO_COLOR-}" ]; then
 		if [ -n "$doForceTty" ] ; then
 			useAnsi=--use-ansi
 		elif
@@ -72,7 +90,23 @@ CatMarkdown() {
 
 	# Every stage below reads stdin already, so the file case is a redirect on the first stage, not a `cat`.
 	if [ -f "$awkFile" ]; then
-		if [ -n "$fromFile" ] ; then
+		# The width a table is laid out to: the one given, else the terminal's own where the output is a terminal. With none,
+		# the text is as it always was. A table laid out counts bytes, as --spans does.
+		local useWidth="${widthArg:-0}" widthArgs=''
+		if [ "$useWidth" -le 0 ] && [ -t 1 ] ; then
+			useWidth="$( CatMarkdownTerminalWidth )"
+		fi
+		if [ "${useWidth:-0}" -gt 0 ] ; then
+			widthArgs="--width=$useWidth"
+			[ "${heightArg:-0}" -le 0 ] || widthArgs="$widthArgs --height=$heightArg"
+		fi
+		if [ -n "$widthArgs" ] ; then
+			if [ -n "$fromFile" ] ; then
+				LC_ALL=C awk -f "$awkFile" -- $useAnsi $widthArgs < "$fromFile"
+			else
+				LC_ALL=C awk -f "$awkFile" -- $useAnsi $widthArgs
+			fi
+		elif [ -n "$fromFile" ] ; then
 			awk -f "$awkFile" -- $useAnsi < "$fromFile"
 		else
 			awk -f "$awkFile" -- $useAnsi

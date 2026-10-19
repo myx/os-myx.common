@@ -1,9 +1,17 @@
 #!/usr/bin/env awk
 
+# Options, as operands after `--`: --use-ansi, the text in the codes of a terminal; --spans, the form for a program that draws
+# the text itself; --width=N, the cells of a line, with which a table is laid out to it (in the text form too, not only
+# with --spans); --height=N, the lines of the viewport, given so that a caller can always give both sizes, which no layout
+# here goes by; --no-wrap and --ascii, with --spans. A table laid out to a width has its columns fitted to it, its cells
+# wrapped at their words, its header marked and a rule under it, and a rule between two rows where either takes more than
+# one line, so that the rows are told apart where they wrap; never by the colour of a text. Without a width a table is as it
+# always was.
+
 BEGIN {
 
   ansi = 0
-  spans = 0; width = 0; nowrap = 0; ascii = 0
+  spans = 0; width = 0; height = 0; nowrap = 0; ascii = 0
   for (i = 1; i < ARGC; i++) {
     if (ARGV[i] == "--use-ansi") {
       ansi = 1
@@ -14,6 +22,9 @@ BEGIN {
     } else if (ARGV[i] ~ /^--width=[0-9]+$/) {
       width = substr(ARGV[i], 9) + 0
       delete ARGV[i]
+    } else if (ARGV[i] ~ /^--height=[0-9]+$/) {
+      height = substr(ARGV[i], 10) + 0
+      delete ARGV[i]
     } else if (ARGV[i] == "--no-wrap") {
       nowrap = 1
       delete ARGV[i]
@@ -23,6 +34,12 @@ BEGIN {
     }
   }
   if (spans) ansi = 0
+
+  # marks of no width open and close the looks of a text: the program that draws it reads them as spans (--spans), and a table
+  # laid out to a width in the text form is built of them (emitTable) and painted (paint)
+  split("h1 h2 h3 strong em code quote rule meta item head link", lookNames, " ")
+  for (i = 1; i <= 12; i++) { MARK[lookNames[i]] = sprintf("%c", i < 7 ? i : i + 7); LOOK[MARK[lookNames[i]]] = lookNames[i] }
+  POP = sprintf("%c", 20); RESET = sprintf("%c", 21)
 
   if (ansi) {
 	esc = sprintf("%c",27)
@@ -36,12 +53,11 @@ BEGIN {
     Q_ON   = esc "[90m";   Q_OFF   = R
     BUL_ON = esc "[32m";   BUL_OFF = R
     IC_ON  = C_ON;         IC_OFF  = C_OFF
+    # what the marks of a table paint as, the codes of the looks above
+    PAINT["strong"] = "1"; PAINT["em"] = "3"; PAINT["code"] = "96"; PAINT["rule"] = "90"; PAINT["head"] = "1"
   } else if (spans) {
-    # --spans: marks of no width open and close the looks; each line is printed as its text,
+    # --spans: the marks open and close the looks; each line is printed as its text,
     # a TAB, and its spans `<byte offset>+<bytes>+<look>`, comma-separated (emitSpans)
-    split("h1 h2 h3 strong em code quote rule meta item head link", lookNames, " ")
-    for (i = 1; i <= 12; i++) { MARK[lookNames[i]] = sprintf("%c", i < 7 ? i : i + 7); LOOK[MARK[lookNames[i]]] = lookNames[i] }
-    POP = sprintf("%c", 20); RESET = sprintf("%c", 21)
     R      = RESET
     H1_ON  = MARK["h1"]; H2_ON = MARK["h2"]; H3_ON = MARK["h3"]
     B_ON   = MARK["strong"]; B_OFF = POP
@@ -237,7 +253,7 @@ function lbText(s, look,    k, size) {
 	for (k = 1; k <= size; k++) { LBB[++LBN] = substr(s, k, 1); LBL[LBN] = look }
 }
 
-# the line built, printed as its text, a TAB and its spans; then a new one
+# the line built, put out as its text and its spans (outLine); then a new one
 function lbEmit(    k, text, out, start) {
 	text = ""; out = ""; start = 0
 	for (k = 1; k <= LBN; k++) {
@@ -247,8 +263,47 @@ function lbEmit(    k, text, out, start) {
 			start = k
 		}
 	}
-	print text "\t" out
+	outLine(text, out)
 	LBN = 0
+}
+
+# A line of a table put out: for a program (--spans) as its text, a TAB and its spans; in the text form painted, with the
+# blanks that padded its last column left off
+function outLine(text, out) {
+	if (spans) { print text "\t" out; return }
+	sub(/ +$/, "", text)
+	print paint(text, out)
+}
+
+# A text in the codes of a terminal, by its spans `<byte offset>+<bytes>+<look>`; as it is without --use-ansi
+function paint(text, out,    n, parts, f, k, at, len, pos, res) {
+	if (!ansi) return text
+	res = ""; pos = 0
+	n = out == "" ? 0 : split(out, parts, ",")
+	for (k = 1; k <= n; k++) {
+		split(parts[k], f, "+")
+		at = f[1] + 0; len = f[2] + 0
+		if (at >= length(text)) break
+		if (at > pos) res = res substr(text, pos + 1, at - pos)
+		res = res (f[3] in PAINT ? esc "[" PAINT[f[3]] "m" substr(text, at + 1, len) esc "[0m" : substr(text, at + 1, len))
+		pos = at + len
+	}
+	if (pos < length(text)) res = res substr(text, pos + 1)
+	return res
+}
+
+# The words of a cell of a table laid out in the text form are built of marks, as for a program, and not of the codes of a
+# terminal, which paint puts back: the looks of the inline words are set to them while a table is built (emitTable), and to
+# what they were after it.
+function tableMarks(on) {
+	if (on) {
+		SAVED["B_ON"] = B_ON; SAVED["B_OFF"] = B_OFF; SAVED["I_ON"] = I_ON; SAVED["I_OFF"] = I_OFF; SAVED["IC_ON"] = IC_ON; SAVED["IC_OFF"] = IC_OFF
+		B_ON = MARK["strong"]; B_OFF = POP; I_ON = MARK["em"]; I_OFF = POP
+		# inline code keeps its backticks where nothing else marks it
+		IC_ON = ansi ? MARK["code"] : "`"; IC_OFF = ansi ? RESET : "`"
+	} else {
+		B_ON = SAVED["B_ON"]; B_OFF = SAVED["B_OFF"]; I_ON = SAVED["I_ON"]; I_OFF = SAVED["I_OFF"]; IC_ON = SAVED["IC_ON"]; IC_OFF = SAVED["IC_OFF"]
+	}
 }
 
 # A rendered line as its text (TEXT) and its spans (SPAN_AT, SPAN_LEN, SPAN_LOOK, SPANS of them),
@@ -370,14 +425,18 @@ function tableRow(s,    count, parts, i, cell) {
 	if (count > tableColumns) tableColumns = count
 }
 
-# A table in columns, its head strong and a line under it. With --spans and --width=N, one
-# wider than that has its widest columns narrowed and the words of their cells broken in
-# them, its rows set apart by a line; with --no-wrap, or without --spans, it keeps its width.
-function emitTable(    r, c, w, natural, total, room, widest, least, line, broken, k, rendered, key, lines, i) {
+# A table in columns, its head strong and a line under it. Laid out to a width (--width=N, with
+# --spans or not) one wider than that has its widest columns narrowed and the words of their
+# cells broken in them, a line between two rows where either takes more than one, so that the
+# rows are told apart where they wrap; with --no-wrap, or with no width, it keeps its width
+# (with no width and not for a program, as it always was).
+function emitTable(    r, c, w, natural, total, room, widest, least, line, broken, k, rendered, key, lines, i, laid, before) {
+	laid = spans || width > 0
+	if (laid && !spans) tableMarks(1)
 	for (c = 1; c <= tableColumns; c++) { natural[c] = 0; least[c] = 0 }
 	for (r = 1; r <= tableRows; r++) for (c = 1; c <= tableColumns; c++) {
 		rendered = r == 1 ? B_ON TC[r, c] B_OFF : inline(TC[r, c])
-		if (spans && r == 1) rendered = MARK["head"] TC[r, c] RESET
+		if (laid && r == 1) rendered = MARK["head"] TC[r, c] RESET
 		TR[r, c] = rendered
 		w = cellsOf(visible(rendered))
 		TW[r, c] = w
@@ -389,7 +448,7 @@ function emitTable(    r, c, w, natural, total, room, widest, least, line, broke
 	for (c = 1; c <= tableColumns; c++) total += CW[c]
 	room = width - cellsOf(COLUMN) * (tableColumns - 1)
 	broken = 0
-	if (spans && width > 0 && !nowrap && total > room) {
+	if (laid && width > 0 && !nowrap && total > room) {
 		while (total > room) {
 			widest = 0
 			for (c = 1; c <= tableColumns; c++) if (CW[c] > least[c] && (!widest || CW[c] > CW[widest])) widest = c
@@ -398,7 +457,7 @@ function emitTable(    r, c, w, natural, total, room, widest, least, line, broke
 		}
 		broken = 1
 	}
-	if (!spans) {
+	if (!laid) {
 		for (r = 1; r <= tableRows; r++) {
 			line = ""
 			for (c = 1; c <= tableColumns; c++)
@@ -427,7 +486,8 @@ function emitTable(    r, c, w, natural, total, room, widest, least, line, broke
 			}
 			if (PIECES[r, c] > lines) lines = PIECES[r, c]
 		}
-		if (broken && r > 2) emitTableRule()
+		if (r > 2 && (lines > 1 || before > 1)) emitTableRule()
+		if (r > 1) before = lines
 		for (i = 1; i <= lines; i++) {
 			LBN = 0
 			for (c = 1; c <= tableColumns; c++) {
@@ -442,6 +502,7 @@ function emitTable(    r, c, w, natural, total, room, widest, least, line, broke
 		}
 		if (r == 1) emitTableRule()
 	}
+	if (!spans) tableMarks(0)
 }
 
 function emitTableRule(    c, line) {
