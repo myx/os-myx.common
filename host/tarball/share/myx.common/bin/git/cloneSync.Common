@@ -68,7 +68,7 @@ GitCloneSync(){
 			git remote add origin "$repoUrl"
 			git add .
 			git commit -m "GitCloneSync: Initial commit"
-			git push -u origin "${specificBranch:-master}"
+			git push -u origin HEAD
 		fi
 
 		# check switch branch
