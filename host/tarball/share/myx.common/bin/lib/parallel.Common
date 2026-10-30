@@ -22,6 +22,7 @@ Parallel(){
 			WORKERS=$((WORKERS * 4)); shift ;;
 		--verbose|-v)   verbose='-'; shift ;;
 		--quiet|-q)   verbose='+'; shift ;;
+		--silent|-S)   verbose='++'; shift ;;
 		--|--eval) shift; break ;;
 		*) break ;;
 	esac done
@@ -60,7 +61,7 @@ Parallel(){
 	exec 4>&-
 	mainPid=$$
 
-	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
+	[ "${verbose#+}" != "$verbose" ] || echo ">> Parallel: [$mainPid] start, limit: $WORKERS, command: $PARALLEL_CMD, temp: $TMPPARALLEL_DIR" >&2
 
 	local ready slot curr waiter
 
@@ -111,9 +112,9 @@ Parallel(){
 		{
 			set -e
 			eval " 
-				[ '$verbose' = '+' ] || echo '>> Parallel: exec: [$slot] $PARALLEL_CMD $PARALLEL_LINE' >&2
-				( $PARALLEL_CMD $PARALLEL_LINE ) 3>/dev/null 4>/dev/null || echo \"⛔ ERROR: exited with error status (\$?)\" >&2
-				[ '$verbose' = '+' ] || echo '>> Parallel: done: [$slot]' >&2
+				[ '${verbose#+}' != '$verbose' ] || echo '>> Parallel: exec: [$slot] $PARALLEL_CMD $PARALLEL_LINE' >&2
+				( $PARALLEL_CMD $PARALLEL_LINE ) 3>/dev/null 4>/dev/null || { parallelJobRc=\$? ; [ '$verbose' = '++' ] || echo \"⛔ ERROR: exited with error status (\$parallelJobRc)\" >&2 ; : > '$TMPPARALLEL_DIR/failed' ; }
+				[ '${verbose#+}' != '$verbose' ] || echo '>> Parallel: done: [$slot]' >&2
 			" 
 			printf '%-7s\n' $slot >&4 || :
 		} </dev/null 3<&- &
@@ -125,16 +126,20 @@ Parallel(){
 
 	done
 
-	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] all dispatched" >&2
+	[ "${verbose#+}" != "$verbose" ] || echo ">> Parallel: [$mainPid] all dispatched" >&2
 
 	#echo "Parallel: all dispatched"
 	# no job is started any more: read on until the last running job has let go of the pipe
 	while slot="$(dd bs=8 count=1 <&3 2>/dev/null)" && [ -n "$slot" ] || [ $? -gt 128 ]; do :; done
 	exec 3<&- || :
 	wait || :
+	## As xargs: every job has had its chance, and a failure of any of them makes the run's status.
+	local parallelRc=0
+	[ ! -e "$TMPPARALLEL_DIR/failed" ] || parallelRc=123
 	rm -rf -- "$TMPPARALLEL_DIR" || :
 
-	[ "$verbose" = '+' ] || echo ">> Parallel: [$mainPid] done." >&2
+	[ "${verbose#+}" != "$verbose" ] || echo ">> Parallel: [$mainPid] done." >&2
+	return $parallelRc
 }
 
 case "$0" in

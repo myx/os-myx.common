@@ -1,6 +1,6 @@
 echo '📘 Syntax: myx.common lib/parallel [<option> ...] <command> [<command-argument> ...]' >&2
 echo '📘 Syntax: myx.common lib/parallel [-v] [-w <number>] <command> [<command-argument> ...]' >&2
-echo '📘 Syntax: myx.common lib/parallel [--workers <number>|--workers=<number>] [--verbose|--quiet] [--] <command> [<command-argument> ...]' >&2
+echo '📘 Syntax: myx.common lib/parallel [--workers <number>|--workers=<number>] [--verbose|--quiet|--silent] [--] <command> [<command-argument> ...]' >&2
 echo '📘 Syntax: myx.common lib/parallel --help' >&2
 echo '' >&2
 [ "$1" != '--help' ] || myx.common lib/catMarkdown "${MYXROOT:=/usr/local/share/myx.common}/help/lib/parallel.help.md" >&2
