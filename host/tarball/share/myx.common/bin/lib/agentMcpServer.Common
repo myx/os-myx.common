@@ -371,6 +371,29 @@ AgentMcpHandleRequest(){
 	esac
 }
 
+# Every pid below one, deepest first: a grandchild the command forked goes with it.
+AgentMcpEndDescendants(){ ## pid
+	local endChild
+	for endChild in $( ps -ax -o pid=,ppid= 2>/dev/null | LC_ALL=C awk -v parent="$1" '$2 == parent { print $1 }' ) ; do
+		AgentMcpEndDescendants "$endChild"
+	done
+	kill -TERM "$1" 2>/dev/null || true
+}
+
+# Ends every request still in flight (inflight/<id> holds its pid): everything it started first, then it. Run when the server ends, so a
+# handler never outlives it.
+AgentMcpServerEndInflight(){
+	local endFile endPid
+	[ -d "$AGENT_MCP_REQ_BASE/inflight" ] || return 0
+	for endFile in "$AGENT_MCP_REQ_BASE/inflight"/* ; do
+		case "$endFile" in *.tmp) continue ;; esac
+		[ -f "$endFile" ] || continue
+		endPid="$(cat "$endFile" 2>/dev/null || true)"
+		case "$endPid" in ''|*[!0-9]*) continue ;; esac
+		AgentMcpEndDescendants "$endPid"
+	done
+}
+
 AgentMcpServerLoop(){
 	MYX_COMMON_BIN="${MYXROOT%/share/myx.common}/bin/myx.common"
 	[ -x "$MYX_COMMON_BIN" ] || { echo "⛔ ERROR: AgentMcpServerLoop: can't resolve myx.common executable from MYXROOT ($MYXROOT)" >&2; return 1; }
@@ -387,7 +410,9 @@ AgentMcpServerLoop(){
 	[ -z "$callerSessionId" ] || callerInfo="$callerInfo caller_session=$callerSessionId"
 	echo "myx.common agentMcp: $callerInfo AGENT_MCP_REQ_BASE=$AGENT_MCP_REQ_BASE (inflight/ ready)" >&2
 	AGENT_MCP_ASYNC_SEQ=0
-	trap 'rm -rf "$AGENT_MCP_REQ_BASE"' EXIT INT TERM
+	# TERM and INT end the server (and every request in flight); EXIT only cleans up, so the two cannot recurse.
+	trap 'AgentMcpServerEndInflight ; rm -rf "$AGENT_MCP_REQ_BASE" ; trap - EXIT ; exit 0' INT TERM
+	trap 'AgentMcpServerEndInflight ; rm -rf "$AGENT_MCP_REQ_BASE"' EXIT
 
 	while IFS= read -r LINE || [ -n "$LINE" ]; do
 		[ -n "$LINE" ] || continue
@@ -397,6 +422,8 @@ AgentMcpServerLoop(){
 		AgentMcpHandleRequest "$reqDir"
 	done
 
+	# The caller is gone (end of input): what is still in flight answers nobody.
+	AgentMcpServerEndInflight
 	rm -rf "$AGENT_MCP_REQ_BASE"
 	trap - EXIT INT TERM
 }
